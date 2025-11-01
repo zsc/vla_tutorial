@@ -79,7 +79,7 @@ LoG/DoG 在不同 (\sigma) 上找极值，稳定关键点。**Rule‑of‑thumb*
 图像塔 (f_\theta(x)) 与文本塔 (g_\phi(t)) 被拉到同一嵌入空间，使用温度化的余弦相似度 (s_{ij}=\frac{f_i^\top g_j}{|f_i||g_j|})。对称 InfoNCE：
 $$
 \mathcal{L}*{\text{img}\to\text{text}}
-= -\frac{1}{N}\sum*{i=1}^N
+= -\frac{1}{N}\sum_{i=1}^N
 \log
 \frac{\exp(s_{ii}/\tau)}{\sum_{j=1}^N \exp(s_{ij}/\tau)},\quad
 \mathcal{L}*{\text{text}\to\text{img}}\ \text{同理},

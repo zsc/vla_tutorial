@@ -25,7 +25,7 @@
 
 常见目标范式：
 
-* **成对对比**（如 CLIP 思想扩展）：(V\leftrightarrow L), (L\leftrightarrow A), (V\leftrightarrow A)；
+* **成对对比**（如 CLIP 思想扩展）：$V\leftrightarrow L$, $L\leftrightarrow A$, $V\leftrightarrow A$；
 * **三元一致**：三者在同一局部语义锥中；
 * **循环一致**：(V\rightarrow L\rightarrow A) 与 (V\rightarrow A) 一致；
 * **产品/和声专家**（PoE/MoE）：不同模态提供互补约束。
@@ -37,14 +37,14 @@
 ### 5.2 视觉—语言：深度融合 vs. 模块化对齐
 
 **成对对比损失（双向）**
-设批量大小为 (N)，相似度 (s_{ij}=\frac{\langle z_{V,i},z_{L,j}\rangle}{\tau})。InfoNCE/双向对比：
-[
+设批量大小为 (N)，相似度 $s_{ij}=\frac{\langle z_{V,i},z_{L,j}\rangle}{\tau}$。InfoNCE/双向对比：
+$$
 \mathcal{L}*{V\leftrightarrow L}=
--\frac{1}{2N}\sum*{i=1}^N \Big[
+-\frac{1}{2N}\sum_{i=1}^N \Big[
 \log \frac{e^{s_{ii}}}{\sum_{j} e^{s_{ij}}}
 +\log \frac{e^{s_{ii}}}{\sum_{j} e^{s_{ji}}}
 \Big].
-]
+$$
 
 **融合方式**
 
@@ -64,16 +64,14 @@
 常用目标函数：
 
 1. **对比式 L–A**（文本–动作配对）：
-   [
+
+$$
    \mathcal{L}*{L\leftrightarrow A}=
-   -\frac{1}{2N}\sum*{i}\Big[
-   \log \frac{e^{\langle z_{L,i},z_{A,i}\rangle/\tau}}{\sum_{j}e^{\langle z_{L,i},z_{A,j}\rangle/\tau}}
-
-*
-
-\log \frac{e^{\langle z_{A,i},z_{L,i}\rangle/\tau}}{\sum_{j}e^{\langle z_{A,i},z_{L,j}\rangle/\tau}}
-\Big].
-]
+   -\frac{1}{2N}\sum_{i}\Big[
+   \log \frac{e^{\langle z_{L,i},z_{A,i}\rangle/\tau}}{\sum_{j}e^{\langle z_{L,i},z_{A,j}\rangle/\tau}} *
+    \log \frac{e^{\langle z_{A,i},z_{L,i}\rangle/\tau}}{\sum_{j}e^{\langle z_{A,i},z_{L,j}\rangle/\tau}}
+    \Big].
+$$
 2. **序列一致性**：对动作序列 (\mathbf{a}_{1:T}) 进行**低频优先**的谱域重构（见 5.4）。
 3. **可达性约束**：惩罚违反最大速度/加速度/跃度的样本（来自第 4 章控制先验）。
 
@@ -86,23 +84,19 @@
 直接对比 (V\leftrightarrow A) 往往不稳定（感知噪声→行动放大）。实用方案：
 
 * **语言辅助**：用 L 作为“桥”，加入 (\mathcal{L}*{cycle})：
-  [
-  \mathcal{L}*{cycle} = \frac{1}{N}\sum_i
+$$
+  \mathcal{L}_{cycle} = \frac{1}{N}\sum_i
   \big[
-  d(z_{V,i},,g_{LA}(z_{L,i},z_{A,i}))
-
--
-
-d(z_{A,i},,g_{VL}(z_{V,i},z_{L,i}))
+  d(z_{V,i},,g_{LA}(z_{L,i},z_{A,i})) - d(z_{A,i},,g_{VL}(z_{V,i},z_{L,i}))
 \big],
-]
+$$
 其中 (g_{\cdot}) 为小头部网络，(d) 为距离度量。
 
 * **频谱一致性**：鼓励 V 的时空特征与 A 的频率成分在**可控带宽**内同调。定义**跨谱相干**：
-  [
+  $$
   \gamma_{VA}(f)=\frac{|S_{VA}(f)|^2}{S_{VV}(f),S_{AA}(f)},\quad
-  \mathcal{L}*{spec}=\int \big(1-\gamma*{VA}(f)\big),\omega(f),df.
-  ]
+  \mathcal{L}_{spec}=\int \big(1-\gamma*{VA}(f)\big),\omega(f),df.
+  $$
 
 > **Rule‑of‑thumb**：把动作的 Nyquist 频率设为控制环的 (0.3\sim 0.5) 倍；以**带通权重 (\omega(f))**强调 0.1–1.0 Hz（车控/手臂常见范围）。
 
@@ -120,7 +114,7 @@ d(z_{A,i},,g_{VL}(z_{V,i},z_{L,i}))
  A-stream -----> [Enc_A] --/
                        ^             ^
                        |             |
-                 [Gating/FiLM]   [Shared Codebook/VQ]
+                 [Gating/FiLM]   [Shared Codebook/VQ$$
 ```
 
 **关键部件**
@@ -137,10 +131,10 @@ d(z_{A,i},,g_{VL}(z_{V,i},z_{L,i}))
 ### 5.6 训练信号：对比、互信息、互监督与蒸馏
 
 * **三对对比 + 三元一致**：
-  [
+  $$
   \mathcal{L}*{align}=\lambda*{VL}\mathcal{L}*{V\leftrightarrow L}+\lambda*{LA}\mathcal{L}*{L\leftrightarrow A}
   +\lambda*{VA}\mathcal{L}*{V\leftrightarrow A}+\lambda*{cyc}\mathcal{L}_{cycle}.
-  ]
+  $$
 * **互信息下界（InfoNCE）**：(I(X;Y)\ge \log N-\mathcal{L}_{NCE})；用于监控对齐强度。
 * **互监督**：跨模态伪标签/一致性约束（如时域抖动、遮挡）。
 * **蒸馏**：从几何/控制教师（MPC、轨迹优化器）向对齐空间蒸馏“**可达性 logits**”。
@@ -180,9 +174,9 @@ d(z_{A,i},,g_{VL}(z_{V,i},z_{L,i}))
 **ASCII 评测流水线**
 
 ```
-[Paired/Triples] --> [Align Train] --> [Retrieval Bench]
+[Paired/Triples] --> [Align Train] --> [Retrieval Bench$$
                                    \
-                                    \--> [Instr-Follow Sim] --> [Action KPIs]
+                                    \--> [Instr-Follow Sim] --> [Action KPIs$$
 ```
 
 > **Rule‑of‑thumb**：离线检索改善若 <2–3% R@10，在线成功率往往无感；必须加**在线仿真小基准**联动评测。
@@ -208,22 +202,22 @@ d(z_{A,i},,g_{VL}(z_{V,i},z_{L,i}))
 
 * **PCGrad（投影外科）**
   对每个损失梯度 (g_i)，若 (\langle g_i,g_j\rangle<0)，则
-  [
+  $$
   g_i \leftarrow g_i - \frac{\langle g_i,g_j\rangle}{|g_j|^2},g_j.
-  ]
+  $$
   整合后再更新。稳定且实现简单。
 
 * **GradNorm（梯度范数均衡）**
   记任务损失 (L_i(t))，目标使 (|w_i g_i|\propto \big(\tfrac{L_i(t)}{\bar L(t)}\big)^\alpha)：
-  [
+  $$
   \mathcal{L}*{gn}=\sum_i \Big||w_i g_i| - \bar G \big(\tfrac{L_i}{\bar L}\big)^\alpha\Big|,\quad
   w_i \leftarrow w_i - \eta \frac{\partial\mathcal{L}*{gn}}{\partial w_i}.
-  ]
+  $$
 
 * **不确定性加权（Kendall）**
-  [
+  $$
   \mathcal{L}=\sum_i \frac{1}{2\sigma_i^2}L_i + \log\sigma_i,
-  ]
+  $$
   让噪声大的任务自动降权。
 
 > **Rule‑of‑thumb**：**先 PCGrad** 防止互踩，再用 **GradNorm((\alpha=0.5))** 做细调；蒸馏/物理先验类损失给**保底权重**，避免被自适应算法“压没”。

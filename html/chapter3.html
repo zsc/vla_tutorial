@@ -160,12 +160,12 @@
 <li>在<strong>有限预算</strong>下选择<strong>推理深度</strong>与<strong>外部工具</strong>，达成风险—性能折中。</li>
 </ul>
 <p>从信息论视角，可把语言层目标写成“<strong>效用—成本</strong>”形式：
-[
+$$
 \max_{\pi_\theta,,g_\phi}\ \mathbb{E}\big[ U(y,\hat{y}) \big]
 \ -\ \lambda_{\text{tok}},\mathbb{E}\big[ C_{\text{tokens}} \big]
 \ -\ \lambda_{\text{tool}},\mathbb{E}\big[ C_{\text{tools}} \big],
-]
-其中 (\pi_\theta) 为语言策略，(g_\phi) 为<strong>调度门控</strong>（决定是否继续推理/是否调用工具），(U) 度量任务成功/安全/成本，(\lambda_{\cdot}) 为预算权重。</p>
+$$
+其中 $$\pi_\theta$$ 为语言策略，(g_\phi) 为<strong>调度门控</strong>（决定是否继续推理/是否调用工具），(U) 度量任务成功/安全/成本，(\lambda_{\cdot}) 为预算权重。</p>
 <p><strong>ASCII：语言作为控制平面</strong></p>
 <div class="codehilite"><pre><span></span><code><span class="k">[视觉摘要] → [语言调度器 πθ]</span>
 <span class="w">                 </span><span class="na">│</span>
@@ -185,11 +185,11 @@
 <li><strong>验证闭环</strong>：在关键结论前加入<strong>“检验子句”</strong>，调用外部证据或单元检查。</li>
 </ul>
 <p>将结构化推理视为有成本的中间轨迹 (\tau)：
-[
+$$
 \min_{\theta}\ \mathbb{E}\big[ \ell\big(y, f_\theta(x,\tau)\big) \big] +
 \lambda,\mathbb{E}\big[ C(\tau) \big],\quad
 \tau \sim q_\theta(\cdot\mid x),
-]
+$$
 其中 (C(\tau)) 与 token 长度、工具调用次数、延迟等相关。<strong>目标</strong>是在<strong>固定预算</strong>内最小化风险。</p>
 <p><strong>ASCII：结构化 CoT 槽位</strong></p>
 <div class="codehilite"><pre><span></span><code><span class="k">[Plan]</span>
@@ -210,17 +210,17 @@
 <li><strong>长期/语义记忆（知识库）</strong>：稳定事实、策略模板、规章制度。</li>
 <li><strong>情境记忆（任务/场景特定）</strong>：场景地图、对手画像、危险名录。</li>
 </ol>
-<p><strong>检索—推理联合优化</strong>可写为：
-[
-\max_{\theta,\psi}\ \mathbb{E}<em>{x}\Big[ U\big(y, \pi</em>\theta(x, \mathcal{R}<em>\psi(x))\big) \Big]
-\ -\ \lambda,\mathbb{E}\big[ C\big(\mathcal{R}</em>\psi(x)\big) \big],
-]
-其中 (\mathcal{R}_\psi) 为检索器（dense/lexical/混合），在<strong>效用—检索成本</strong>之间折中。</p>
+<p><strong>检索—推理联合优化</strong>可写为：</p>
+<p>$$
+\max_{\theta,\psi}\ \mathbb{E}*{x}\Big[ U\big(y, \pi*\theta(x, \mathcal{R}*\psi(x))\big) \Big]
+\ -\ \lambda,\mathbb{E}\big[ C\big(\mathcal{R}*\psi(x)\big) \big],
+$$</p>
+<p>其中 (\mathcal{R}_\psi) 为检索器（dense/lexical/混合），在<strong>效用—检索成本</strong>之间折中。</p>
 <p><strong>混合检索打分</strong>（实践常用）：
-[
+$$
 S(q,d) = \alpha, S_{\text{lex}}(q,d) + (1-\alpha), S_{\text{dense}}(q,d),
 \quad \alpha \in [0,1].
-]</p>
+$$</p>
 <p><strong>记忆金字塔（ASCII）</strong></p>
 <div class="codehilite"><pre><span></span><code>               ┌───────────────┐  稳定知识/策略模板
                │  语义长期库   │  (KB/向量检索/规章)
@@ -240,19 +240,19 @@ S(q,d) = \alpha, S_{\text{lex}}(q,d) + (1-\alpha), S_{\text{dense}}(q,d),
 <h2 id="34-api">3.4 工具调用：代码执行、API、知识库/记忆接口</h2>
 <p>语言层通过<strong>函数调用/计划执行</strong>将“想法”落成“可验证的产出”。在 VLA 中，常见工具包括：几何/物理求解器、路径规划器（MPC/MIQP）、数据库/知识库、规则引擎、可达性/安全屏蔽（CBF/LTL‑Shield）。</p>
 <p>把“调用工具”建模为<strong>选项（options）/技能（skills）</strong>：
-[
+$$
 \pi(a\mid s) =
 \sum_{o \in \mathcal{O}} \pi(o\mid s), \pi(a\mid s,o),
 \quad
 \beta_o(s) = \text{终止概率},
-]
+$$
 语言层等价于在状态 (s) 上选择<strong>高层选项 (o)</strong>（如“调用 A* 规划器 50ms”），并在终止条件触发后返回。</p>
 <p><strong>调用成本—风险目标</strong>：
-[
+$$
 \min\ \mathbb{E}\big[\ell(y,\hat{y})\big] +
 \lambda_{\text{lat}},\mathbb{E}[T_{\text{lat}}] +
 \lambda_{\text{risk}},\mathbb{E}[\text{UnverifiedStep}],
-]
+$$
 优先调用<strong>可验证/可审计</strong>的工具，降低“不可证步骤”的占比。</p>
 <p><strong>ASCII：工具调用闭环</strong></p>
 <div class="codehilite"><pre><span></span><code>[语言意图] → (意图解析/参数化)
@@ -264,14 +264,14 @@ S(q,d) = \alpha, S_{\text{lex}}(q,d) + (1-\alpha), S_{\text{dense}}(q,d),
 <p><strong>Rule‑of‑thumb 3.4</strong>：<strong>把每个工具输出都当“可疑数据”</strong>。务必伴随<strong>元信息</strong>（时间戳、置信度区间、覆盖范围、边界条件），并用<strong>断言/约束</strong>二次校验后再进入行动层。</p>
 <h3 id="341">3.4.1 思考预算与推理深度的自适应调度</h3>
 <p>为避免延迟与幻觉，使用<strong>门控策略 (g_\phi)</strong> 动态决定“继续思考/调用工具/立即执行”。可用<strong>代价敏感决策</strong>：
-[
+$$
 g_\phi(s) =
 \begin{cases}
 \text{HALT}, &amp; \Delta U &lt; \lambda_{\text{next}} \
-\text{THINK_MORE}, &amp; \Delta U \ge \lambda_{\text{next}},\ T<T_{\max} \
-\text{TOOL_CALL}, & \text{若可验证增益}>\text{门槛}
+\text{THINK_MORE}, &amp; \Delta U \ge \lambda_{\text{next}},\ T<T\_{\max} \
+\text{TOOL\_CALL}, & \text{若可验证增益}>\text{门槛}
 \end{cases}
-]
+$$
 (\Delta U) 为继续推理的<strong>边际效用预估</strong>。</p>
 <p><strong>Rule‑of‑thumb 3.4.1</strong>：线上系统设置<strong>双阈值</strong>：</p>
 <ul>
@@ -282,11 +282,11 @@ g_\phi(s) =
 <h2 id="35-vla">3.5 VLA 编排：感知→推理→行动的桥梁</h2>
 <p>语言层的核心职责是把感知输出与行动先验<strong>对齐为可执行计划</strong>。推荐使用“<strong>声明式目标 + 约束 + 验证点</strong>”三件套。</p>
 <p><strong>计划可执行性目标</strong>（示意）：
-[
-\max_{\text{plan}}\ \underbrace{P(\text{success}\mid x_{\text{vision}}, \text{plan})}<em s="s">{\text{达成任务}}
--\lambda</em>,\underbrace{\text{SafetyViolation}(\text{plan})}<em c="c">{\text{安全}}
--\lambda</em>,\underbrace{\text{ControlCost}(\text{plan})}_{\text{平滑/舒适}},
-]
+$$
+\max_{\text{plan}}\ \underbrace{P(\text{success}\mid x_{\text{vision}}, \text{plan})}*{\text{达成任务}}
+-\lambda*{s},\underbrace{\text{SafetyViolation}(\text{plan})}*{\text{安全}}
+-\lambda*{c},\underbrace{\text{ControlCost}(\text{plan})}_{\text{平滑/舒适}},
+$$
 并要求<strong>显式接口</strong>把计划转换为<strong>可控轨迹/约束</strong>（详见第 4 章）。</p>
 <p><strong>ASCII：从视觉摘要到可控轨迹</strong></p>
 <div class="codehilite"><pre><span></span><code><span class="k">[视觉摘要/3D支架] → [语言计划: 目标+约束+验证点]</span>
@@ -306,10 +306,10 @@ g_\phi(s) =
 </ol>
 <p><strong>不确定校准</strong>（温度/能量分数/间隔）可作为<strong>门控信号</strong>。
 简化表示：若
-[
+$$
 H(p_\theta(\cdot\mid x))&gt;\tau_H\quad\text{或}\quad
 \text{margin}(x)&lt;\tau_M,
-]
+$$
 则进入“<strong>检索+工具</strong>”分支，且需要<strong>二次验证</strong>通过才触发行动。</p>
 <p><strong>Rule‑of‑thumb 3.6</strong>：<strong>高风险=双重来源 + 双重验证</strong>。至少使用两条<strong>统计独立</strong>的证据路径（如视觉→几何、语言→数据库），且通过<strong>不同失效模式</strong>的校验器。</p>
 <hr />
@@ -342,34 +342,34 @@ H(p_\theta(\cdot\mid x))&gt;\tau_H\quad\text{或}\quad
 <ol>
 <li>
 <p>效用—成本目标：
-   [
-   \max_{\pi_\theta,g_\phi}
+$$
+\max_{\pi_\theta,g_\phi}
    \mathbb{E}[U]-\lambda_{\text{tok}}\mathbb{E}[C_{\text{tokens}}]-\lambda_{\text{tool}}\mathbb{E}[C_{\text{tools}}].
-   ]</p>
+$$</p>
 </li>
 <li>
 <p>结构化推理正则：
-   [
-   \min_\theta \mathbb{E}[\ell(y,f_\theta(x,\tau))] + \lambda,\mathbb{E}[C(\tau)].
-   ]</p>
+$$
+\min_\theta \mathbb{E}[\ell(y,f_\theta(x,\tau))] + \lambda,\mathbb{E}[C(\tau)].
+$$</p>
 </li>
 <li>
 <p>检索—推理联合：
-   [
-   \max_{\theta,\psi} \mathbb{E}\big[U\big(y,\pi_\theta(x,\mathcal{R}<em>\psi(x))\big)\big]-\lambda C(\mathcal{R}</em>\psi).
-   ]</p>
+$$
+\max_{\theta,\psi} \mathbb{E}\big[U\big(y,\pi_\theta(x,\mathcal{R}*\psi(x))\big)\big]-\lambda C(\mathcal{R}*\psi).
+$$</p>
 </li>
 <li>
 <p>混合打分：
-   [
-   S(q,d)=\alpha S_{\text{lex}}+(1-\alpha)S_{\text{dense}}.
-   ]</p>
+$$
+S(q,d)=\alpha S_{\text{lex}}+(1-\alpha)S_{\text{dense}}.
+$$</p>
 </li>
 <li>
 <p>选项策与终止：
-   [
-   \pi(a\mid s)=\sum_o \pi(o\mid s)\pi(a\mid s,o),\quad \beta_o(s).
-   ]</p>
+$$
+\pi(a\mid s)=\sum_o \pi(o\mid s)\pi(a\mid s,o),\quad \beta_o(s).
+$$</p>
 </li>
 </ol>
 <hr />

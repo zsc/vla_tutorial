@@ -154,12 +154,12 @@
 </blockquote>
 <hr />
 <h2 id="41">4.1 行动即信号：时间序列、因果性与时延</h2>
-<p>行动序列 (u(t)) 是<strong>因果</strong>的：(\forall t,\ u(t)) 只能依赖于过去与当前观测 ({y(\tau)}_{\tau\le t})。闭环系统可抽象为
-[
+<p>行动序列 (u(t)) 是<strong>因果</strong>的：$\forall t,\ u(t)$ 只能依赖于过去与当前观测 ${y(\tau)}_{\tau\le t}$。闭环系统可抽象为
+$$
 \dot{x}(t)=f\big(x(t),u(t-\tau_u)\big),\quad y(t)=h\big(x(t-\tau_s)\big),
-]
-其中 (\tau_s,\tau_u) 为传感与执行时延。时延带来<strong>相位滞后</strong>，在频域中可写为 (e^{-j\omega\tau})，其相位贡献为 (-\omega \tau)。</p>
-<p><strong>行动是带宽受限的信号</strong>。执行链路（执行器+控制器）存在截止频率 (\omega_\mathrm{act})。当策略在更高频段输出能量时，只会转化为相位滞后与放大噪声，降低稳定裕度与舒适度。</p>
+$$
+其中 (\tau_s,\tau_u) 为传感与执行时延。时延带来<strong>相位滞后</strong>，在频域中可写为 $e^{-j\omega\tau}$，其相位贡献为 (-\omega \tau)。</p>
+<p><strong>行动是带宽受限的信号</strong>。执行链路（执行器+控制器）存在截止频率 $\omega_\mathrm{act}$。当策略在更高频段输出能量时，只会转化为相位滞后与放大噪声，降低稳定裕度与舒适度。</p>
 <p><strong>ASCII 示意：时延叠加</strong></p>
 <div class="codehilite"><pre><span></span><code><span class="n">y</span><span class="p">(</span><span class="n">t</span><span class="p">)</span><span class="w"> </span><span class="o">--[</span><span class="n">state est Δts</span><span class="o">]--&gt;</span><span class="w"> </span><span class="n">ŷ</span><span class="p">(</span><span class="n">t</span><span class="p">)</span><span class="w"> </span><span class="o">--[</span><span class="n">policy</span><span class="o">]--&gt;</span><span class="w"> </span><span class="n">u</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
 <span class="w">                                        </span><span class="err">\</span>
@@ -167,38 +167,38 @@
 <span class="n">净滞后</span><span class="w"> </span><span class="n">τ</span><span class="w"> </span><span class="err">≈</span><span class="w"> </span><span class="n">Δts</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">Δtu</span>
 </code></pre></div>
 
-<p><strong>📌 经验法则（4.1‑A）</strong>：将闭环目标带宽 (\omega_c) 约束在执行器可用带宽的 <strong>(1/3\sim1/5)</strong>；策略侧输出在 ([0,,0.3\cdot f_s]) 频段内占到 &gt;90% 的能量（(f_s) 为策略更新频率）。</p>
+<p><strong>📌 经验法则（4.1‑A）</strong>：将闭环目标带宽 (\omega_c) 约束在执行器可用带宽的 <strong>$1/3\sim1/5$</strong>；策略侧输出在 ([0,,0.3\cdot f_s]) 频段内占到 &gt;90% 的能量（(f_s) 为策略更新频率）。</p>
 <hr />
 <h2 id="42-frenetserret">4.2 轨迹坐标系：笛卡尔/极坐标/Frenet‑Serret</h2>
-<p>在平面运动（自动驾驶/移动机器人）中，常将轨迹 (\gamma: s\mapsto (x(s),y(s))) 及随动量化到 Frenet 标架 ((\mathbf{T},\mathbf{N})) 上：
-[
+<p>在平面运动（自动驾驶/移动机器人）中，常将轨迹 $\gamma: s\mapsto (x(s),y(s))$ 及随动量化到 Frenet 标架 $(\mathbf{T},\mathbf{N})$ 上：
+$$
 \mathbf{T}=\frac{d\mathbf{r}/ds}{|d\mathbf{r}/ds|},\quad
 \kappa(s)=\left|\frac{d\mathbf{T}}{ds}\right|,\quad
 \dot{\psi}=v\kappa,\quad a_\mathrm{lat}=v^2\kappa.
-]
-其中 (\kappa) 为曲率，(\dot{\psi}) 为偏航角速率，(a_\mathrm{lat}) 为侧向加速度。对参考路径 (\gamma_\mathrm{ref}) 定义<strong>横向误差</strong> (e_y) 与<strong>航向误差</strong> (e_\psi)，可得典型误差动力学
-[
-\dot{e}<em>y=v\sin(e</em>\psi),\quad
-\dot{e}<em>\psi=\omega-\kappa</em>\mathrm{ref}(s)v.
-]</p>
+$$
+其中 (\kappa) 为曲率，$\dot{\psi}$ 为偏航角速率，$a_\mathrm{lat}$ 为侧向加速度。对参考路径 $\gamma_\mathrm{ref}$ 定义<strong>横向误差</strong> (e_y) 与<strong>航向误差</strong> (e_\psi)，可得典型误差动力学
+$$
+\dot{e}*y=v\sin(e*\psi),\quad
+\dot{e}*\psi=\omega-\kappa*\mathrm{ref}(s)v.
+$$</p>
 <p><strong>摩擦圆与可达性</strong>：平地无侧滑近似下，纵横向加速度满足
-[
+$$
 \left(\frac{a_x}{\mu g}\right)^2+\left(\frac{a_y}{\mu g}\right)^2\le 1,\quad a_y=v^2\kappa,
-]
+$$
 (\mu) 为等效摩擦系数。该约束将几何曲率与动力学边界直接耦合。</p>
-<p><strong>📌 经验法则（4.2‑A）</strong>：在城市/园区低速场景，舒适上限常取 (a_\mathrm{lat}^{95%}\le 2\ \mathrm{m/s^2})，对应曲率上限 (\kappa_{\max}\approx 2/v^2)（(v) 以 m/s 计）。高速更应收紧。</p>
+<p><strong>📌 经验法则（4.2‑A）</strong>：在城市/园区低速场景，舒适上限常取 $a_\mathrm{lat}^{95\%}\le 2\ \mathrm{m/s^2}$，对应曲率上限 $\kappa_{\max}\approx 2/v^2$（(v) 以 m/s 计）。高速更应收紧。</p>
 <hr />
 <h2 id="43">4.3 频域/谱域表征：平滑性、带宽与先验约束</h2>
-<p>将轨迹/控制量视为信号，设 (U(j\omega)=\mathcal{F}{u(t)})。舒适与可控可用<strong>谱能量惩罚</strong>度量：
-[
-\mathcal{J}<em>\mathrm{smooth}=\int_0^\infty w(\omega),|U(j\omega)|^2,d\omega,\quad
+<p>将轨迹/控制量视为信号，设 $U(j\omega)=\mathcal{F}{u(t)}$。舒适与可控可用<strong>谱能量惩罚</strong>度量：
+$$
+\mathcal{J}*\mathrm{smooth}=\int_0^\infty w(\omega),|U(j\omega)|^2,d\omega,\quad
 w(\omega)\uparrow \text{ 随 }\omega \text{ 增大}.
-]
-在时间域，常见</em><em>jerk</em><em>（加速度导数）与</em><em>snap</em><em>（jerk 导数）正则：
-[
-\mathcal{J}</em>\mathrm{jerk}=\int |\ddot{v}(t)|^2dt,\quad
+$$
+在时间域，常见<strong>jerk</strong>（加速度导数）与<strong>snap</strong>（jerk 导数）正则：
+$$
+\mathcal{J}*\mathrm{jerk}=\int |\ddot{v}(t)|^2dt,\quad
 \mathcal{J}_\mathrm{snap}=\int |\dddot{v}(t)|^2dt.
-]</p>
+$$</p>
 <p><strong>ASCII：Bode 直观</strong></p>
 <div class="codehilite"><pre><span></span><code>|U(jω)|:  ────────┐
                   └───\  -20 dB/dec
@@ -212,34 +212,34 @@ w(\omega)\uparrow \text{ 随 }\omega \text{ 增大}.
 <hr />
 <h2 id="44">4.4 控制先验：加速度/跃度限制、稳定性与安全边界</h2>
 <p><strong>jerk 限制的 S‑curve</strong>（7 段式）在工业轨迹中广泛采用。设最大加速度 (a_\mathrm{max})、最大 jerk (j_\mathrm{max})。单调加速阶段时间
-[
+$$
 t_j=\frac{a_\mathrm{max}}{j_\mathrm{max}},\quad
 \Delta v_\mathrm{acc}=a_\mathrm{max}(t_a- t_j),\ \ t_a\ge 2t_j.
-]
+$$
 当位移/速度裕度不足以进入恒加速段时转为“全 S 曲线”模式（只含加/减 jerk 对称段）。
-<strong>侧向舒适</strong>可用<strong>曲率变化率</strong>（curvature rate）度量：(\dot{\kappa}=\frac{d\kappa}{dt})，对应侧向 jerk (j_y = 2v\kappa\dot{v}+v^2\dot{\kappa})。</p>
+<strong>侧向舒适</strong>可用<strong>曲率变化率</strong>（curvature rate）度量：$\dot{\kappa}=\frac{d\kappa}{dt}$，对应侧向 jerk $j_y = 2v\kappa\dot{v}+v^2\dot{\kappa}$。</p>
 <p><strong>安全边界</strong>：制动可达（TTC/MTTC）、摩擦圆、动态包络（Minkowski 和）等形成 hard‑constraint，平滑性、能耗为 soft‑constraint，可通过原始–对偶或 QP 投影实现：
-[
+$$
 u^\star=\arg\min_{u\in\mathcal{U}} |u-u_\mathrm{raw}|_W^2\quad
 \text{s.t. } A u\le b.
-]</p>
-<p><strong>📌 经验法则（4.4‑A）</strong>：纵向 jerk (j_x^{95%}\le 2\ \mathrm{m/s^3})；侧向 jerk (j_y^{95%}\le 4\ \mathrm{m/s^3})。当路面 (\mu) 不明时，先以 (\mu=0.4) 设计安全边界，再随估计值放宽。</p>
+$$</p>
+<p><strong>📌 经验法则（4.4‑A）</strong>：纵向 jerk $j_x^{95\%}\le 2\ \mathrm{m/s^3}$；侧向 jerk $j_y^{95\%}\le 4\ \mathrm{m/s^3}$。当路面 (\mu) 不明时，先以 (\mu=0.4) 设计安全边界，再随估计值放宽。</p>
 <hr />
 <h2 id="45-zoh">4.5 闭环稳定性：相位裕度与 ZOH（零阶保持）影响</h2>
 <p>闭环频域指标：<strong>相位裕度</strong> (\phi_m) 与<strong>增益裕度</strong> (g_m)。总时延 (\tau) 使相位额外降低 (\omega \tau)。
 <strong>ZOH 频响</strong>：采样并零阶保持可等效为
-[
+$$
 H_\mathrm{ZOH}(j\omega)=e^{-j\omega T/2},\mathrm{sinc}!\left(\frac{\omega T}{2}\right),
-]
+$$
 引入幅值下垂与额外相位 (-\omega T/2)。</p>
 <p>离散化常用 <strong>Tustin</strong>（双线性）：
-[
+$$
 s \approx \frac{2}{T}\cdot \frac{1-z^{-1}}{1+z^{-1}},
-]
+$$
 能将稳定半平面映射到单位圆内，但高频相位更保守。</p>
 <p><strong>📌 经验法则（4.5‑A）</strong>：
-(1) 目标相位裕度 (\phi_m\ge 45^\circ)，关键安全回路 ≥ <strong>60°</strong>；
-(2) 采样周期 (T \le \frac{1}{10\omega_c})，并在设计时把<strong>等效时延</strong> (\tau_\mathrm{eq}\approx T/2+\tau) 纳入裕度预算；
+(1) 目标相位裕度 $\phi_m\ge 45^\circ$，关键安全回路 ≥ <strong>60°</strong>；
+(2) 采样周期 $T \le \frac{1}{10\omega_c}$，并在设计时把<strong>等效时延</strong> $\tau_\mathrm{eq}\approx T/2+\tau$ 纳入裕度预算；
 (3) 上线前做<strong>闭环 Bode 扫频</strong>或时域阶跃，验证幅相与超调。</p>
 <hr />
 <h2 id="46-vs-vs">4.6 行动解码：自回归 vs. 并行、开环 vs. 闭环</h2>
@@ -252,9 +252,9 @@ s \approx \frac{2}{T}\cdot \frac{1-z^{-1}}{1+z^{-1}},
 <hr />
 <h2 id="47">4.7 传感—执行器同步与时间戳一致性</h2>
 <p>真实系统中，时间错位是行动“抖动”的重要来源。定义<strong>时间基准</strong>与<strong>统一时间戳</strong>后，需做<strong>外推/回推</strong>对齐：
-[
+$$
 \hat{x}(t_k)=\Phi(\Delta t),x(t_k-\Delta t),\quad \Delta t=t_\mathrm{now}-t_\mathrm{meas}.
-]
+$$
 若估计器能提供 (\Phi(\cdot))（如常速度/常加速度或 EKF 传播），可在控制侧得到<strong>近似零延时状态</strong>。</p>
 <p><strong>ASCII：时序对齐</strong></p>
 <div class="codehilite"><pre><span></span><code>cam ts ──●───────●───────●──
@@ -271,7 +271,7 @@ ctrl    align ⇦ extrapolate/propagate ⇨
 <p><strong>基础误差</strong>：RMS/95‑percentile 轨迹误差、速度/加速度跟踪误差。
 <strong>舒适度</strong>：纵/横向 jerk 的分位数，速度变化率，方向盘角速度/加速度。
 <strong>鲁棒性</strong>：对观测噪声/时延/动力学偏差的<strong>参数化扰动扫描</strong>下的成功率与退化曲线。
-<strong>可解释性</strong>：在 Frenet 下报告 (\kappa,\ \dot{\kappa},\ a_\mathrm{lat}) 与<strong>约束活跃度</strong>（active set 的时间比例），对应“为何此处减速/限转”。</p>
+<strong>可解释性</strong>：在 Frenet 下报告 $\kappa,\ \dot{\kappa},\ a_\mathrm{lat}$ 与<strong>约束活跃度</strong>（active set 的时间比例），对应“为何此处减速/限转”。</p>
 <p><strong>📌 经验法则（4.8‑A）</strong>：报告统一为<strong>四象限雷达图</strong>（安全/效率/舒适/合规）+ <strong>约束活跃热度条</strong>；上线门槛以 <strong>95% 分位</strong>口径对齐。</p>
 <hr />
 <h2 id="49">4.9 数据来源：示教轨迹、回放、干预与纠偏</h2>
@@ -287,9 +287,9 @@ ctrl    align ⇦ extrapolate/propagate ⇨
 <p><strong>位控（position control）</strong>：跟踪 (x_d(t))；
 <strong>力控（force/torque control）</strong>：跟踪 (F_d(t))；
 <strong>阻抗/顺应控制</strong>在任务空间建模等效弹簧‑阻尼：
-[
+$$
 F = K(x_d-x) + B(\dot{x}_d-\dot{x}) + M(\ddot{x}_d-\ddot{x}),
-]
+$$
 借助显式/隐式接触模型在接触中吸能、抑振。复杂任务常用<strong>混合控制</strong>：在切向跟踪位置，在法向跟踪力（Khatib 式任务优先级/约束投影）。</p>
 <p><strong>📌 经验法则（4.10‑A）</strong>：接触前的<strong>预接触速度</strong>与<strong>法向阻尼</strong>配对调参：先定最大可接受冲击（峰值接触），再回推触发距离与软着陆 jerk。</p>
 <hr />
@@ -299,27 +299,27 @@ F = K(x_d-x) + B(\dot{x}_d-\dot{x}) + M(\ddot{x}_d-\ddot{x}),
 </blockquote>
 <p><strong>输入（参考字段）</strong></p>
 <ul>
-<li>参考路径：(\gamma_\mathrm{ref}(s))（离散点+弧长）</li>
-<li>速度/时间约束：(v_\mathrm{max}(s),\ a_{x,\max},\ j_{x,\max})</li>
-<li>舒适/安全约束：(a_\mathrm{lat,max},\ j_{y,\max},\ \mu)（摩擦估计）</li>
-<li>时延与频带：(\tau_\mathrm{eq},\ \omega_c,\ f_s)</li>
-<li>初始状态：((x_0,y_0,\psi_0,v_0,a_{x0})) 及协方差</li>
+<li>参考路径：$\gamma_\mathrm{ref}(s)$（离散点+弧长）</li>
+<li>速度/时间约束：$v_\mathrm{max}(s),\ a_{x,\max},\ j_{x,\max}$</li>
+<li>舒适/安全约束：$a_\mathrm{lat,max},\ j_{y,\max},\ \mu$（摩擦估计）</li>
+<li>时延与频带：$\tau_\mathrm{eq},\ \omega_c,\ f_s$</li>
+<li>初始状态：$(x_0,y_0,\psi_0,v_0,a_{x0})$ 及协方差</li>
 <li>环境约束：占据网格/碰撞代价、路权规则（软/硬）</li>
 </ul>
 <p><strong>核心步骤（无代码）</strong></p>
 <ol>
-<li><strong>时延‑带宽配平</strong>：依据 (\tau_\mathrm{eq}) 收紧 (\omega_c) 与 jerk 上限。</li>
-<li><strong>Frenet‑S 速度曲线</strong>：按 (a_\mathrm{lat}=v^2\kappa\le a_{\mathrm{lat},\max}) 限制 (v(s))。</li>
-<li><strong>纵向 S‑curve</strong>：用 (j_\mathrm{max}, a_\mathrm{max}) 生成 7 段式速度‑加速度型谱形。</li>
-<li><strong>摩擦圆投影</strong>：对 ((a_x, a_y=v^2\kappa)) 作二范数投影，保证 ((a_x/\mu g)^2+(a_y/\mu g)^2\le 1)。</li>
-<li><strong>ZOH 校正</strong>：加入 (H_\mathrm{ZOH}) 的幅相修正，提前留出 (-\omega T/2) 相位余量。</li>
-<li><strong>安全证书</strong>：输出最坏制动距离/时间 (d_\mathrm{brake}, t_\mathrm{brake})，约束活跃时间比例，90% 频能量截止频率。</li>
+<li><strong>时延‑带宽配平</strong>：依据 $\tau_\mathrm{eq}$ 收紧 $\omega_c$ 与 jerk 上限。</li>
+<li><strong>Frenet‑S 速度曲线</strong>：按 $a_\mathrm{lat}=v^2\kappa\le a_{\mathrm{lat},\max}$ 限制 (v(s))。</li>
+<li><strong>纵向 S‑curve</strong>：用 $j_\mathrm{max}, a_\mathrm{max}$ 生成 7 段式速度‑加速度型谱形。</li>
+<li><strong>摩擦圆投影</strong>：对 $(a_x, a_y=v^2\kappa)$ 作二范数投影，保证 $(a_x/\mu g)^2+(a_y/\mu g)^2\le 1$。</li>
+<li><strong>ZOH 校正</strong>：加入 $H_\mathrm{ZOH}$ 的幅相修正，提前留出 $-\omega T/2$ 相位余量。</li>
+<li><strong>安全证书</strong>：输出最坏制动距离/时间 $d_\mathrm{brake}, t_\mathrm{brake}$，约束活跃时间比例，90% 频能量截止频率。</li>
 <li><strong>滚动更新</strong>：以 ≥10 Hz 重规划，保持闭环与场景一致。</li>
 </ol>
 <p><strong>输出（参考字段）</strong></p>
 <ul>
-<li>轨迹片段：({x,y,\psi,v,a_x,j_x,\kappa,\ a_y}_{t:t+H})（时间戳齐全）</li>
-<li>证书：(\phi_m) 估计、谱能量曲线、活跃约束集、(t_\mathrm{brake})、最小 TTC 等</li>
+<li>轨迹片段：${x,y,\psi,v,a_x,j_x,\kappa,\ a_y}_{t:t+H}$（时间戳齐全）</li>
+<li>证书：$\phi_m$ 估计、谱能量曲线、活跃约束集、$t_\mathrm{brake}$、最小 TTC 等</li>
 <li>诊断：是否触发保守模式（低 (\mu)、高时延、感知置信低）</li>
 </ul>
 <p><strong>📌 经验法则（4.11‑A）</strong>：若感知不确定性升高（协方差增大），对<strong>jerk 与 (\omega_c)</strong>施加自适应收紧；证书中<strong>最小 TTC</strong>小于值即触发<strong>RTA/屏蔽</strong>接管。</p>
@@ -327,15 +327,15 @@ F = K(x_d-x) + B(\dot{x}_d-\dot{x}) + M(\ddot{x}_d-\ddot{x}),
 <h2 id="_1">本章小结</h2>
 <ul>
 <li><strong>信号视角</strong>统一了策略输出与执行器物理约束：带宽/相位/时延决定了可行的行动风格。</li>
-<li><strong>Frenet‑Serret</strong>把几何（曲率）与动力学（侧向加速度）对接，形成可解释指标：(\dot{\psi}=v\kappa,\ a_\mathrm{lat}=v^2\kappa)。</li>
+<li><strong>Frenet‑Serret</strong>把几何（曲率）与动力学（侧向加速度）对接，形成可解释指标：$\dot{\psi}=v\kappa,\ a_\mathrm{lat}=v^2\kappa$。</li>
 <li><strong>频域先验</strong>（jerk/snap 正则与谱能量惩罚）直接关系舒适与稳定；</li>
-<li><strong>闭环稳定性</strong>受时延与 ZOH 显著影响：(\phi_m\ge 45^\circ)，(T\le 1/(10\omega_c))，(H_\mathrm{ZOH}=e^{-j\omega T/2}\mathrm{sinc}(\omega T/2))。</li>
+<li><strong>闭环稳定性</strong>受时延与 ZOH 显著影响：$\phi_m\ge 45^\circ$，$T\le 1/(10\omega_c)$，$H_\mathrm{ZOH}=e^{-j\omega T/2}\mathrm{sinc}(\omega T/2)$。</li>
 <li><strong>低带宽安全轨迹生成器</strong>作为工程接口，统一 jerk‑S 曲线、摩擦圆投影与时延‑带宽配平，并产出可审计的安全证书。</li>
 </ul>
 <hr />
 <h2 id="gotchas">常见陷阱与错误（Gotchas）</h2>
 <ol>
-<li><strong>频带失配</strong>：策略在 &gt;0.5·(\omega_\mathrm{act}) 区间输出大量能量，在线呈现“高频抖动/迟滞放大”。</li>
+<li><strong>频带失配</strong>：策略在 $&gt;0.5·(\omega_\mathrm{act})$ 区间输出大量能量，在线呈现“高频抖动/迟滞放大”。</li>
 </ol>
 <ul>
 <li><em>调试</em>：做频谱分析与 Bode 扫频；在训练与评测链路中加入一致的反混叠滤波与 jerk 正则。</li>

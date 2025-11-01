@@ -15,13 +15,13 @@
 
 ## 4.1 行动即信号：时间序列、因果性与时延
 
-行动序列 (u(t)) 是**因果**的：(\forall t,\ u(t)) 只能依赖于过去与当前观测 ({y(\tau)}_{\tau\le t})。闭环系统可抽象为
-[
+行动序列 (u(t)) 是**因果**的：$\forall t,\ u(t)$ 只能依赖于过去与当前观测 ${y(\tau)}_{\tau\le t}$。闭环系统可抽象为
+$$
 \dot{x}(t)=f\big(x(t),u(t-\tau_u)\big),\quad y(t)=h\big(x(t-\tau_s)\big),
-]
-其中 (\tau_s,\tau_u) 为传感与执行时延。时延带来**相位滞后**，在频域中可写为 (e^{-j\omega\tau})，其相位贡献为 (-\omega \tau)。
+$$
+其中 (\tau_s,\tau_u) 为传感与执行时延。时延带来**相位滞后**，在频域中可写为 $e^{-j\omega\tau}$，其相位贡献为 (-\omega \tau)。
 
-**行动是带宽受限的信号**。执行链路（执行器+控制器）存在截止频率 (\omega_\mathrm{act})。当策略在更高频段输出能量时，只会转化为相位滞后与放大噪声，降低稳定裕度与舒适度。
+**行动是带宽受限的信号**。执行链路（执行器+控制器）存在截止频率 $\omega_\mathrm{act}$。当策略在更高频段输出能量时，只会转化为相位滞后与放大噪声，降低稳定裕度与舒适度。
 
 **ASCII 示意：时延叠加**
 
@@ -32,46 +32,46 @@ y(t) --[state est Δts]--> ŷ(t) --[policy]--> u(t)
 净滞后 τ ≈ Δts + Δtu
 ```
 
-**📌 经验法则（4.1‑A）**：将闭环目标带宽 (\omega_c) 约束在执行器可用带宽的 **(1/3\sim1/5)**；策略侧输出在 ([0,,0.3\cdot f_s]) 频段内占到 >90% 的能量（(f_s) 为策略更新频率）。
+**📌 经验法则（4.1‑A）**：将闭环目标带宽 (\omega_c) 约束在执行器可用带宽的 **$1/3\sim1/5$**；策略侧输出在 ([0,,0.3\cdot f_s]) 频段内占到 >90% 的能量（(f_s) 为策略更新频率）。
 
 ---
 
 ## 4.2 轨迹坐标系：笛卡尔/极坐标/Frenet‑Serret
 
-在平面运动（自动驾驶/移动机器人）中，常将轨迹 (\gamma: s\mapsto (x(s),y(s))) 及随动量化到 Frenet 标架 ((\mathbf{T},\mathbf{N})) 上：
-[
+在平面运动（自动驾驶/移动机器人）中，常将轨迹 $\gamma: s\mapsto (x(s),y(s))$ 及随动量化到 Frenet 标架 $(\mathbf{T},\mathbf{N})$ 上：
+$$
 \mathbf{T}=\frac{d\mathbf{r}/ds}{|d\mathbf{r}/ds|},\quad
 \kappa(s)=\left|\frac{d\mathbf{T}}{ds}\right|,\quad
 \dot{\psi}=v\kappa,\quad a_\mathrm{lat}=v^2\kappa.
-]
-其中 (\kappa) 为曲率，(\dot{\psi}) 为偏航角速率，(a_\mathrm{lat}) 为侧向加速度。对参考路径 (\gamma_\mathrm{ref}) 定义**横向误差** (e_y) 与**航向误差** (e_\psi)，可得典型误差动力学
-[
+$$
+其中 (\kappa) 为曲率，$\dot{\psi}$ 为偏航角速率，$a_\mathrm{lat}$ 为侧向加速度。对参考路径 $\gamma_\mathrm{ref}$ 定义**横向误差** (e_y) 与**航向误差** (e_\psi)，可得典型误差动力学
+$$
 \dot{e}*y=v\sin(e*\psi),\quad
 \dot{e}*\psi=\omega-\kappa*\mathrm{ref}(s)v.
-]
+$$
 
 **摩擦圆与可达性**：平地无侧滑近似下，纵横向加速度满足
-[
+$$
 \left(\frac{a_x}{\mu g}\right)^2+\left(\frac{a_y}{\mu g}\right)^2\le 1,\quad a_y=v^2\kappa,
-]
+$$
 (\mu) 为等效摩擦系数。该约束将几何曲率与动力学边界直接耦合。
 
-**📌 经验法则（4.2‑A）**：在城市/园区低速场景，舒适上限常取 (a_\mathrm{lat}^{95%}\le 2\ \mathrm{m/s^2})，对应曲率上限 (\kappa_{\max}\approx 2/v^2)（(v) 以 m/s 计）。高速更应收紧。
+**📌 经验法则（4.2‑A）**：在城市/园区低速场景，舒适上限常取 $a_\mathrm{lat}^{95\%}\le 2\ \mathrm{m/s^2}$，对应曲率上限 $\kappa_{\max}\approx 2/v^2$（(v) 以 m/s 计）。高速更应收紧。
 
 ---
 
 ## 4.3 频域/谱域表征：平滑性、带宽与先验约束
 
-将轨迹/控制量视为信号，设 (U(j\omega)=\mathcal{F}{u(t)})。舒适与可控可用**谱能量惩罚**度量：
-[
+将轨迹/控制量视为信号，设 $U(j\omega)=\mathcal{F}{u(t)}$。舒适与可控可用**谱能量惩罚**度量：
+$$
 \mathcal{J}*\mathrm{smooth}=\int_0^\infty w(\omega),|U(j\omega)|^2,d\omega,\quad
 w(\omega)\uparrow \text{ 随 }\omega \text{ 增大}.
-]
+$$
 在时间域，常见**jerk**（加速度导数）与**snap**（jerk 导数）正则：
-[
+$$
 \mathcal{J}*\mathrm{jerk}=\int |\ddot{v}(t)|^2dt,\quad
 \mathcal{J}_\mathrm{snap}=\int |\dddot{v}(t)|^2dt.
-]
+$$
 
 **ASCII：Bode 直观**
 
@@ -91,20 +91,20 @@ w(\omega)\uparrow \text{ 随 }\omega \text{ 增大}.
 ## 4.4 控制先验：加速度/跃度限制、稳定性与安全边界
 
 **jerk 限制的 S‑curve**（7 段式）在工业轨迹中广泛采用。设最大加速度 (a_\mathrm{max})、最大 jerk (j_\mathrm{max})。单调加速阶段时间
-[
+$$
 t_j=\frac{a_\mathrm{max}}{j_\mathrm{max}},\quad
 \Delta v_\mathrm{acc}=a_\mathrm{max}(t_a- t_j),\ \ t_a\ge 2t_j.
-]
+$$
 当位移/速度裕度不足以进入恒加速段时转为“全 S 曲线”模式（只含加/减 jerk 对称段）。
-**侧向舒适**可用**曲率变化率**（curvature rate）度量：(\dot{\kappa}=\frac{d\kappa}{dt})，对应侧向 jerk (j_y = 2v\kappa\dot{v}+v^2\dot{\kappa})。
+**侧向舒适**可用**曲率变化率**（curvature rate）度量：$\dot{\kappa}=\frac{d\kappa}{dt}$，对应侧向 jerk $j_y = 2v\kappa\dot{v}+v^2\dot{\kappa}$。
 
 **安全边界**：制动可达（TTC/MTTC）、摩擦圆、动态包络（Minkowski 和）等形成 hard‑constraint，平滑性、能耗为 soft‑constraint，可通过原始–对偶或 QP 投影实现：
-[
+$$
 u^\star=\arg\min_{u\in\mathcal{U}} |u-u_\mathrm{raw}|_W^2\quad
 \text{s.t. } A u\le b.
-]
+$$
 
-**📌 经验法则（4.4‑A）**：纵向 jerk (j_x^{95%}\le 2\ \mathrm{m/s^3})；侧向 jerk (j_y^{95%}\le 4\ \mathrm{m/s^3})。当路面 (\mu) 不明时，先以 (\mu=0.4) 设计安全边界，再随估计值放宽。
+**📌 经验法则（4.4‑A）**：纵向 jerk $j_x^{95\%}\le 2\ \mathrm{m/s^3}$；侧向 jerk $j_y^{95\%}\le 4\ \mathrm{m/s^3}$。当路面 (\mu) 不明时，先以 (\mu=0.4) 设计安全边界，再随估计值放宽。
 
 ---
 
@@ -112,20 +112,20 @@ u^\star=\arg\min_{u\in\mathcal{U}} |u-u_\mathrm{raw}|_W^2\quad
 
 闭环频域指标：**相位裕度** (\phi_m) 与**增益裕度** (g_m)。总时延 (\tau) 使相位额外降低 (\omega \tau)。
 **ZOH 频响**：采样并零阶保持可等效为
-[
+$$
 H_\mathrm{ZOH}(j\omega)=e^{-j\omega T/2},\mathrm{sinc}!\left(\frac{\omega T}{2}\right),
-]
+$$
 引入幅值下垂与额外相位 (-\omega T/2)。
 
 离散化常用 **Tustin**（双线性）：
-[
+$$
 s \approx \frac{2}{T}\cdot \frac{1-z^{-1}}{1+z^{-1}},
-]
+$$
 能将稳定半平面映射到单位圆内，但高频相位更保守。
 
 **📌 经验法则（4.5‑A）**：
-(1) 目标相位裕度 (\phi_m\ge 45^\circ)，关键安全回路 ≥ **60°**；
-(2) 采样周期 (T \le \frac{1}{10\omega_c})，并在设计时把**等效时延** (\tau_\mathrm{eq}\approx T/2+\tau) 纳入裕度预算；
+(1) 目标相位裕度 $\phi_m\ge 45^\circ$，关键安全回路 ≥ **60°**；
+(2) 采样周期 $T \le \frac{1}{10\omega_c}$，并在设计时把**等效时延** $\tau_\mathrm{eq}\approx T/2+\tau$ 纳入裕度预算；
 (3) 上线前做**闭环 Bode 扫频**或时域阶跃，验证幅相与超调。
 
 ---
@@ -143,9 +143,9 @@ s \approx \frac{2}{T}\cdot \frac{1-z^{-1}}{1+z^{-1}},
 ## 4.7 传感—执行器同步与时间戳一致性
 
 真实系统中，时间错位是行动“抖动”的重要来源。定义**时间基准**与**统一时间戳**后，需做**外推/回推**对齐：
-[
+$$
 \hat{x}(t_k)=\Phi(\Delta t),x(t_k-\Delta t),\quad \Delta t=t_\mathrm{now}-t_\mathrm{meas}.
-]
+$$
 若估计器能提供 (\Phi(\cdot))（如常速度/常加速度或 EKF 传播），可在控制侧得到**近似零延时状态**。
 
 **ASCII：时序对齐**
@@ -168,7 +168,7 @@ ctrl    align ⇦ extrapolate/propagate ⇨
 **基础误差**：RMS/95‑percentile 轨迹误差、速度/加速度跟踪误差。
 **舒适度**：纵/横向 jerk 的分位数，速度变化率，方向盘角速度/加速度。
 **鲁棒性**：对观测噪声/时延/动力学偏差的**参数化扰动扫描**下的成功率与退化曲线。
-**可解释性**：在 Frenet 下报告 (\kappa,\ \dot{\kappa},\ a_\mathrm{lat}) 与**约束活跃度**（active set 的时间比例），对应“为何此处减速/限转”。
+**可解释性**：在 Frenet 下报告 $\kappa,\ \dot{\kappa},\ a_\mathrm{lat}$ 与**约束活跃度**（active set 的时间比例），对应“为何此处减速/限转”。
 
 **📌 经验法则（4.8‑A）**：报告统一为**四象限雷达图**（安全/效率/舒适/合规）+ **约束活跃热度条**；上线门槛以 **95% 分位**口径对齐。
 
@@ -190,9 +190,9 @@ ctrl    align ⇦ extrapolate/propagate ⇨
 **位控（position control）**：跟踪 (x_d(t))；
 **力控（force/torque control）**：跟踪 (F_d(t))；
 **阻抗/顺应控制**在任务空间建模等效弹簧‑阻尼：
-[
+$$
 F = K(x_d-x) + B(\dot{x}_d-\dot{x}) + M(\ddot{x}_d-\ddot{x}),
-]
+$$
 借助显式/隐式接触模型在接触中吸能、抑振。复杂任务常用**混合控制**：在切向跟踪位置，在法向跟踪力（Khatib 式任务优先级/约束投影）。
 
 **📌 经验法则（4.10‑A）**：接触前的**预接触速度**与**法向阻尼**配对调参：先定最大可接受冲击（峰值接触），再回推触发距离与软着陆 jerk。
@@ -205,27 +205,27 @@ F = K(x_d-x) + B(\dot{x}_d-\dot{x}) + M(\ddot{x}_d-\ddot{x}),
 
 **输入（参考字段）**
 
-* 参考路径：(\gamma_\mathrm{ref}(s))（离散点+弧长）
-* 速度/时间约束：(v_\mathrm{max}(s),\ a_{x,\max},\ j_{x,\max})
-* 舒适/安全约束：(a_\mathrm{lat,max},\ j_{y,\max},\ \mu)（摩擦估计）
-* 时延与频带：(\tau_\mathrm{eq},\ \omega_c,\ f_s)
-* 初始状态：((x_0,y_0,\psi_0,v_0,a_{x0})) 及协方差
+* 参考路径：$\gamma_\mathrm{ref}(s)$（离散点+弧长）
+* 速度/时间约束：$v_\mathrm{max}(s),\ a_{x,\max},\ j_{x,\max}$
+* 舒适/安全约束：$a_\mathrm{lat,max},\ j_{y,\max},\ \mu$（摩擦估计）
+* 时延与频带：$\tau_\mathrm{eq},\ \omega_c,\ f_s$
+* 初始状态：$(x_0,y_0,\psi_0,v_0,a_{x0})$ 及协方差
 * 环境约束：占据网格/碰撞代价、路权规则（软/硬）
 
 **核心步骤（无代码）**
 
-1. **时延‑带宽配平**：依据 (\tau_\mathrm{eq}) 收紧 (\omega_c) 与 jerk 上限。
-2. **Frenet‑S 速度曲线**：按 (a_\mathrm{lat}=v^2\kappa\le a_{\mathrm{lat},\max}) 限制 (v(s))。
-3. **纵向 S‑curve**：用 (j_\mathrm{max}, a_\mathrm{max}) 生成 7 段式速度‑加速度型谱形。
-4. **摩擦圆投影**：对 ((a_x, a_y=v^2\kappa)) 作二范数投影，保证 ((a_x/\mu g)^2+(a_y/\mu g)^2\le 1)。
-5. **ZOH 校正**：加入 (H_\mathrm{ZOH}) 的幅相修正，提前留出 (-\omega T/2) 相位余量。
-6. **安全证书**：输出最坏制动距离/时间 (d_\mathrm{brake}, t_\mathrm{brake})，约束活跃时间比例，90% 频能量截止频率。
+1. **时延‑带宽配平**：依据 $\tau_\mathrm{eq}$ 收紧 $\omega_c$ 与 jerk 上限。
+2. **Frenet‑S 速度曲线**：按 $a_\mathrm{lat}=v^2\kappa\le a_{\mathrm{lat},\max}$ 限制 (v(s))。
+3. **纵向 S‑curve**：用 $j_\mathrm{max}, a_\mathrm{max}$ 生成 7 段式速度‑加速度型谱形。
+4. **摩擦圆投影**：对 $(a_x, a_y=v^2\kappa)$ 作二范数投影，保证 $(a_x/\mu g)^2+(a_y/\mu g)^2\le 1$。
+5. **ZOH 校正**：加入 $H_\mathrm{ZOH}$ 的幅相修正，提前留出 $-\omega T/2$ 相位余量。
+6. **安全证书**：输出最坏制动距离/时间 $d_\mathrm{brake}, t_\mathrm{brake}$，约束活跃时间比例，90% 频能量截止频率。
 7. **滚动更新**：以 ≥10 Hz 重规划，保持闭环与场景一致。
 
 **输出（参考字段）**
 
-* 轨迹片段：({x,y,\psi,v,a_x,j_x,\kappa,\ a_y}_{t:t+H})（时间戳齐全）
-* 证书：(\phi_m) 估计、谱能量曲线、活跃约束集、(t_\mathrm{brake})、最小 TTC 等
+* 轨迹片段：${x,y,\psi,v,a_x,j_x,\kappa,\ a_y}_{t:t+H}$（时间戳齐全）
+* 证书：$\phi_m$ 估计、谱能量曲线、活跃约束集、$t_\mathrm{brake}$、最小 TTC 等
 * 诊断：是否触发保守模式（低 (\mu)、高时延、感知置信低）
 
 **📌 经验法则（4.11‑A）**：若感知不确定性升高（协方差增大），对**jerk 与 (\omega_c)**施加自适应收紧；证书中**最小 TTC**小于值即触发**RTA/屏蔽**接管。
@@ -235,16 +235,16 @@ F = K(x_d-x) + B(\dot{x}_d-\dot{x}) + M(\ddot{x}_d-\ddot{x}),
 ## 本章小结
 
 * **信号视角**统一了策略输出与执行器物理约束：带宽/相位/时延决定了可行的行动风格。
-* **Frenet‑Serret**把几何（曲率）与动力学（侧向加速度）对接，形成可解释指标：(\dot{\psi}=v\kappa,\ a_\mathrm{lat}=v^2\kappa)。
+* **Frenet‑Serret**把几何（曲率）与动力学（侧向加速度）对接，形成可解释指标：$\dot{\psi}=v\kappa,\ a_\mathrm{lat}=v^2\kappa$。
 * **频域先验**（jerk/snap 正则与谱能量惩罚）直接关系舒适与稳定；
-* **闭环稳定性**受时延与 ZOH 显著影响：(\phi_m\ge 45^\circ)，(T\le 1/(10\omega_c))，(H_\mathrm{ZOH}=e^{-j\omega T/2}\mathrm{sinc}(\omega T/2))。
+* **闭环稳定性**受时延与 ZOH 显著影响：$\phi_m\ge 45^\circ$，$T\le 1/(10\omega_c)$，$H_\mathrm{ZOH}=e^{-j\omega T/2}\mathrm{sinc}(\omega T/2)$。
 * **低带宽安全轨迹生成器**作为工程接口，统一 jerk‑S 曲线、摩擦圆投影与时延‑带宽配平，并产出可审计的安全证书。
 
 ---
 
 ## 常见陷阱与错误（Gotchas）
 
-1. **频带失配**：策略在 >0.5·(\omega_\mathrm{act}) 区间输出大量能量，在线呈现“高频抖动/迟滞放大”。
+1. **频带失配**：策略在 $>0.5·(\omega_\mathrm{act})$ 区间输出大量能量，在线呈现“高频抖动/迟滞放大”。
 
    * *调试*：做频谱分析与 Bode 扫频；在训练与评测链路中加入一致的反混叠滤波与 jerk 正则。
 

@@ -21,12 +21,12 @@
 * 在**有限预算**下选择**推理深度**与**外部工具**，达成风险—性能折中。
 
 从信息论视角，可把语言层目标写成“**效用—成本**”形式：
-[
+$$
 \max_{\pi_\theta,,g_\phi}\ \mathbb{E}\big[ U(y,\hat{y}) \big]
 \ -\ \lambda_{\text{tok}},\mathbb{E}\big[ C_{\text{tokens}} \big]
 \ -\ \lambda_{\text{tool}},\mathbb{E}\big[ C_{\text{tools}} \big],
-]
-其中 (\pi_\theta) 为语言策略，(g_\phi) 为**调度门控**（决定是否继续推理/是否调用工具），(U) 度量任务成功/安全/成本，(\lambda_{\cdot}) 为预算权重。
+$$
+其中 $$\pi_\theta$$ 为语言策略，(g_\phi) 为**调度门控**（决定是否继续推理/是否调用工具），(U) 度量任务成功/安全/成本，(\lambda_{\cdot}) 为预算权重。
 
 **ASCII：语言作为控制平面**
 
@@ -52,11 +52,11 @@
 * **验证闭环**：在关键结论前加入**“检验子句”**，调用外部证据或单元检查。
 
 将结构化推理视为有成本的中间轨迹 (\tau)：
-[
+$$
 \min_{\theta}\ \mathbb{E}\big[ \ell\big(y, f_\theta(x,\tau)\big) \big] +
 \lambda,\mathbb{E}\big[ C(\tau) \big],\quad
 \tau \sim q_\theta(\cdot\mid x),
-]
+$$
 其中 (C(\tau)) 与 token 长度、工具调用次数、延迟等相关。**目标**是在**固定预算**内最小化风险。
 
 **ASCII：结构化 CoT 槽位**
@@ -83,17 +83,19 @@
 3. **情境记忆（任务/场景特定）**：场景地图、对手画像、危险名录。
 
 **检索—推理联合优化**可写为：
-[
+
+$$
 \max_{\theta,\psi}\ \mathbb{E}*{x}\Big[ U\big(y, \pi*\theta(x, \mathcal{R}*\psi(x))\big) \Big]
 \ -\ \lambda,\mathbb{E}\big[ C\big(\mathcal{R}*\psi(x)\big) \big],
-]
+$$
+
 其中 (\mathcal{R}_\psi) 为检索器（dense/lexical/混合），在**效用—检索成本**之间折中。
 
 **混合检索打分**（实践常用）：
-[
+$$
 S(q,d) = \alpha, S_{\text{lex}}(q,d) + (1-\alpha), S_{\text{dense}}(q,d),
 \quad \alpha \in [0,1].
-]
+$$
 
 **记忆金字塔（ASCII）**
 
@@ -120,20 +122,20 @@ S(q,d) = \alpha, S_{\text{lex}}(q,d) + (1-\alpha), S_{\text{dense}}(q,d),
 语言层通过**函数调用/计划执行**将“想法”落成“可验证的产出”。在 VLA 中，常见工具包括：几何/物理求解器、路径规划器（MPC/MIQP）、数据库/知识库、规则引擎、可达性/安全屏蔽（CBF/LTL‑Shield）。
 
 把“调用工具”建模为**选项（options）/技能（skills）**：
-[
+$$
 \pi(a\mid s) =
 \sum_{o \in \mathcal{O}} \pi(o\mid s), \pi(a\mid s,o),
 \quad
 \beta_o(s) = \text{终止概率},
-]
+$$
 语言层等价于在状态 (s) 上选择**高层选项 (o)**（如“调用 A* 规划器 50ms”），并在终止条件触发后返回。
 
 **调用成本—风险目标**：
-[
+$$
 \min\ \mathbb{E}\big[\ell(y,\hat{y})\big] +
 \lambda_{\text{lat}},\mathbb{E}[T_{\text{lat}}] +
 \lambda_{\text{risk}},\mathbb{E}[\text{UnverifiedStep}],
-]
+$$
 优先调用**可验证/可审计**的工具，降低“不可证步骤”的占比。
 
 **ASCII：工具调用闭环**
@@ -150,14 +152,14 @@ S(q,d) = \alpha, S_{\text{lex}}(q,d) + (1-\alpha), S_{\text{dense}}(q,d),
 ### 3.4.1 思考预算与推理深度的自适应调度
 
 为避免延迟与幻觉，使用**门控策略 (g_\phi)** 动态决定“继续思考/调用工具/立即执行”。可用**代价敏感决策**：
-[
+$$
 g_\phi(s) =
 \begin{cases}
 \text{HALT}, & \Delta U < \lambda_{\text{next}} \
 \text{THINK_MORE}, & \Delta U \ge \lambda_{\text{next}},\ T<T_{\max} \
 \text{TOOL_CALL}, & \text{若可验证增益}>\text{门槛}
 \end{cases}
-]
+$$
 (\Delta U) 为继续推理的**边际效用预估**。
 
 **Rule‑of‑thumb 3.4.1**：线上系统设置**双阈值**：
@@ -172,11 +174,11 @@ g_\phi(s) =
 语言层的核心职责是把感知输出与行动先验**对齐为可执行计划**。推荐使用“**声明式目标 + 约束 + 验证点**”三件套。
 
 **计划可执行性目标**（示意）：
-[
+$$
 \max_{\text{plan}}\ \underbrace{P(\text{success}\mid x_{\text{vision}}, \text{plan})}*{\text{达成任务}}
 -\lambda*{s},\underbrace{\text{SafetyViolation}(\text{plan})}*{\text{安全}}
 -\lambda*{c},\underbrace{\text{ControlCost}(\text{plan})}_{\text{平滑/舒适}},
-]
+$$
 并要求**显式接口**把计划转换为**可控轨迹/约束**（详见第 4 章）。
 
 **ASCII：从视觉摘要到可控轨迹**
@@ -202,10 +204,10 @@ g_\phi(s) =
 
 **不确定校准**（温度/能量分数/间隔）可作为**门控信号**。
 简化表示：若
-[
+$$
 H(p_\theta(\cdot\mid x))>\tau_H\quad\text{或}\quad
 \text{margin}(x)<\tau_M,
-]
+$$
 则进入“**检索+工具**”分支，且需要**二次验证**通过才触发行动。
 
 **Rule‑of‑thumb 3.6**：**高风险=双重来源 + 双重验证**。至少使用两条**统计独立**的证据路径（如视觉→几何、语言→数据库），且通过**不同失效模式**的校验器。
@@ -245,30 +247,30 @@ H(p_\theta(\cdot\mid x))>\tau_H\quad\text{或}\quad
 **关键公式速查**
 
 1. 效用—成本目标：
-   [
+$$
    \max_{\pi_\theta,g_\phi}
    \mathbb{E}[U]-\lambda_{\text{tok}}\mathbb{E}[C_{\text{tokens}}]-\lambda_{\text{tool}}\mathbb{E}[C_{\text{tools}}].
-   ]
+$$
 
 2. 结构化推理正则：
-   [
+$$
    \min_\theta \mathbb{E}[\ell(y,f_\theta(x,\tau))] + \lambda,\mathbb{E}[C(\tau)].
-   ]
+$$
 
 3. 检索—推理联合：
-   [
+$$
    \max_{\theta,\psi} \mathbb{E}\big[U\big(y,\pi_\theta(x,\mathcal{R}*\psi(x))\big)\big]-\lambda C(\mathcal{R}*\psi).
-   ]
+$$
 
 4. 混合打分：
-   [
+$$
    S(q,d)=\alpha S_{\text{lex}}+(1-\alpha)S_{\text{dense}}.
-   ]
+$$
 
 5. 选项策与终止：
-   [
+$$
    \pi(a\mid s)=\sum_o \pi(o\mid s)\pi(a\mid s,o),\quad \beta_o(s).
-   ]
+$$
 
 ---
 
