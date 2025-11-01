@@ -6,7 +6,7 @@
 不写代码
 
 ## Audience
-verteran programmer and AI scientists
+veteran programmer and AI scientists
 
 ## 章节结构要求
 每个章节应包含：
