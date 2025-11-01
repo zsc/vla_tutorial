@@ -29,7 +29,7 @@
 
 **文字论述**
 把仿真域 ( \mathcal{S} ) 与真实域 ( \mathcal{R} ) 的差异建模为分布与映射的偏移：
-[
+$$
 \Delta_{\text{gap}}
 ,=,
 \underbrace{d!\left(p_{\mathcal{S}}(x),,p_{\mathcal{R}}(x)\right)}*{\text{状态/观测分布差}}
@@ -37,7 +37,7 @@
 \underbrace{d!\left(p*{\mathcal{S}}(u|x),,p_{\mathcal{R}}(u|x)\right)}*{\text{控制/策略诱导差}}
 +
 \underbrace{d!\left(p*{\mathcal{S}}(x'|x,u),,p_{\mathcal{R}}(x'|x,u)\right)}_{\text{动力学过渡差}}
-]
+$$
 其中 (d(\cdot,\cdot)) 可取 Wasserstein/MMD/IPM。面向工程，拆成三类可测量项：
 
 1. **感知域差**：成像链（光谱响应、噪声）、几何（畸变/滚快门）、**时间戳**（抖动/漂移）。
@@ -60,14 +60,14 @@
 **文字论述**
 
 * **离线重放（Replay）**：以真实日志 ( \mathcal{D}*\text{real} ) 驱动感知与策略前端，比较轨迹误差
-  [
+$$
   \mathcal{E}*{\text{replay}}=\frac{1}{T}\sum_{t=1}^T \left| a_t^{(\text{policy})} - a_t^{(\text{ref})}\right|_2
-  ]
+$$
   并记录安全事件的**回放再现率**。
 * **台架/HIL**：闭环在**真实控制器/执行器**频带运行，测**频响** (G(j\omega)) 与**时延** (\tau)，确保
-  [
+$$
   \text{PhaseMargin} \ge 45^\circ,\quad \omega_c\tau < 0.3
-  ]
+$$
 * **封闭场**：参数化场景簇（边界条件+长尾），统计**零红线**（碰撞/越界/失控=0）与 CVaR(95%) 代价。
 
 **Rule‑of‑Thumb**：Replay≥10k 片段、HIL 闭合误差<2%、封闭场红线=0，才考虑灰度上线。
@@ -78,13 +78,13 @@
 
 **文字论述**
 以控制仿真为例：动力学
-[
+$$
 M(q)\ddot q + C(q,\dot q)\dot q + g(q) + f_{\text{fric}}(\dot q) = \tau + \tau_d
-]
+$$
 设参数向量 ( \theta )（质量、惯量、摩擦、延迟…），灰盒辨识目标
-[
+$$
 \theta^\star=\arg\min_{\theta};\sum_t\left|y_t - \hat y_t(\theta)\right|*2^2 + \lambda|\theta-\theta_0|*2^2
-]
+$$
 其中 ( \hat y_t ) 源于可微仿真器。**可辨识性**检查：Fisher 信息矩阵 ( \mathcal{I}(\theta) ) 条件数，确保**持续激励**（PE）。
 置信区间由 Hessian 近似 ( \Sigma*\theta \approx \sigma^2 ( \nabla^2*{\theta} \mathcal{L})^{-1} ) 给出——**随机化包络**以此为内核扩张。
 
@@ -103,13 +103,13 @@ M(q)\ddot q + C(q,\dot q)\dot q + g(q) + f_{\text{fric}}(\dot q) = \tau + \tau_d
 **文字论述**
 
 * **标准随机化**：在包络 ( \theta \sim \mathcal{D} ) 内采样训练
-  [
+$$
   \min_{\pi};\mathbb{E}_{\theta\sim\mathcal{D}},J(\pi;\theta),.
-  ]
+$$
 * **鲁棒/对抗随机化**：对抗选择 (q\in\mathcal{U})（φ‑divergence 球）
-  [
+$$
   \min_{\pi};\max_{q\in\mathcal{U}};\mathbb{E}_{\theta\sim q}J(\pi;\theta),.
-  ]
+$$
 * **失效放大**：对历史红线样本附近增加采样密度（hard‑negative mining）。
 * **课程化**：包络半径 (r_k) 单调递增，满足**每级通过率≥95%**再升级。
 
@@ -153,9 +153,9 @@ M(q)\ddot q + C(q,\dot q)\dot q + g(q) + f_{\text{fric}}(\dot q) = \tau + \tau_d
 **文字论述**
 
 * **残差策略**：
-  [
+$$
   u = u_{\text{teacher}}(x) + r_\phi(s),\quad |r_\phi|*\infty \le \rho,;\text{BW}(r*\phi)\le B
-  ]
+$$
   以**几何/MPC**为教师，学生只学**低频修正**。
 * **特权信息蒸馏**：仿真中用 (z^\star)（真实参数/接触状态）训练**隐域编码器** (z=\psi_\eta(o))，再蒸馏到无特权观测。
 * **多目标整形**：在 RL 损失中引入**平滑/能耗/屏蔽罚项**。
@@ -170,9 +170,9 @@ M(q)\ddot q + C(q,\dot q)\dot q + g(q) + f_{\text{fric}}(\dot q) = \tau + \tau_d
 
 * **隐域估计（RMA）**：学习 (z=\psi_\eta(o_{t-k:t}))，策略 (\pi(a|o,z))。
 * **受控更新**：限制测试时参数漂移
-  [
+$$
   |\Delta\eta|*2 \le B*\eta,\quad D_{\mathrm{KL}}(\pi_{\text{new}}|\pi_{\text{old}})\le \epsilon
-  ]
+$$
   并启用**回滚**与**冷却期**。
 * **自训练**：仅在**高置信/低风险**窗口启用，且**不越权覆盖**安全规则。
 
@@ -184,12 +184,12 @@ M(q)\ddot q + C(q,\dot q)\dot q + g(q) + f_{\text{fric}}(\dot q) = \tau + \tau_d
 
 **文字论述**
 对控制仿射系统 ( \dot x = f(x)+g(x)u )，设**零化 CBF** (h(x)) 定义安全集 (\mathcal{S}={x,|,h(x)\ge 0})。在线解 QP：
-[
+$$
 \begin{aligned}
 \min_{u}\quad & |u-u_{\text{ref}}|_2^2 \
 \text{s.t.}\quad & L_f h(x)+L_g h(x),u + \alpha h(x) \ge 0
 \end{aligned}
-]
+$$
 必要时叠加**多约束**（时距、越界、速度上限）。
 **优雅降级**：监测风险 (r_t) 超阈即切换**安全控制器**（如低速避障/原地制动），并触发**FTA**（故障树）记录。
 

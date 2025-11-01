@@ -166,15 +166,15 @@ Sim‑to‑Real 的核心不是“把模型搬出去”，而是<strong>系统�
 <h2 id="111">11.1 域差谱系：感知域差/动力学域差/语义与交互域差</h2>
 <p><strong>文字论述</strong>
 把仿真域 ( \mathcal{S} ) 与真实域 ( \mathcal{R} ) 的差异建模为分布与映射的偏移：
-[
+$$
 \Delta_{\text{gap}}
 ,=,
-\underbrace{d!\left(p_{\mathcal{S}}(x),,p_{\mathcal{R}}(x)\right)}<em _mathcal_S="\mathcal{S">{\text{状态/观测分布差}}
+\underbrace{d!\left(p_{\mathcal{S}}(x),,p_{\mathcal{R}}(x)\right)}*{\text{状态/观测分布差}}
 +
-\underbrace{d!\left(p</em>}(u|x),,p_{\mathcal{R}}(u|x)\right)}<em _mathcal_S="\mathcal{S">{\text{控制/策略诱导差}}
+\underbrace{d!\left(p*{\mathcal{S}}(u|x),,p_{\mathcal{R}}(u|x)\right)}*{\text{控制/策略诱导差}}
 +
-\underbrace{d!\left(p</em>}(x'|x,u),,p_{\mathcal{R}}(x'|x,u)\right)}_{\text{动力学过渡差}}
-]
+\underbrace{d!\left(p*{\mathcal{S}}(x'|x,u),,p_{\mathcal{R}}(x'|x,u)\right)}_{\text{动力学过渡差}}
+$$
 其中 (d(\cdot,\cdot)) 可取 Wasserstein/MMD/IPM。面向工程，拆成三类可测量项：</p>
 <ol>
 <li><strong>感知域差</strong>：成像链（光谱响应、噪声）、几何（畸变/滚快门）、<strong>时间戳</strong>（抖动/漂移）。</li>
@@ -193,17 +193,17 @@ Sim‑to‑Real 的核心不是“把模型搬出去”，而是<strong>系统�
 <p><strong>文字论述</strong></p>
 <ul>
 <li>
-<p><strong>离线重放（Replay）</strong>：以真实日志 ( \mathcal{D}<em _text_replay="\text{replay">\text{real} ) 驱动感知与策略前端，比较轨迹误差
-  [
-  \mathcal{E}</em>}=\frac{1}{T}\sum_{t=1}^T \left| a_t^{(\text{policy})} - a_t^{(\text{ref})}\right|_2
-  ]
-  并记录安全事件的<strong>回放再现率</strong>。</p>
+<p><strong>离线重放（Replay）</strong>：以真实日志 ( \mathcal{D}<em>\text{real} ) 驱动感知与策略前端，比较轨迹误差
+$$
+\mathcal{E}*{\text{replay}}=\frac{1}{T}\sum_{t=1}^T \left| a_t^{(\text{policy})} - a_t^{(\text{ref})}\right|_2
+$$
+  并记录安全事件的</em><em>回放再现率</em>*。</p>
 </li>
 <li>
 <p><strong>台架/HIL</strong>：闭环在<strong>真实控制器/执行器</strong>频带运行，测<strong>频响</strong> (G(j\omega)) 与<strong>时延</strong> (\tau)，确保
-  [
-  \text{PhaseMargin} \ge 45^\circ,\quad \omega_c\tau &lt; 0.3
-  ]</p>
+$$
+\text{PhaseMargin} \ge 45^\circ,\quad \omega_c\tau &lt; 0.3
+$$</p>
 </li>
 <li>
 <p><strong>封闭场</strong>：参数化场景簇（边界条件+长尾），统计<strong>零红线</strong>（碰撞/越界/失控=0）与 CVaR(95%) 代价。</p>
@@ -214,13 +214,13 @@ Sim‑to‑Real 的核心不是“把模型搬出去”，而是<strong>系统�
 <h2 id="113-system-id">11.3 系统辨识（System ID）：灰盒/黑盒、可辨识性与置信区间</h2>
 <p><strong>文字论述</strong>
 以控制仿真为例：动力学
-[
+$$
 M(q)\ddot q + C(q,\dot q)\dot q + g(q) + f_{\text{fric}}(\dot q) = \tau + \tau_d
-]
+$$
 设参数向量 ( \theta )（质量、惯量、摩擦、延迟…），灰盒辨识目标
-[
-\theta^\star=\arg\min_{\theta};\sum_t\left|y_t - \hat y_t(\theta)\right|<em>2^2 + \lambda|\theta-\theta_0|</em>2^2
-]
+$$
+\theta^\star=\arg\min_{\theta};\sum_t\left|y_t - \hat y_t(\theta)\right|*2^2 + \lambda|\theta-\theta_0|*2^2
+$$
 其中 ( \hat y_t ) 源于可微仿真器。<strong>可辨识性</strong>检查：Fisher 信息矩阵 ( \mathcal{I}(\theta) ) 条件数，确保<strong>持续激励</strong>（PE）。
 置信区间由 Hessian 近似 ( \Sigma<em _theta="\theta">\theta \approx \sigma^2 ( \nabla^2</em> \mathcal{L})^{-1} ) 给出——<strong>随机化包络</strong>以此为内核扩张。</p>
 <p><strong>ASCII：辨识—校准闭环</strong></p>
@@ -235,15 +235,15 @@ M(q)\ddot q + C(q,\dot q)\dot q + g(q) + f_{\text{fric}}(\dot q) = \tau + \tau_d
 <ul>
 <li>
 <p><strong>标准随机化</strong>：在包络 ( \theta \sim \mathcal{D} ) 内采样训练
-  [
-  \min_{\pi};\mathbb{E}_{\theta\sim\mathcal{D}},J(\pi;\theta),.
-  ]</p>
+$$
+\min_{\pi};\mathbb{E}_{\theta\sim\mathcal{D}},J(\pi;\theta),.
+$$</p>
 </li>
 <li>
 <p><strong>鲁棒/对抗随机化</strong>：对抗选择 (q\in\mathcal{U})（φ‑divergence 球）
-  [
-  \min_{\pi};\max_{q\in\mathcal{U}};\mathbb{E}_{\theta\sim q}J(\pi;\theta),.
-  ]</p>
+$$
+\min_{\pi};\max_{q\in\mathcal{U}};\mathbb{E}_{\theta\sim q}J(\pi;\theta),.
+$$</p>
 </li>
 <li>
 <p><strong>失效放大</strong>：对历史红线样本附近增加采样密度（hard‑negative mining）。</p>
@@ -279,9 +279,9 @@ M(q)\ddot q + C(q,\dot q)\dot q + g(q) + f_{\text{fric}}(\dot q) = \tau + \tau_d
 <ul>
 <li>
 <p><strong>残差策略</strong>：
-  [
-  u = u_{\text{teacher}}(x) + r_\phi(s),\quad |r_\phi|<em>\infty \le \rho,;\text{BW}(r</em>\phi)\le B
-  ]
+$$
+u = u_{\text{teacher}}(x) + r_\phi(s),\quad |r_\phi|*\infty \le \rho,;\text{BW}(r*\phi)\le B
+$$
   以<strong>几何/MPC</strong>为教师，学生只学<strong>低频修正</strong>。</p>
 </li>
 <li>
@@ -297,9 +297,9 @@ M(q)\ddot q + C(q,\dot q)\dot q + g(q) + f_{\text{fric}}(\dot q) = \tau + \tau_d
 <li><strong>隐域估计（RMA）</strong>：学习 (z=\psi_\eta(o_{t-k:t}))，策略 (\pi(a|o,z))。</li>
 <li>
 <p><strong>受控更新</strong>：限制测试时参数漂移
-  [
-  |\Delta\eta|<em>2 \le B</em>\eta,\quad D_{\mathrm{KL}}(\pi_{\text{new}}|\pi_{\text{old}})\le \epsilon
-  ]
+$$
+|\Delta\eta|*2 \le B*\eta,\quad D_{\mathrm{KL}}(\pi_{\text{new}}|\pi_{\text{old}})\le \epsilon
+$$
   并启用<strong>回滚</strong>与<strong>冷却期</strong>。</p>
 </li>
 <li>
@@ -311,12 +311,12 @@ M(q)\ddot q + C(q,\dot q)\dot q + g(q) + f_{\text{fric}}(\dot q) = \tau + \tau_d
 <h2 id="119-rtacbfmpc-shield">11.9 运行时保障（RTA）：屏蔽/CBF/MPC Shield、故障树与优雅降级</h2>
 <p><strong>文字论述</strong>
 对控制仿射系统 ( \dot x = f(x)+g(x)u )，设<strong>零化 CBF</strong> (h(x)) 定义安全集 (\mathcal{S}={x,|,h(x)\ge 0})。在线解 QP：
-[
+$$
 \begin{aligned}
 \min_{u}\quad &amp; |u-u_{\text{ref}}|_2^2 \
 \text{s.t.}\quad &amp; L_f h(x)+L_g h(x),u + \alpha h(x) \ge 0
 \end{aligned}
-]
+$$
 必要时叠加<strong>多约束</strong>（时距、越界、速度上限）。
 <strong>优雅降级</strong>：监测风险 (r_t) 超阈即切换<strong>安全控制器</strong>（如低速避障/原地制动），并触发<strong>FTA</strong>（故障树）记录。</p>
 <p><strong>Rule‑of‑Thumb</strong>：RTA 频率≥主策略频率的 2×；QP 失败→立刻降级并锁 1–3 s 冷却。</p>

@@ -62,11 +62,11 @@
 ## 8.2 策略优化：PPO/离线 RL/行为克制与 KL 正则
 
 **目标函数（带 KL 与熵）**：
-[
+$$
 \max_\theta;\mathbb{E}*{t}\Big[\min\big(r_t(\theta)A_t,;\mathrm{clip}(r_t(\theta),1-\epsilon,1+\epsilon)A_t\big)\Big]
 -\beta,\mathrm{KL}!\left(\pi*\theta(\cdot|s_t),|,\pi_{\text{ref}}(\cdot|s_t)\right)
 +\alpha,\mathcal{H}!\left(\pi_\theta(\cdot|s_t)\right),
-]
+$$
 其中 (r_t(\theta)=\frac{\pi_\theta(a_t|s_t)}{\pi_{\text{old}}(a_t|s_t)})。
 
 * **KL 两种使用法**：
@@ -111,7 +111,7 @@
 ## 8.5 奖励设计：成功率/安全/效率与奖黑客防范
 
 **可分解奖励**（示例）：
-[
+$$
 r_t = w_s,\underbrace{\mathbb{1}[\text{成功}]}_{\text{终局}}
 
 * w_c,\underbrace{\text{碰撞/越界/违规}}_{\text{硬约束}}
@@ -148,31 +148,31 @@ r_t = w_s,\underbrace{\mathbb{1}[\text{成功}]}_{\text{终局}}
 
 **(1) IPS / PD‑IPS（逐决策重要性采样）**
 行为策略 (\mu)，重要性比：
-[
+$$
 \rho_{0:t}=\prod_{k=0}^t \frac{\pi(a_k|s_k)}{\mu(a_k|s_k)}.
-]
+$$
 分步 IPS 估计：
-[
+$$
 \hat{V}*{\text{PD-IPS}}=\frac{1}{n}\sum*{i=1}^n \sum_{t=0}^{T-1}\gamma^t,\rho_{0:t}^{(i)},r_t^{(i)}.
-]
+$$
 **优点**：无模型偏差；**缺点**：方差高，对支持重叠极敏感。
 
 **(2) Doubly‑Robust（DR）**
 引入近似 ( \hat{Q}(s,a),\hat{V}(s) )：
-[
+$$
 \hat{V}*{\text{DR}}=\frac{1}{n}\sum*{i=1}^n\sum_{t=0}^{T-1}\gamma^t\Big[
 \rho_{0:t}^{(i)}\big(r_t^{(i)}-\hat{Q}(s_t^{(i)},a_t^{(i)})\big)
 +\rho_{0:t-1}^{(i)}\hat{V}(s_t^{(i)})\Big].
-]
+$$
 **性质**：模型或重要性权任一正确即无偏；常配合截断权重与控制变元降方差。
 
 **(3) FQE（Fitted Q Evaluation）**
 固定策略 (\pi)，拟合 (Q^\pi) 解
-[
+$$
 \min_\psi \mathbb{E}*{(s,a,r,s')\sim \mathcal{D}}\Big[
 Q*\psi(s,a) - \big(r + \gamma,\mathbb{E}*{a'\sim \pi(\cdot|s')}[Q*{\bar\psi}(s',a')]\big)
 \Big]^2,
-]
+$$
 再以 (\hat{V}^\pi=\mathbb{E}*{s\sim d_0}\mathbb{E}*{a\sim\pi}[Q_\psi(s,a)]) 估计。
 **优点**：方差较低、可诊断；**关键**：**覆盖度**与**函数近似误差**。
 

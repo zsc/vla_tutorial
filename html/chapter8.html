@@ -197,11 +197,11 @@
 <hr />
 <h2 id="82-ppo-rl-kl">8.2 策略优化：PPO/离线 RL/行为克制与 KL 正则</h2>
 <p><strong>目标函数（带 KL 与熵）</strong>：
-[
-\max_\theta;\mathbb{E}<em>{t}\Big[\min\big(r_t(\theta)A_t,;\mathrm{clip}(r_t(\theta),1-\epsilon,1+\epsilon)A_t\big)\Big]
--\beta,\mathrm{KL}!\left(\pi</em>\theta(\cdot|s_t),|,\pi_{\text{ref}}(\cdot|s_t)\right)
+$$
+\max_\theta;\mathbb{E}*{t}\Big[\min\big(r_t(\theta)A_t,;\mathrm{clip}(r_t(\theta),1-\epsilon,1+\epsilon)A_t\big)\Big]
+-\beta,\mathrm{KL}!\left(\pi*\theta(\cdot|s_t),|,\pi_{\text{ref}}(\cdot|s_t)\right)
 +\alpha,\mathcal{H}!\left(\pi_\theta(\cdot|s_t)\right),
-]
+$$
 其中 (r_t(\theta)=\frac{\pi_\theta(a_t|s_t)}{\pi_{\text{old}}(a_t|s_t)})。</p>
 <ul>
 <li>
@@ -255,71 +255,59 @@
 <hr />
 <h2 id="85">8.5 奖励设计：成功率/安全/效率与奖黑客防范</h2>
 <p><strong>可分解奖励</strong>（示例）：
-[
+$$
 r_t = w_s,\underbrace{\mathbb{1}[\text{成功}]}_{\text{终局}}</p>
+<p>* w_c,\underbrace{\text{碰撞/越界/违规}}_{\text{硬约束}}
+* w_j,\underbrace{\text{跃度/不适}}_{\text{舒适}}
+* w_e,\underbrace{\text{能耗/耗时}}_{\text{效率}}</p>
 <ul>
-<li>w_c,\underbrace{\text{碰撞/越界/违规}}_{\text{硬约束}}</li>
-<li>w_j,\underbrace{\text{跃度/不适}}_{\text{舒适}}</li>
-<li>
-<p>w_e,\underbrace{\text{能耗/耗时}}_{\text{效率}}</p>
-</li>
-<li>
-<p>w_x,\underbrace{\text{社交合规/礼让}}_{\text{交互}}
-  ]</p>
-</li>
-<li>
-<p><strong>奖黑客</strong>：对代理可能“投机”的信号做<strong>反作弊</strong>（如密度惩罚、检测器矛盾惩罚、可达性检查失败惩罚）。</p>
-</li>
-<li><strong>CVaR/风险敏感</strong>：最小化<strong>分位损失</strong> (\mathrm{CVaR}_\alpha) 提升长尾安全。</li>
+<li>w_x,\underbrace{\text{社交合规/礼让}}_{\text{交互}}
+  ]</li>
 </ul>
+<p>* **奖黑客**：对代理可能“投机”的信号做**反作弊**（如密度惩罚、检测器矛盾惩罚、可达性检查失败惩罚）。
+* **CVaR/风险敏感**：最小化**分位损失** (\mathrm{CVaR}_\alpha) 提升长尾安全。</p>
 <blockquote>
-<p><strong>Rule‑of‑thumb</strong>：先把<strong>硬约束</strong>（安全/合规）做成<strong>屏蔽或不可行域投影</strong>，再优化软目标；能“投影”的就别“罚”。</p>
+<p>**Rule‑of‑thumb**：先把**硬约束**（安全/合规）做成**屏蔽或不可行域投影**，再优化软目标；能“投影”的就别“罚”。</p>
 </blockquote>
 <hr />
 <h2 id="86-dagger">8.6 数据效率：演示启动、DAgger 式纠偏与回放池</h2>
-<ul>
-<li><strong>演示启动（Demonstrations Bootstrapping）</strong>：用专家或“几何教师”初始化 (\pi_{\text{ref}})。</li>
-<li><strong>DAgger/AGGREVATE 思想</strong>：在线聚集<strong>自身访问的状态分布</strong>，请求教师纠偏，减轻<strong>分布漂移</strong>。</li>
-<li>
-<p><strong>回放池治理</strong>：</p>
-</li>
-<li>
-<p><strong>分层缓存</strong>：成功/失败/界样本分池；</p>
-</li>
-<li><strong>优先级</strong>：基于 TD‑error、价值方差、发生稀有度；</li>
-<li><strong>去重与漂移管控</strong>：窗口化采样 + 版本化元数据。</li>
-</ul>
+<p>* **演示启动（Demonstrations Bootstrapping）**：用专家或“几何教师”初始化 (\pi_{\text{ref}})。
+* **DAgger/AGGREVATE 思想**：在线聚集**自身访问的状态分布**，请求教师纠偏，减轻**分布漂移**。
+* **回放池治理**：</p>
+<p>* **分层缓存**：成功/失败/界样本分池；
+  * **优先级**：基于 TD‑error、价值方差、发生稀有度；
+  * **去重与漂移管控**：窗口化采样 + 版本化元数据。</p>
 <blockquote>
-<p><strong>工程建议</strong>：回放条目附带<strong>场景签名</strong>（地图/天气/对手策略 hash），为 Sim‑to‑Real 的<strong>复现实验</strong>与<strong>边界覆盖率</strong>铺路。</p>
+<p>**工程建议**：回放条目附带**场景签名**（地图/天气/对手策略 hash），为 Sim‑to‑Real 的**复现实验**与**边界覆盖率**铺路。</p>
 </blockquote>
 <hr />
 <h2 id="87-opeipsdrfqe">8.7 OPE（离线策略评估）：IPS/DR/FQE 三件套</h2>
-<p>当在线试验代价高或有安全约束时，<strong>OPE</strong>提供离线估计新策略 (\pi) 的价值 (\hat{V}^\pi)。</p>
-<p><strong>(1) IPS / PD‑IPS（逐决策重要性采样）</strong>
+<p>当在线试验代价高或有安全约束时，**OPE**提供离线估计新策略 (\pi) 的价值 (\hat{V}^\pi)。</p>
+<p>**(1) IPS / PD‑IPS（逐决策重要性采样）**
 行为策略 (\mu)，重要性比：
-[
+$$
 \rho_{0:t}=\prod_{k=0}^t \frac{\pi(a_k|s_k)}{\mu(a_k|s_k)}.
-]
+$$
 分步 IPS 估计：
-[
+$$
 \hat{V}<em i="1">{\text{PD-IPS}}=\frac{1}{n}\sum</em>^n \sum_{t=0}^{T-1}\gamma^t,\rho_{0:t}^{(i)},r_t^{(i)}.
-]
-<strong>优点</strong>：无模型偏差；<strong>缺点</strong>：方差高，对支持重叠极敏感。</p>
-<p><strong>(2) Doubly‑Robust（DR）</strong>
+$$
+**优点**：无模型偏差；**缺点**：方差高，对支持重叠极敏感。</p>
+<p>**(2) Doubly‑Robust（DR）**
 引入近似 ( \hat{Q}(s,a),\hat{V}(s) )：
-[
+$$
 \hat{V}<em i="1">{\text{DR}}=\frac{1}{n}\sum</em>^n\sum_{t=0}^{T-1}\gamma^t\Big[
 \rho_{0:t}^{(i)}\big(r_t^{(i)}-\hat{Q}(s_t^{(i)},a_t^{(i)})\big)
 +\rho_{0:t-1}^{(i)}\hat{V}(s_t^{(i)})\Big].
-]
-<strong>性质</strong>：模型或重要性权任一正确即无偏；常配合截断权重与控制变元降方差。</p>
-<p><strong>(3) FQE（Fitted Q Evaluation）</strong>
+$$
+**性质**：模型或重要性权任一正确即无偏；常配合截断权重与控制变元降方差。</p>
+<p>**(3) FQE（Fitted Q Evaluation）**
 固定策略 (\pi)，拟合 (Q^\pi) 解
-[
+$$
 \min_\psi \mathbb{E}<em>{(s,a,r,s')\sim \mathcal{D}}\Big[
 Q</em>\psi(s,a) - \big(r + \gamma,\mathbb{E}<em _bar_psi="\bar\psi">{a'\sim \pi(\cdot|s')}[Q</em>(s',a')]\big)
 \Big]^2,
-]
+$$
 再以 (\hat{V}^\pi=\mathbb{E}<em a_sim_pi="a\sim\pi">{s\sim d_0}\mathbb{E}</em>[Q_\psi(s,a)]) 估计。
 <strong>优点</strong>：方差较低、可诊断；<strong>关键</strong>：<strong>覆盖度</strong>与<strong>函数近似误差</strong>。</p>
 <blockquote>

@@ -18,9 +18,9 @@
 
 **问题形式化**
 单智能体问题通常建模为 POMDP
-[
+$$
 \mathcal{M}=(\mathcal{S},\mathcal{A},P,\Omega,O,r,\gamma),\quad o_t\sim O(\cdot,|,s_t),; a_t\sim \pi_\theta(\cdot,|,h_t),
-]
+$$
 其中 (h_t) 是历史（可由 RNN/Transformer 压缩）。若引入安全成本 (c) 与阈值 (\alpha)，得到 CMDP：(\mathbb{E}_\pi[\sum \gamma^t c_t]\le \alpha)。
 
 **仿真两类：**
@@ -87,9 +87,9 @@
 ## 9.4 奖励设计：碰撞/安全间距/舒适度/停车对齐
 
 **分解式奖励**（示例形式，不是代码）
-[
+$$
 r_t = w_c r^\text{collision}_t + w_s r^\text{safety}*t + w*\ell r^\text{lane}_t + w_u r^\text{comfort}_t + w_g r^\text{goal}_t
-]
+$$
 
 * **碰撞**：(r^\text{collision}_t = -\mathbb{1}[\text{collision}])（终止或强惩罚）。
 * **安全间距**：时距 (T_h = d/v)，惩罚 (\max(0, T_\text{ref}-T_h))。
@@ -97,9 +97,9 @@ r_t = w_c r^\text{collision}_t + w_s r^\text{safety}*t + w*\ell r^\text{lane}_t 
 * **停车对齐**：姿态误差 (|p_t-p_\star|+\lambda_\psi |\psi_t-\psi_\star|)。
 
 **潜在函数塑形（保证等价最优）**
-[
+$$
 F(s,a,s') = \gamma \Phi(s') - \Phi(s)
-]
+$$
 把稀疏目标变致密而不改变最优策略。
 
 > **Rule‑of‑Thumb 9.4（防奖黑客）**
@@ -113,9 +113,9 @@ F(s,a,s') = \gamma \Phi(s') - \Phi(s)
 
 **通用 reset 分布**
 定义场景参数 (\xi\sim q_\phi(\xi))：车道曲率、摩擦、传感噪声、起点/终点，生成轨迹任务簇。策略优化目标：
-[
+$$
 J(\theta;\phi)=\mathbb{E}*{\xi\sim q*\phi}\Big[\mathbb{E}*{\pi*\theta}\big[\textstyle\sum_{t}\gamma^t r_t\big]\Big].
-]
+$$
 
 **三类教具场景（建议的最小集）**
 
@@ -139,10 +139,10 @@ J(\theta;\phi)=\mathbb{E}*{\xi\sim q*\phi}\Big[\mathbb{E}*{\pi*\theta}\big[\text
 
 **域随机化**
 对传感与动力学参数 (\psi) 采样：(\psi \sim \mathcal{P}(\psi))。鲁棒目标（风险规避版）：
-[
+$$
 \max_\theta ; \mathbb{E}*{\psi\sim \mathcal{P}}\big[J(\theta;\psi)\big]
 \quad \text{s.t.}\quad \mathrm{CVaR}*\alpha!\big[J(\theta;\psi)\big] \ge \tau .
-]
+$$
 课程化随机化：从窄到宽、从单变量到多变量联合。
 
 **鲁棒控制先验**

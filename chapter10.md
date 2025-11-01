@@ -12,10 +12,10 @@
 ## 10.1 为什么是“多智能体”：外部性、互惠与礼让
 
 * **式化**：标准静态博弈
-  [
+$$
   G=\langle \mathcal N,{\mathcal A_i}*{i\in\mathcal N},{u_i}*{i\in\mathcal N}\rangle,\quad
   \pi_i\in\Delta(\mathcal A_i)
-  ]
+$$
   其中 (\mathcal N) 为智能体集合，(\mathcal A_i) 为动作集，(u_i) 为效用/回报。
 * **外部性**：一个体的加速/刹车改变他人的可行域与风险（如 TTC、可达集）。
 * **礼让与社会合规**：策略含**他人体验项**（他人急刹/大跃度视为负外部性）。
@@ -28,20 +28,20 @@
 ## 10.2 均衡建模：Nash/相关均衡/Stackelberg 与效率—公平
 
 * **Nash 均衡（NE）**：(\pi^*) 使得任一体单独偏离非增益
-  [
+$$
   \forall i,\ \pi_i^*\in\arg\max_{\pi_i}\ \mathbb E_{a\sim \pi_i,\pi_{-i}^*}[u_i(a)].
-  ]
+$$
 * **相关均衡（CE）**：存在联合分布 (q(a)) 满足对任意 (i,a_i,a_i'),
-  [
+$$
   \sum_{a_{-i}} q(a_i,a_{-i})\big(u_i(a_i,a_{-i})-u_i(a_i',a_{-i})\big)\ge 0.
-  ]
+$$
   **解释**：有一个“信号器”给出相关建议，遵循建议无激励偏离。
 * **Stackelberg（领从）**：Leader 承诺 (\pi_L)，Follower 取最佳应对 (\mathrm{BR}(\pi_L))。
 * **效率与公平**：社会福利 (W=\sum_i w_i u_i)；**Anarchy 代价**（PoA）与**稳定性代价**（PoS）评估 NE 偏离最优的程度。
 * **近似 NE（(\epsilon)-NE）**：**Nash gap**
-  [
+$$
   \mathrm{Gap}(a)=\max_i\ \max_{a_i'}\big(u_i(a_i',a_{-i})-u_i(a)\big)\le \epsilon.
-  ]
+$$
 
 ```
 效率 ↑
@@ -64,9 +64,9 @@
 
 * **贝叶斯博弈**：每个体有类型 (\theta_i\sim p(\theta))，效用 (u_i(a,\theta))。目标最大化**条件期望效用**。
 * **风险敏感**：CVaR(*\alpha) 或极端事件加权
-  [
+$$
   J_i(\pi)=\mathrm{CVaR}*\alpha\big(\sum_t r_{i,t}\big)
-  ]
+$$
   兼顾长尾安全。
 * **鲁棒博弈**：对不确定集 (\Theta) 取 (\min_{\theta\in\Theta}) 的 worst‑case 效用。
 
@@ -78,14 +78,14 @@
 ## 10.4 学习与收敛：虚拟对弈、无悔学习与复制子动态
 
 * **无悔学习**：平均外悔 (\bar R_T\to 0) 则经验分布收敛到**粗相关均衡（CCE）**。
-  [
+$$
   \bar R_T=\max_{a_i'}\frac1T\sum_{t=1}^T \big(u_i(a_i',a_{-i}^t)-u_i(a_i^t)\big)\to 0.
-  ]
+$$
 * **虚拟对弈（Fictitious Play）**：对他人频率做最优响应，潜在博弈中收敛。
 * **复制子动态**（连续时间）：
-  [
+$$
   \dot\pi_i(a)=\pi_i(a)\big(u_i(a,\pi_{-i})-\langle \pi_i,u_i(\cdot,\pi_{-i})\rangle\big).
-  ]
+$$
 
 > **经验法则 10‑D（可收敛性）**
 > 尽量将交互建模为**潜在博弈**或引入**潜在函数近似**；否则转向**CCE**并在工程上提供**屏蔽**与**恢复**路径。
@@ -95,14 +95,14 @@
 ## 10.5 MARL 综述：CTDE、价值分解、策梯度、对手建模与通信
 
 * **CTDE**（集中训练、分散执行）：训练用全局状态 (s)/联合动作 (a)，执行仅用局部观测 (o_i)。
-  [
+$$
   \nabla_{\theta_i}J=\mathbb E\big[\nabla_{\theta_i}\log\pi_i(a_i|o_i),A_i^{\text{central}}(s,a)\big].
-  ]
+$$
 * **价值分解**：VDN (Q_{tot}=\sum_i Q_i)；QMIX 要求单调性 (\partial Q_{tot}/\partial Q_i\ge 0)。
 * **多智能体策梯度**：MADDPG/MAPPO；**信用分配**（COMA 优势）
-  [
+$$
   A_i=Q(s,a)-\sum_{a_i'}\pi_i(a_i'|o_i),Q(s,(a_i',a_{-i})).
-  ]
+$$
 * **对手建模与通信**：显式 belief 网络、消息通道（bandwidth/延迟/安全）。
 
 > **经验法则 10‑E（训练稳定性）**
@@ -112,21 +112,21 @@
 
 ## 10.6 约束与安全：CMDP、拉格朗日/原始–对偶、鲁棒与 RTA
 
-* **约束 MDP**：(\max_\pi \mathbb E[\sum\gamma^t r_t]) s.t. (\mathbb E[\sum\gamma^t c_t]\le d)。
+* **约束 MDP**：$\max_\pi \mathbb E[\sum\gamma^t r_t]$ s.t. $\mathbb E[\sum\gamma^t c_t]\le d$。
   **拉格朗日**：
-  [
+$$
   \max_\pi\min_{\lambda\ge0}\ \mathbb E\textstyle\sum_t\gamma^t\big(r_t-\lambda c_t\big)+\lambda d.
-  ]
-  更新 (\lambda\leftarrow\big[\lambda+\eta(\hat C-d)\big]_+)。
+$$
+  更新 $\lambda\leftarrow\big[\lambda+\eta(\hat C-d)\big]_+$。
 * **控制障碍函数（CBF）**：安全集 (\mathcal S={x:h(x)\ge0})，满足
-  [
+$$
   \dot h(x)+\alpha h(x)\ge0
-  ]
-  或离散式 (h(x_{t+1})-h(x_t)+\alpha h(x_t)\ge0)。
+$$
+  或离散式 $h(x_{t+1})-h(x_t)+\alpha h(x_t)\ge0$。
   **QP 投影**（安全屏蔽）：
-  [
+$$
   \min_u |u-u_{\text{nom}}|^2\ \ \text{s.t.}\ \ \nabla h f(x)+\nabla h g(x)u+\alpha h(x)\ge0.
-  ]
+$$
 * **运行时保障（RTA）**：在线监控预测风险，违反阈值时切换到**保证安全的备份控制**。
 
 ```
@@ -166,7 +166,7 @@ A → → → + ← ← ← D
         ↓  C
 ```
 
-* **共享约束**：时空冲突区、最小时距 (\mathrm{TTC}=\frac{d}{\max(\epsilon,v_{\text{rel}})}\ge \tau)、最大加/减速度 (|a|\le a_{\max})、跃度 (|\dot a|\le j_{\max})。
+* **共享约束**：时空冲突区、最小时距 $\mathrm{TTC}=\frac{d}{\max(\epsilon,v_{\text{rel}})}\ge \tau$、最大加/减速度 $|a|\le a_{\max}$、跃度 $|\dot a|\le j_{\max}$。
 * **建模**：
 
   1. **贝叶斯类型**（激进/保守）；
@@ -177,7 +177,7 @@ A → → → + ← ← ← D
   1. **教师（MPC/博弈求解）**：在 CBF/STL 约束下求社会目标（效率+公平+舒适）解；
   2. **学生（MARL 残差）**：在教师解的**残差空间**学习人性化/细节；
   3. **QP 投影**：将残差叠加后的控制量投影回安全集；
-  4. **RTA**：监测 (\mathrm{TTC},\ \text{CBF margin},\ \text{jerk}) 等阈值，越界即切换备份；
+  4. **RTA**：监测 $\mathrm{TTC},\ \text{CBF margin},\ \text{jerk}$ 等阈值，越界即切换备份；
   5. **僵局解除**：注入轻量随机/优先权令牌，或路侧广播**turn‑taking**。
 
 > **经验法则 10‑H（礼让定价）**
@@ -210,7 +210,7 @@ A → → → + ← ← ← D
 
 * **域随机化**（交互域）：对人类驾驶**反应时/保守度**、通信丢包/延迟进行课程化随机。
 * **隐域估计**：在线估计对手类型 (\hat\theta)，将策略写成 (\pi(a|o,\hat\theta))。
-* **残差策略**：(,u=u_{\text{teacher}}+\Delta u_{\text{MARL}})，残差幅度受**RTA 限幅**。
+* **残差策略**：$\,u=u_{\text{teacher}}+\Delta u_{\text{MARL}}$，残差幅度受**RTA 限幅**。
 
 ---
 
@@ -225,13 +225,13 @@ A → → → + ← ← ← D
 ## 10.13 公平性度量：价格‑公平权衡、社交合规罚则
 
 * **(\alpha)-公平**：对“资源”(x_i)（如通过率/绿窗）
-  [
+$$
   U_\alpha(x)=
   \begin{cases}
   \sum_i \frac{x_i^{1-\alpha}}{1-\alpha}, & \alpha\neq 1[4pt]
   \sum_i \log x_i, & \alpha=1
   \end{cases}
-  ]
+$$
   (\alpha\uparrow) 更公平、效率可能下降。
 * **礼让罚则**：若我方动作使他车 (|a|>a_c) 或 (|\dot a|>j_c)，施加惩罚 (\lambda_c,\lambda_j)。
 * **队列公平**：等待时长 Gini/95%分位差、最大滞后界。
@@ -296,10 +296,10 @@ A → → → + ← ← ← D
 
 ### 附：常用公式与度量速览
 
-* **TTC**：(\mathrm{TTC}=\frac{d}{\max(\epsilon,v_{\text{rel}})})。
+* **TTC**：$\mathrm{TTC}=\frac{d}{\max(\epsilon,v_{\text{rel}})}$。
 * **Nash gap**：(\max_i\max_{a_i'} [u_i(a_i',a_{-i})-u_i(a)])。
 * **(\alpha)-公平**：见 10.13。
-* **CMDP 拉格朗日更新**：(\lambda\leftarrow[\lambda+\eta(\hat C-d)]_+)。
+* **CMDP 拉格朗日更新**：$\lambda\leftarrow[\lambda+\eta(\hat C-d)]_+$。
 * **CBF QP**：见 10.6。
 * **COMA 优势**：见 10.5。
 

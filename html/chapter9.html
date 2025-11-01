@@ -154,9 +154,9 @@
 <h2 id="91-vs">9.1 仿真类型：软件物理引擎 vs. 神经仿真</h2>
 <p><strong>问题形式化</strong>
 单智能体问题通常建模为 POMDP
-[
+$$
 \mathcal{M}=(\mathcal{S},\mathcal{A},P,\Omega,O,r,\gamma),\quad o_t\sim O(\cdot,|,s_t),; a_t\sim \pi_\theta(\cdot,|,h_t),
-]
+$$
 其中 (h_t) 是历史（可由 RNN/Transformer 压缩）。若引入安全成本 (c) 与阈值 (\alpha)，得到 CMDP：(\mathbb{E}_\pi[\sum \gamma^t c_t]\le \alpha)。</p>
 <p><strong>仿真两类：</strong></p>
 <ul>
@@ -214,9 +214,9 @@
 <hr />
 <h2 id="94">9.4 奖励设计：碰撞/安全间距/舒适度/停车对齐</h2>
 <p><strong>分解式奖励</strong>（示例形式，不是代码）
-[
-r_t = w_c r^\text{collision}_t + w_s r^\text{safety}<em>t + w</em>\ell r^\text{lane}_t + w_u r^\text{comfort}_t + w_g r^\text{goal}_t
-]</p>
+$$
+r_t = w_c r^\text{collision}_t + w_s r^\text{safety}*t + w*\ell r^\text{lane}_t + w_u r^\text{comfort}_t + w_g r^\text{goal}_t
+$$</p>
 <ul>
 <li><strong>碰撞</strong>：(r^\text{collision}_t = -\mathbb{1}[\text{collision}])（终止或强惩罚）。</li>
 <li><strong>安全间距</strong>：时距 (T_h = d/v)，惩罚 (\max(0, T_\text{ref}-T_h))。</li>
@@ -224,9 +224,9 @@ r_t = w_c r^\text{collision}_t + w_s r^\text{safety}<em>t + w</em>\ell r^\text{l
 <li><strong>停车对齐</strong>：姿态误差 (|p_t-p_\star|+\lambda_\psi |\psi_t-\psi_\star|)。</li>
 </ul>
 <p><strong>潜在函数塑形（保证等价最优）</strong>
-[
+$$
 F(s,a,s') = \gamma \Phi(s') - \Phi(s)
-]
+$$
 把稀疏目标变致密而不改变最优策略。</p>
 <blockquote>
 <p><strong>Rule‑of‑Thumb 9.4（防奖黑客）</strong></p>
@@ -239,9 +239,9 @@ F(s,a,s') = \gamma \Phi(s') - \Phi(s)
 <h2 id="95">9.5 任务设置：单车道行驶、无信号路口通行、停车</h2>
 <p><strong>通用 reset 分布</strong>
 定义场景参数 (\xi\sim q_\phi(\xi))：车道曲率、摩擦、传感噪声、起点/终点，生成轨迹任务簇。策略优化目标：
-[
-J(\theta;\phi)=\mathbb{E}<em>{\xi\sim q</em>\phi}\Big[\mathbb{E}<em>{\pi</em>\theta}\big[\textstyle\sum_{t}\gamma^t r_t\big]\Big].
-]</p>
+$$
+J(\theta;\phi)=\mathbb{E}*{\xi\sim q*\phi}\Big[\mathbb{E}*{\pi*\theta}\big[\textstyle\sum_{t}\gamma^t r_t\big]\Big].
+$$</p>
 <p><strong>三类教具场景（建议的最小集）</strong></p>
 <ol>
 <li><strong>单车道巡航</strong>：测试速度控制与舒适度；引入限速变换与前车插入。</li>
@@ -260,10 +260,10 @@ J(\theta;\phi)=\mathbb{E}<em>{\xi\sim q</em>\phi}\Big[\mathbb{E}<em>{\pi</em>\th
 <h2 id="96-simtoreal">9.6 Sim‑to‑Real 预备：域随机化、传感与动力学扰动、鲁棒控制</h2>
 <p><strong>域随机化</strong>
 对传感与动力学参数 (\psi) 采样：(\psi \sim \mathcal{P}(\psi))。鲁棒目标（风险规避版）：
-[
-\max_\theta ; \mathbb{E}<em>{\psi\sim \mathcal{P}}\big[J(\theta;\psi)\big]
-\quad \text{s.t.}\quad \mathrm{CVaR}</em>\alpha!\big[J(\theta;\psi)\big] \ge \tau .
-]
+$$
+\max_\theta ; \mathbb{E}*{\psi\sim \mathcal{P}}\big[J(\theta;\psi)\big]
+\quad \text{s.t.}\quad \mathrm{CVaR}*\alpha!\big[J(\theta;\psi)\big] \ge \tau .
+$$
 课程化随机化：从窄到宽、从单变量到多变量联合。</p>
 <p><strong>鲁棒控制先验</strong></p>
 <ul>
