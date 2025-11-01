@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="./">
+    <title>Untitled</title>
+    <link rel="stylesheet" href="assets/style.css">
+    <link rel="stylesheet" href="assets/highlight.css">
+    <script src="assets/script.js" defer></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$']],
+                displayMath: [['$$', '$$']],
+                processEscapes: false,
+                packages: {'[+]': ['noerrors', 'ams']}
+            },
+            options: {
+                ignoreHtmlClass: 'tex2jax_ignore',
+                processHtmlClass: 'tex2jax_process'
+            },
+            loader: {
+                load: ['[tex]/noerrors', '[tex]/ams']
+            }
+        };
+    </script>
+</head>
+<body>
+    <div class="container">
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h3>目录</h3>
+                <button id="sidebar-toggle" class="sidebar-toggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+            <div class="sidebar-search">
+                <input type="text" id="sidebar-search-input" placeholder="搜索..." autocomplete="off">
+            </div>
+            <div id="tree-container">
+                <ul class="nav-list"><li class="active"><a href="index.html">Untitled</a></li><li class=""><a href="CLAUDE.html">Untitled</a></li></ul>
+            </div>
+        </nav>
+        
+        <main class="content">
+            <article>
+                <h2 id="_1">课程导语</h2>
+<p>这是一套面向研究生与工程团队的系统课程，目标是把 V‑L‑A 从“看懂/说清”推向“做对/可交付”。全书以视觉—语言—行动的三模态闭环为主线，沿着预训练 → 跨模态对齐 → 强化学习 →（单/多智能体）仿真 → Sim‑to‑Real的证据链展开，强调行动是价值载体与安全是第一约束。你将搭建一条可复现的工程路径：感知基座与不确定性估计、语言编排与工具调用、行动信号与控制先验、形式化屏蔽与运行时保障（RTA）、以及从离线回放到现场验收的评测协议。建议先修：线性代数/概率统计/优化与控制、基础深度学习（最好具备 PyTorch/JAX 实践）；有自动驾驶或机器人背景更佳。学习路线推荐：先通读第 1–5 章建立概念地图，再按“7→8→9→10→11”的主线完成 Lab 与大作业，必要时回看第 2/4/6 章的感知与行动细节。课程的成功标准只有一个：把策略安全地跑在仿真与现实中，并能解释其行为与边界。</p>
+<h2 id="1">第1章 导论与动机案例</h2>
+<p><strong>摘要</strong></p>
+<p>本章建立 VLA 的基本框架：视觉感知、语言推理与工具编排、以及可度量的行动输出三者构成闭环。特别强调<strong>行动是系统的最终输出与价值载体</strong>，其时间序列信号的质量决定系统可用性与安全性。通过两个代表性场景（自动驾驶与机器人操控）引发兴趣，突出多智能体交互中“礼让/谦逊”与“优雅处置异常”的重要性。</p>
+<p><strong>小节目录</strong></p>
+<ul>
+<li>1.1 什么是 VLA：三模态闭环与系统视角</li>
+<li>1.2 行动质量为何关键：时间序列/信号观与评估指标</li>
+<li>1.3 动机案例一：自动驾驶概览（感知→理解→决策→控制）</li>
+<li>1.3.1 无信号路口的多车博弈：礼让、保守、异常处置</li>
+<li>1.3.2 复杂交通先验：静态约束与动态不确定性</li>
+<li>1.4 动机案例二：机器人操控（抓取/放置/精细操作）</li>
+<li>1.4.1 轮式移动 vs. 机臂操控：任务与约束的差异</li>
+<li>1.5 本课程结构与学习路径（预训练→对齐→强化学习→仿真→Sim-to-Real）</li>
+<li>
+<ul>
+<li>阶段A：模态预训练（视觉/语言/行动）</li>
+</ul>
+</li>
+<li>
+<ul>
+<li>阶段B：跨模态对齐（V-L、L-A、V-A）</li>
+</ul>
+</li>
+<li>
+<ul>
+<li>阶段C：模型级强化学习（SFT→RFT / RL 增强）</li>
+</ul>
+</li>
+<li>
+<ul>
+<li>阶段D：<strong>仿真训练（从单智能体到多智能体）</strong></li>
+</ul>
+</li>
+<li>
+<ul>
+<li>阶段E：<strong>Sim-to-Real 迁移与部署</strong>（域随机化/自适应/安全监控）</li>
+</ul>
+</li>
+<li>1.6 评测与项目预告：从定性演示到可复现实验</li>
+</ul>
+<h2 id="2">第2章 视觉模态</h2>
+<p><strong>摘要</strong></p>
+<p>回顾视觉表征三条主线：①<strong>经典视觉（CNN/金字塔/部件分解）</strong>；②<strong>视觉—语言对齐（如对比学习/CLIP）</strong>；③<strong>视频自/半监督（重建、下一帧预测）</strong>。讨论视觉模态的核心挑战：<strong>难以符号化</strong>、<strong>高质量图文对齐数据不足</strong>、以及<strong>纯压缩是否等于“抽象”</strong>的争议。为后续对齐、RL 与 Sim-to-Real 夯实感知基座。特别加入<strong>开集识别/不确定性估计（温度缩放、能量分数）</strong>与<strong>时域错位鲁棒性</strong>讨论。
+<strong>小节目录</strong></p>
+<ul>
+<li>2.1 经典视觉回顾：CNN 分层特征与“部件—整体”分解</li>
+<li>2.2 Marr 式表征思想与多尺度处理</li>
+<li>2.3 视觉—语言对齐：对比学习与 CLIP 思路</li>
+<li>2.3.1 对齐特征 vs. 纯视觉特征：全局语义与细节取舍</li>
+<li>2.3.2 图文数据瓶颈：描述稀疏、自动标注的细节缺失</li>
+<li>2.4 视频自/半监督：重建、掩码、下一帧/片段预测</li>
+<li>2.4.1 时间建模：持续性、运动线索与长期依赖</li>
+<li>2.5 视觉难点与开放问题：符号化/抽象与泛化</li>
+<li>2.6 路线组合：混合训练与阶段化设计</li>
+<li>2.7 小结：为对齐、行动与迁移奠基，<strong>并讨论开集识别/不确定性估计与时域错位鲁棒性</strong></li>
+</ul>
+<h2 id="3">第3章 语言模态</h2>
+<p><strong>摘要</strong></p>
+<p>语言承载人类最强的<strong>符号推理与过程编排</strong>能力。重点：<strong>Chain-of-Thought（分步推理）</strong>、<strong>记忆机制（短/长程、检索）</strong>、<strong>工具调用（代码、API、检索、思考预算调度）</strong>。语言不仅是“文本”，更是<strong>系统调度器</strong>，为视觉与行动提供可解释的组织与约束，并在 Sim-to-Real 中承担<strong>策略解释与干预</strong>角色。
+<strong>小节目录</strong></p>
+<ul>
+<li>3.1 语言的“智性”地位：符号操作与抽象表达</li>
+<li>3.2 Chain-of-Thought：分步推理与错误驱散</li>
+<li>3.3 记忆与抽象：压缩、检索、情境绑定与会话一致性</li>
+<li>3.4 工具调用：代码执行、API、知识库/记忆接口</li>
+<li>3.4.1 思考预算与推理深度的自适应调度</li>
+<li>3.5 VLA 编排：感知→推理→行动的桥梁</li>
+<li>3.6 安全与稳健：幻觉抑制、可解释提示与审计</li>
+<li>3.7 面向部署：人机协同与策略可解释</li>
+</ul>
+<hr />
+<h2 id="4">第4章 行动模态</h2>
+<p><strong>摘要</strong></p>
+<p>从<strong>信号处理/控制</strong>视角刻画行动：行动是<strong>时间序列</strong>与<strong>可控信号</strong>。讨论轨迹表示（如<strong>Frenet-Serret 标架</strong>）、因果性与时延、平滑与约束（加速度/跃度），以及<strong>频域/谱域表征</strong>与音频类比。覆盖解码策略与同步问题，强调<strong>可评估、可解释、可控</strong>的行动生成，为仿真与 Sim-to-Real 做好接口。本章补上闭环稳定性与相位裕度与离散化采样（ZOH/零阶保持）影响的小节；并给出<strong>“低带宽安全轨迹生成器”</strong>的参考接口（输入目标曲线→输出带加加速度/跃度边界的轨迹）。
+<strong>小节目录</strong></p>
+<ul>
+<li>4.1 行动即信号：时间序列、因果性与时延</li>
+<li>4.2 轨迹坐标系：笛卡尔/极坐标/Frenet-Serret</li>
+<li>4.3 频域/谱域表征：平滑性、带宽与先验约束</li>
+<li>4.4 控制先验：加速度/跃度限制、稳定性与安全边界</li>
+<li>4.5 闭环稳定性：相位裕度、离散化采样（ZOH）影响</li>
+<li>4.6 行动解码：自回归 vs. 并行、开环 vs. 闭环</li>
+<li>4.7 传感—执行器同步与时间戳一致性</li>
+<li>4.8 行动质量评估：误差、舒适度、鲁棒性与可解释性</li>
+<li>4.9 数据来源：示教轨迹、回放、干预与纠偏</li>
+<li>4.10 力控 vs. 位控：控制范式、接触动力学与混合策略，及相应的行动模态表示</li>
+<li>4.11 参考实现：“低带宽安全轨迹生成器”接口</li>
+</ul>
+<hr />
+<h2 id="5-visionlanguageaction">第5章 模态对齐（Vision–Language–Action）</h2>
+<p><strong>摘要</strong></p>
+<p>聚焦三对对齐：<strong>视觉—语言</strong>（早/中/后期融合）、<strong>语言—行动</strong>（从指令到策略/轨迹）、<strong>视觉—行动</strong>（直接/经语言中介、频域耦合）。讨论门控/注意力/共享码本等机制与对比、互信息、互监督、蒸馏等<strong>训练信号</strong>，并给出可复现的<strong>评测协议</strong>。为后续 RL、仿真与 Sim-to-Real 减少域间落差。建议加入多目标冲突调和的梯度外科手术（PCGrad/GradNorm）与损失权自动调度实验脚手架。
+<strong>小节目录</strong></p>
+<ul>
+<li>5.1 对齐目标与设计空间</li>
+<li>5.2 视觉—语言：深度融合 vs. 模块化对齐</li>
+<li>5.3 语言—行动：指令到动作的映射与短序列建模</li>
+<li>5.4 视觉—行动：直接映射、频谱交错与辅助语言</li>
+<li>5.5 机制实现：门控、多模态注意力、共享词表/码本</li>
+<li>5.6 训练信号：对比、互信息、互监督与蒸馏</li>
+<li>5.7 数据组织：配对/三元组、噪声过滤与难例挖掘</li>
+<li>5.8 评测：跨模态检索/指令跟随/执行成功率</li>
+<li>5.9 误差归因与可解释分析</li>
+<li>5.10 多目标冲突调和：梯度外科手术（PCGrad/GradNorm）与损失权自动调度</li>
+</ul>
+<hr />
+<h2 id="6-3d">第6章 隐式 3D 时空结构的引入</h2>
+<p><strong>摘要</strong></p>
+<p>在缺乏大规模 3D 监督的条件下，以<strong>隐式 3D 支架</strong>强化视觉/视频理解：用几何与物理先验提升未来预测的<strong>可实现性与一致性</strong>；将 3D 作为<strong>长期记忆</strong>以应对遮挡与重访；权衡显式/隐式 3D 的延迟与精度，并与对齐/行动/仿真/Sim-to-Real 的接口协同。建议加<strong>“可实现性检查”：预测的 3D 状态是否动力学可达</strong>（feasibility check），并提供矛盾检测器（几何一致性 vs 观测）。
+<strong>小节目录</strong></p>
+<ul>
+<li>6.1 “隐式 3D 支架”的动机与收益</li>
+<li>6.2 无/弱监督 3D：几何一致性与时空约束</li>
+<li>6.3 基于 3D 的视频预测：物体状态与动力学，<strong>兼顾遮挡恢复复现实验小基准（如“再现率/漂移率/重访一致性”三指标）</strong></li>
+<li>6.4 3D 作为期记忆：重访、遮挡与场景持久化</li>
+<li>6.5 显式 vs. 隐式：精度、延迟、鲁棒性与工程取舍</li>
+<li>6.6 与 V/L/A 接口：状态、语义与控制量</li>
+<li>6.7 实验协议：可实现性、漂移与恢复</li>
+<li>6.8 可实现性检查：预测 3D 状态的动力学可达性</li>
+<li>6.9 矛盾检测器：几何一致性 vs. 观测</li>
+</ul>
+<hr />
+<h2 id="7">第7章 预训练：模态预训练与跨模态对齐</h2>
+<p><strong>摘要</strong></p>
+<p>构建 VLA 基座模型的<strong>两阶段</strong>思路：先<strong>模态内预训练</strong>（视觉/语言/行动），再<strong>跨模态对齐预训练</strong>。覆盖<strong>训练日程设计</strong>、<strong>Token 配额（Token Buckets）</strong>分配、<strong>数据配方</strong>与<strong>损失函数组合</strong>（对比、重建、策略蒸馏、频域损失、跨模态一致性）。在产出环节显式考虑<strong>下游 RL→仿真→Sim-to-Real</strong>的可迁移性。本章建议给出一个具体日程原型（示例数字即可），并阐明冻结/解冻策略与混合采样退火曲线。增补检查点“可迁移性体检”。
+<strong>小节目录</strong></p>
+<ul>
+<li>7.1 总览与阶段划分：模态→对齐→指令化</li>
+<li>7.2 视觉预训练：CNN/对比/掩码视频自监督</li>
+<li>7.3 行动预训练：示教/频谱表征/控制先验</li>
+<li>7.4 语言预训练：复用通用 LLM 与领域适配</li>
+<li>7.5 训练日程（Curriculum）：难度分级与混合采样</li>
+<li>7.5.1 日程原型示例：冻结/解冻策略与混合采样退火曲线</li>
+<li>7.6 Token Buckets 分配：按模态/任务/难度的预算治理</li>
+<li>7.7 对齐数据构建：配对、三元组、合成与清洗</li>
+<li>7.8 损失与多目标优化：权重平衡与梯度冲突缓解</li>
+<li>7.9 正则与稳定：模态均衡、去塌缩、负迁移防护</li>
+<li>7.10 可迁移性检查点：面向 RL/仿真/Sim-to-Real 的“可迁移性体检”</li>
+</ul>
+<hr />
+<h2 id="8">第8章 强化学习与微调（模型级）</h2>
+<p><strong>摘要</strong></p>
+<p>在基座之上进行<strong>模型级 RL 微调</strong>：比较 SFT、RFT（Reinforcement Fine-Tuning） 与 RL 的互补性；利用演示启动与行为正则提高数据效率；借助<strong>Chain-of-Thought</strong>与自评估进行<strong>自反式指导</strong>；设计稳健奖励/偏好（RLHF/RLAIF 思想）与安全约束。产物需<strong>面向仿真与 Sim-to-Real 的落地</strong>（策略平滑与安全裕度）。本章显式加入OPE（离线策略评估）：IPS/DR/FQE 三件套。
+<strong>小节目录</strong></p>
+<ul>
+<li>8.1 SFT vs. RFT vs. RL：记忆与泛化的权衡</li>
+<li>8.2 策略优化：PPO/离线 RL/行为克制与 KL 正则</li>
+<li>8.3 IFT/偏好学习：从指令与偏好到策略改进</li>
+<li>8.4 自反式指导：CoT 评估、行动打分与自训练</li>
+<li>8.5 奖励设计：成功率/安全/效率与奖黑客防范</li>
+<li>8.6 数据效率：演示启动、DAgger 式纠偏与回放池</li>
+<li>8.7 OPE（离线策略评估）：IPS/DR/FQE 三件套</li>
+<li>8.8 稳健与安全：约束 RL、可恢复性与人机协同</li>
+<li>8.9 面向落地的策略整形：平滑、延迟补偿与安全裕度</li>
+<li>8.10 评测与消融：含“可迁移性探针”，服务于 Sim-to-Real</li>
+</ul>
+<hr />
+<h2 id="9">第9章 基于仿真的智能体级强化学习（单智能体）</h2>
+<p><strong>摘要</strong></p>
+<p>从“仅用轨迹文本”的模型级 RL，迈向在<strong>仿真环境中交互</strong>的<strong>智能体级 RL</strong>。无论是<strong>代码物理引擎</strong>还是<strong>神经仿真</strong>，仿真可提供<strong>丰富且可编程的奖励与终局评估</strong>（如碰撞、时距、停车线对齐度），但也带来<strong>误差累积/模型偏差</strong>。本章聚焦<strong>单智能体</strong>（如一辆车在路网/停车场）的训练协议，并<strong>系统衔接到 Sim-to-Real</strong> 的准备与评测。
+<strong>小节目录</strong></p>
+<ul>
+<li>9.1 仿真类型：软件物理引擎 vs. 神经仿真</li>
+<li>9.2 交互回路：同步/异步采样、并行仿真与重放</li>
+<li>9.3 误差来源：数值积分、传感噪声、模漂移与纠偏</li>
+<li>9.4 奖励设计：碰撞/安全间距/舒适度/停车对齐</li>
+<li>9.5 任务设置：单车道行驶、无信号路口通行、停车</li>
+<li><strong>9.6 Sim-to-Real 预备：域随机化、传感与动力学扰动、鲁棒控制</strong></li>
+<li><strong>9.7 Sim-to-Real 评测接口：预定义场景簇/失效模式回放/边界条件压力测，引入参数化场景生成与覆盖率报告（边界条件+长尾聚类覆盖）</strong></li>
+<li>9.8 工程与运维：日志、审计、可复现与回放测试</li>
+<li>9.9 伦理合规与安全沙箱：故障树分析（FTA）与红队</li>
+<li>9.10 小结与展望：迈向多智能体与真实道路
+下面按你的要求，在第 9 章之后插入一章“多智能体博弈与协调”，并将原先的第 10–13 章顺延为第 11–14 章（内容保持不变，仅更新章号与涉及的内部编号）。可直接拼接进整套讲义。</li>
+</ul>
+<hr />
+<h2 id="10-marl">第10章 多智能体博弈与协调：从均衡理论与 MARL 到工程落地</h2>
+<p><strong>摘要</strong></p>
+<p>多智能体问题的本质是<strong>相互耦合的决策与约束共享</strong>。本章桥接两条主线：①<strong>基于均衡的博弈建模</strong>（Nash/相关均衡/Stackelberg/贝叶斯博弈/潜在博弈）与其<strong>学习动态</strong>（虚拟对弈、无悔学习、复制子动态）；②<strong>基于多智能体强化学习（MARL）</strong>的可扩展近似（CTDE、价值分解、对手建模、协作与混合博弈）。在工程侧，以<strong>无信号交汇的自动驾驶</strong>为核心案例，系统呈现<strong>约束求解器（MPC/MIQP/CBF）</strong>与<strong>形式化方法（LTL/STL Shield、可行域/生存域）</strong>如何与博弈/MARL 组合，形成<strong>可解释且可审计</strong>的协同策略。最后给出可复现实验协议与评测指标，作为从第 9 章（单智能体仿真）迈向第 11 章（Sim‑to‑Real）的承上启下。本章建议补强三点：通信与意图协议（显式 turn-taking / implicit signaling）；公平性度量（价格-公平权衡、社交合规罚则）；对手失范/恶意行为（异常 agent 注入与恢复流程）。
+<strong>小节目录</strong></p>
+<ul>
+<li>10.1 为什么是“多智能体”：外部性、互惠与礼让</li>
+<li>10.2 均衡建模：Nash/相关均衡/Stackelberg 与效率—公平</li>
+<li>10.3 不完全信息与贝叶斯博弈：类型、信念与风险态度</li>
+<li>10.4 学习与收敛：虚拟对弈、无悔→相关均衡、复制子动态</li>
+<li>10.5 MARL 综述：CTDE、价值分解（VDN/QMIX）、策梯度（MADDPG/MAPPO）、对手建模与通信</li>
+<li>10.6 约束与安全：CMDP、拉格朗日/原始–对偶、鲁棒与 RTA（运行时保障）</li>
+<li>10.7 形式化方法与求解器：LTL/STL Shield、CBF/CLF、安全集合与（M/I/QP、SOCP、MIQP）</li>
+<li>10.8 案例：<strong>无信号交汇</strong>协同通行（让行策略、僵局解除、混合式“博弈+求解器+残差”）</li>
+<li>10.9 评测协议：安全/效率/舒适/社交合规/公平性的多目标</li>
+<li>10.10 工程设计模式：分层协同（预测—规划—控制—屏蔽）、消息/意图、对手建模与失效回放</li>
+<li>10.11 从多智能体仿真到真实部署：域随机化、隐域估计与<strong>策略残差</strong></li>
+<li>10.12 通信与意图协议：显式 turn-taking / implicit signaling</li>
+<li>10.13 公平性度量：价格-公平权衡、社交合规罚则</li>
+<li>10.14 对手失范/恶意行为：异常 agent 注入与恢复流程</li>
+<li>
+<p>10.15 小结与与第 11 章（Sim‑to‑Real）的接口
+<strong>要点速记</strong></p>
+</li>
+<li>
+<p><strong>两条路</strong>：均衡建模（可解释/可审计）＋ MARL（可扩展/可近似）。</p>
+</li>
+<li><strong>两层盾</strong>：形式化 Shield（LTL/STL/CBF）＋ 运行时保障（RTA）。</li>
+<li><strong>一根线</strong>：教师（博弈‑MPC）—学生（MARL 残差）—屏蔽（QP 投影）贯穿工程环。</li>
+</ul>
+<hr />
+<h2 id="11-sim-to-real">第11章 Sim-to-Real：从仿真到现实的最后一公里</h2>
+<p><strong>摘要</strong></p>
+<p>Sim-to-Real 的核心不是“把模型搬出去”，而是<strong>系统地管理域间不确定性</strong>：感知域差（传感器/成像/时间戳）、动力学域差（摩擦、柔顺、时延）、以及<strong>语义/协同域差</strong>（人类习俗与交规）。本章给出<strong>三条总路线</strong>：①<strong>推仿真→真</strong>（域随机化/对抗随机化/课程化随机化）；②<strong>拉真实→仿真</strong>（系统辨识、仿真参数校准、HIL）；③<strong>跨域桥接</strong>（在线适应、残差策略、运行时保障 RTA）。配套<strong>准入清单与验收流程</strong>，强调<strong>可追溯与安全冗余</strong>是走出实验室的通行证。
+<strong>小节目录</strong></p>
+<ul>
+<li>11.1 域差谱系：感知域差/动力学域差/语义与交互域差</li>
+<li>11.2 量化与诊断：<strong>三把尺子</strong>（离线重放、台架测试、封闭场压测）</li>
+<li>11.3 系统辨识（System ID）：灰盒/黑盒、参数可辨识性与置信区间</li>
+<li>11.4 域随机化：范围设计、课程调度、<strong>对抗随机化与失效放大</strong></li>
+<li>11.5 传感器管线对齐：标定（内外参/时延）、滚快门/曝光/动态模糊建模</li>
+<li>11.6 动力学与接触：摩擦锥、顺从性、<strong>延迟与带宽配平</strong>（控制频域视角）</li>
+<li>11.7 策略结构化：<strong>残差策略</strong>、<strong>潜变量域编码</strong>、特权信息教师→学生蒸馏</li>
+<li>11.8 在线适应：元学习/RMA 风格<strong>隐域估计器</strong>、测试时自训练、<strong>回传预算上限与模型更新冻结策略</strong></li>
+<li>11.9 运行时保障（RTA）：屏蔽/CBF/MPC Shield、故障树与<strong>优雅降级</strong></li>
+<li>11.10 验收与分级放量：HIL→室内/围栏→封闭道路/试验线→影子模式→灰度上线</li>
+<li>11.11 MLOps 与漂移治理：遥测、遥诊、回放优先级、<strong>漂移告警与冻结开关</strong></li>
+<li>11.12 设计模式与反模式：有效经验与常见坑（数据泄露、过拟合随机化等）</li>
+<li>11.13 <strong>Sim-to-Real 准入清单</strong>：必测用例、阈值、红线与退出条件</li>
+<li>
+<p>11.14 小结：从“可跑”到“可交付”的证据链
+<strong>要点速记</strong></p>
+</li>
+<li>
+<p><strong>三路线</strong>：推仿真→真、拉真→仿真、在线桥接。</p>
+</li>
+<li><strong>两护栏</strong>：RTA（Run-Time Assurance）+ 可恢复性（Recovery）。</li>
+<li><strong>一证据链</strong>：从设变记录→参数证据→仿真复现→现场复现→回放可重现。</li>
+</ul>
+<hr />
+<h2 id="12-lab">第12章 课程小实验设计（Lab）</h2>
+<p><strong>摘要</strong></p>
+<p>小实验强调<strong>可复现、低成本、可量化</strong>，面向 2–6 学时的练习，覆盖从对齐→行动→仿真→Sim-to-Real 的关键环节。每个实验给出<strong>目标、数据/资源、步骤、指标、提交物与加分项</strong>，保证不同硬件条件下都有<strong>软件仿真替身</strong>。
+<strong>小节目录</strong></p>
+<ul>
+<li>12.1 Lab A：频域平滑的循迹控制（行动模态与舒适度）</li>
+<li>12.2 Lab B：相机时间戳与延迟补偿（感知-控制闭环同步）</li>
+<li>12.3 Lab C：指令到动作的轻量对齐（语言—行动最小可行链）</li>
+<li>12.4 Lab D：域随机化消融（随机化课程与 OOD 鲁棒性）</li>
+<li>12.5 Lab E：残差策略的“最后一米”纠偏（从几何教师到残差学生）</li>
+<li>12.6 Lab F：运行时屏蔽与优雅降（安全基线）</li>
+<li>12.7 评分细则、常见故障与助教检查单</li>
+</ul>
+<hr />
+<h2 id="13-final-project">第13章 大作业设计（Final Project）</h2>
+<p><strong>摘要</strong></p>
+<p>大作业面向 6–8 周，要求<strong>端到端证据链</strong>：数据→模型→仿真→评测→（可选）小规模现实验证→报告与开源。给出<strong>四条主题轨</strong>与<strong>里程碑节拍</strong>，并提供<strong>评审 Rubric、伦理与安全红线</strong>。
+<strong>小节目录</strong></p>
+<ul>
+<li>13.1 主题轨 A：自动驾驶微场景的策略学习与 Sim-to-Real</li>
+<li>13.2 主题轨 B：桌面机器人操作（抓取/插装/精细定位）</li>
+<li>13.3 主题轨 C：VLA 工具编排（语言驱动的多步任务与 API 调度）</li>
+<li>13.4 主题轨 D：鲁棒/安全强化学习（RTA/屏蔽/可恢复性）</li>
+<li>13.5 里程碑进度表（Week 0–8）</li>
+<li>13.6 交付清单与仓库模板</li>
+<li>13.7 评审 Rubric 与加分机制</li>
+<li>13.8 伦理合规与安全红线</li>
+<li>13.9 风险管理：技术/进度/依赖与 Plan B</li>
+<li>13.10 公开演示与答辩建议</li>
+</ul>
+<hr />
+<h2 id="14">第14章 结语：从范式到实践的闭环</h2>
+<p><strong>摘要</strong></p>
+<p>VLA 的价值不在看懂/说清”，而在<strong>做对</strong>。本课程以<strong>三模态闭环</strong>为主线，贯穿<strong>预训练→对齐→RL→仿真→Sim-to-Real</strong>，强调从<strong>信号与控制视角</strong>理解行动质量，用<strong>系统工程</strong>的方法管理不确定性与安全。最后给出<strong>十一条实战箴言</strong>与<strong>开放问题</strong>，指向下一代可部署的通用行动智能。追加一条：“先定稳定域，再谈性能极限”（Stability before optimality）。
+<strong>小节目录</strong></p>
+<ul>
+<li>14.1 课程统摄图：V–L–A 与 3D 支架到策略落地</li>
+<li>14.2 十一条实战箴言（Deployment Heuristics）</li>
+<li>14.3 常见反模式清单</li>
+<li>14.4 开放问题与研究前沿</li>
+<li>14.5 学习路径与延伸阅读</li>
+<li>14.6 课程回顾与展望</li>
+</ul>
+            </article>
+            
+            <nav class="page-nav"><a href="CLAUDE.html" class="nav-link next">Untitled →</a></nav>
+        </main>
+    </div>
+</body>
+</html>
