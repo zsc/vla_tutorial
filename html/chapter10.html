@@ -381,7 +381,7 @@ A → → → + ← ← ← D
 <ul>
 <li><strong>域随机化</strong>（交互域）：对人类驾驶<strong>反应时/保守度</strong>、通信丢包/延迟进行课程化随机。</li>
 <li><strong>隐域估计</strong>：在线估计对手类型 (\hat\theta)，将策略写成 (\pi(a|o,\hat\theta))。</li>
-<li><strong>残差策略</strong>：(,u=u_{\text{teacher}}+\Delta u_{\text{MARL}})，残差幅度受<strong>RTA 限幅</strong>。</li>
+<li><strong>残差策略</strong>：$\,u=u_{\text{teacher}}+\Delta u_{\text{MARL}}$，残差幅度受<strong>RTA 限幅</strong>。</li>
 </ul>
 <hr />
 <h2 id="1012-turntaking-implicit-signaling">10.12 通信与意图协议：显式 turn‑taking / implicit signaling</h2>
@@ -486,10 +486,10 @@ $$
 <hr />
 <h3 id="_1">附：常用公式与度量速览</h3>
 <ul>
-<li><strong>TTC</strong>：(\mathrm{TTC}=\frac{d}{\max(\epsilon,v_{\text{rel}})})。</li>
+<li><strong>TTC</strong>：$\mathrm{TTC}=\frac{d}{\max(\epsilon,v_{\text{rel}})}$。</li>
 <li><strong>Nash gap</strong>：(\max_i\max_{a_i'} [u_i(a_i',a_{-i})-u_i(a)])。</li>
 <li><strong>(\alpha)-公平</strong>：见 10.13。</li>
-<li><strong>CMDP 拉格朗日更新</strong>：(\lambda\leftarrow[\lambda+\eta(\hat C-d)]_+)。</li>
+<li><strong>CMDP 拉格朗日更新</strong>：$\lambda\leftarrow[\lambda+\eta(\hat C-d)]_+$。</li>
 <li><strong>CBF QP</strong>：见 10.6。</li>
 <li><strong>COMA 优势</strong>：见 10.5。</li>
 </ul>
