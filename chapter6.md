@@ -30,30 +30,30 @@
 
 以针孔模型为基础，像素 $\mathbf{x} !\sim! (u,v,1)^\top$、深度 $D(\mathbf{x})$、相机内参 $K$、位姿 $T_{t}^{w}!\in! SE(3)$。
 重投影一致性（光度配准）：
-[
+$$
 I_t(\mathbf{x}) \approx I_{t!+!1}!\left(\pi!\left(K,T_{t+1}^{t}, \underbrace{D_t(\mathbf{x}),K^{-1}\mathbf{x}}*{\mathbf{X}*t}\right)\right),
 \quad
 T*{t+1}^{t}!=!(T*{t}^{w})^{-1}T_{t+1}^{w}
-]
+$$
 配合鲁棒损失 $\rho$ 与可见性掩码 $M$，得到无监督目标：
-[
-\mathcal{L}*{\text{photo}} = \sum*{\mathbf{x}} M(\mathbf{x}),\rho!\big(I_t(\mathbf{x})- \hat I_t(\mathbf{x})\big)
-]
+$$
+\mathcal{L}*{\text{photo}} = \sum_{\mathbf{x}} M(\mathbf{x}),\rho!\big(I_t(\mathbf{x})- \hat I_t(\mathbf{x})\big)
+$$
 再加几何光滑与边缘保留先验（$\nabla D$ 相对图像梯度加权）：
-[
-\mathcal{L}*{\text{smooth}}=\sum*{\mathbf{x}} e^{-|\nabla I_t(\mathbf{x})|},|\nabla D_t(\mathbf{x})|_1
-]
+$$
+\mathcal{L}*{\text{smooth}}=\sum_{\mathbf{x}} e^{-|\nabla I_t(\mathbf{x})|},|\nabla D_t(\mathbf{x})|_1
+$$
 左右/多目时可加入极线约束 $,\mathbf{x}'^{!\top} F \mathbf{x}=0$。
 
 **隐式场正则**：以 SDF $f_\theta(\mathbf{X})$ 表示表面，加入 Eikonal 约束：
-[
-\mathcal{L}*{\text{eik}}=\mathbb{E}*{\mathbf{X}\sim \Omega}\big(|\nabla_{\mathbf{X}} f_\theta(\mathbf{X})|*2-1\big)^2
-]
+$$
+\mathcal{L}*{\text{eik}}=\mathbb{E}_{\mathbf{X}\sim \Omega}\big(|\nabla_{\mathbf{X}} f_\theta(\mathbf{X})|*2-1\big)^2
+$$
 体渲染（NeRF）用体密度 $\sigma$ 与颜色 $c$ 的沿射线积分：
-[
-C(\mathbf{r})=\int*{t_n}^{t_f} T(t),\sigma(\mathbf{r}(t)),c(\mathbf{r}(t)),dt,\quad
+$$
+C(\mathbf{r})=\int_{t_n}^{t_f} T(t),\sigma(\mathbf{r}(t)),c(\mathbf{r}(t)),dt,\quad
 T(t)=\exp!\Big(-\int_{t_n}^{t}\sigma(\mathbf{r}(s)),ds\Big)
-]
+$$
 
 **ASCII 示意**
 
@@ -79,13 +79,13 @@ T(t)=\exp!\Big(-\int_{t_n}^{t}\sigma(\mathbf{r}(s)),ds\Big)
 2. **渲染层**：由状态生成可观测的 2D/体渲染。
 
 **运动一致性**（刚体近似）：
-[
-\mathbf{X}*{t+1}^{(k)} \approx T*{t+1}^{(k)}\big(T_t^{(k)}\big)^{-1}\mathbf{X}*{t}^{(k)}.
-]
+$$
+\mathbf{X}_{t+1}^{(k)} \approx T_{t+1}^{(k)}\big(T_t^{(k)}\big)^{-1}\mathbf{X}*{t}^{(k)}.
+$$
 **接触/地面约束**（以 SDF $f=0$ 为接触面）：
-[
-f(\mathbf{X}*{t+1}) \le 0,\quad \lambda_n \ge 0,\quad |\boldsymbol{\lambda}_\tau| \le \mu,\lambda_n.
-]
+$$
+f(\mathbf{X}_{t+1}) \le 0,\quad \lambda_n \ge 0,\quad |\boldsymbol{\lambda}_\tau| \le \mu,\lambda_n.
+$$
 
 **三项小基准（建议指标）**
 
@@ -145,9 +145,9 @@ f(\mathbf{X}*{t+1}) \le 0,\quad \lambda_n \ge 0,\quad |\boldsymbol{\lambda}_\tau
 
 * **安全集合** $\mathcal{S}={\mathbf{x}\mid h(\mathbf{x})\ge 0}$ 由 3D 指定（与障碍距离 $d$ 相关）。
 * **CBF 约束**：
-  [
+  $$
   \dot h(\mathbf{x},\mathbf{u}) + \alpha, h(\mathbf{x}) \ge 0
-  ]
+  $$
 * **QP 投影**：将策略输出 $\mathbf{u}_\pi$ 投影到足 CBF 与输入界限的可行集。
 
 **经验法则**
@@ -166,16 +166,16 @@ f(\mathbf{X}*{t+1}) \le 0,\quad \lambda_n \ge 0,\quad |\boldsymbol{\lambda}_\tau
 3. **恢复能力**：遮挡/传感丢帧/形变扰动下，3D‑辅助的重定位与策略恢复时间。
 
 **度量建议**
-[
+$$
 \textbf{FeasibilityGap}~g=\min_{{\mathbf{u}}}\sum_k |\hat{\mathbf{x}}*{t+k+1}-f(\hat{\mathbf{x}}*{t+k},\mathbf{u}*{t+k})|*Q^2 \quad (\text{越小越好})
-]
-[
-\textbf{ScaleDrift}=\frac{1}{N}\sum*{i}\left|\frac{\hat d_i}{d_i}-1\right|,\quad
+$$
+$$
+\textbf{ScaleDrift}=\frac{1}{N}\sum_{i}\left|\frac{\hat d_i}{d_i}-1\right|,\quad
 \textbf{LoopErr}=|\log(T*{\text{loop}})|*2
-]
-[
-\textbf{RecoveryTime}=\arg\min*{\tau}{\text{性能恢复到阈值}}
-]
+$$
+$$
+\textbf{RecoveryTime}=\arg\min_{\tau}{\text{性能恢复到阈值}}
+$$
 
 **经验法则**
 
@@ -189,14 +189,14 @@ f(\mathbf{X}*{t+1}) \le 0,\quad \lambda_n \ge 0,\quad |\boldsymbol{\lambda}_\tau
 目标：判定预测状态/轨迹是否存在**输入受限**的控制使之可达；若不可达，给出**最小修正**与**操作化告警**。
 
 **控制‑仿射模型**：
-[
-\mathbf{x}*{t+1}=f(\mathbf{x}*t)+G(\mathbf{x}*t)\mathbf{u}*t,\quad \mathbf{u}*t\in \mathcal{U},\quad \mathbf{x}*t\in \mathcal{X}
-]
+$$
+\mathbf{x}_{t+1}=f(\mathbf{x}_t)+G(\mathbf{x}_t)\mathbf{u}_t,\quad \mathbf{u}_t\in \mathcal{U},\quad \mathbf{x}_t\in \mathcal{X}
+$$
 **最小差异可达性**：
-[
-\min*{{\mathbf{u}*t}}\sum*{k=0}^{H-1}|\hat{\mathbf{x}}*{t+k+1}-f(\hat{\mathbf{x}}*{t+k})-G(\hat{\mathbf{x}}*{t+k})\mathbf{u}*{t+k}|*{Q}^2
+$$
+\min_{{\mathbf{u}_t}}\sum_{k=0}^{H-1}|\hat{\mathbf{x}}_{t+k+1}-f(\hat{\mathbf{x}}_{t+k})-G(\hat{\mathbf{x}}_{t+k})\mathbf{u}_{t+k}|*{Q}^2
 \quad \text{s.t. } \mathbf{u}_t!\in!\mathcal{U},~ \mathbf{x}_t!\in!\mathcal{X}
-]
+$$
 **可达性证书**（Barrier/Viability）：存在控制使 $h(\mathbf{x})\ge0$ 保持成立；否则输出**最近可行点**与**违反幅度**。
 
 **与 VLA 的用法**
@@ -218,9 +218,9 @@ f(\mathbf{X}*{t+1}) \le 0,\quad \lambda_n \ge 0,\quad |\boldsymbol{\lambda}_\tau
 **三类残差**
 
 1. **重投影残差**（几何）：
-   [
+   $$
    r_{\text{geo}}=\big|\pi(K T_{t}^{w}\mathbf{X})-\mathbf{x}_t\big|_2
-   ]
+   $$
 2. **光度/外观残差**：$r_{\text{photo}}=|I_t(\mathbf{x})-\hat I_t(\mathbf{x})|$
 3. **语义残差**：$r_{\text{sem}}=1-\text{IoU}(\hat{\mathcal{S}},\mathcal{S})$
 

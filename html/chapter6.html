@@ -171,29 +171,29 @@
 <h2 id="62-3d">6.2 无/弱监督 3D：几何一致性与时空约束</h2>
 <p>以针孔模型为基础，像素 $\mathbf{x} !\sim! (u,v,1)^\top$、深度 $D(\mathbf{x})$、相机内参 $K$、位姿 $T_{t}^{w}!\in! SE(3)$。
 重投影一致性（光度配准）：
-[
-I_t(\mathbf{x}) \approx I_{t!+!1}!\left(\pi!\left(K,T_{t+1}^{t}, \underbrace{D_t(\mathbf{x}),K^{-1}\mathbf{x}}<em>{\mathbf{X}</em>t}\right)\right),
+$$
+I_t(\mathbf{x}) \approx I_{t!+!1}!\left(\pi!\left(K,T_{t+1}^{t}, \underbrace{D_t(\mathbf{x}),K^{-1}\mathbf{x}}*{\mathbf{X}*t}\right)\right),
 \quad
-T<em t="t">{t+1}^{t}!=!(T</em>^{w})^{-1}T_{t+1}^{w}
-]
+T*{t+1}^{t}!=!(T*{t}^{w})^{-1}T_{t+1}^{w}
+$$
 配合鲁棒损失 $\rho$ 与可见性掩码 $M$，得到无监督目标：
-[
-\mathcal{L}<em _mathbf_x="\mathbf{x">{\text{photo}} = \sum</em>} M(\mathbf{x}),\rho!\big(I_t(\mathbf{x})- \hat I_t(\mathbf{x})\big)
-]
+$$
+\mathcal{L}*{\text{photo}} = \sum_{\mathbf{x}} M(\mathbf{x}),\rho!\big(I_t(\mathbf{x})- \hat I_t(\mathbf{x})\big)
+$$
 再加几何光滑与边缘保留先验（$\nabla D$ 相对图像梯度加权）：
-[
-\mathcal{L}<em _mathbf_x="\mathbf{x">{\text{smooth}}=\sum</em>} e^{-|\nabla I_t(\mathbf{x})|},|\nabla D_t(\mathbf{x})|_1
-]
+$$
+\mathcal{L}*{\text{smooth}}=\sum_{\mathbf{x}} e^{-|\nabla I_t(\mathbf{x})|},|\nabla D_t(\mathbf{x})|_1
+$$
 左右/多目时可加入极线约束 $,\mathbf{x}'^{!\top} F \mathbf{x}=0$。</p>
 <p><strong>隐式场正则</strong>：以 SDF $f_\theta(\mathbf{X})$ 表示表面，加入 Eikonal 约束：
-[
-\mathcal{L}<em _mathbf_X="\mathbf{X">{\text{eik}}=\mathbb{E}</em>\sim \Omega}\big(|\nabla_{\mathbf{X}} f_\theta(\mathbf{X})|<em t_n="t_n">2-1\big)^2
-]
+$$
+\mathcal{L}*{\text{eik}}=\mathbb{E}_{\mathbf{X}\sim \Omega}\big(|\nabla_{\mathbf{X}} f_\theta(\mathbf{X})|*2-1\big)^2
+$$
 体渲染（NeRF）用体密度 $\sigma$ 与颜色 $c$ 的沿射线积分：
-[
-C(\mathbf{r})=\int</em>^{t_f} T(t),\sigma(\mathbf{r}(t)),c(\mathbf{r}(t)),dt,\quad
+$$
+C(\mathbf{r})=\int_{t_n}^{t_f} T(t),\sigma(\mathbf{r}(t)),c(\mathbf{r}(t)),dt,\quad
 T(t)=\exp!\Big(-\int_{t_n}^{t}\sigma(\mathbf{r}(s)),ds\Big)
-]</p>
+$$</p>
 <p><strong>ASCII 示意</strong></p>
 <div class="codehilite"><pre><span></span><code><span class="err">相机</span><span class="n">t</span><span class="o">:</span><span class="w">  </span><span class="n">K</span><span class="o">,</span><span class="w"> </span><span class="n">Tt</span><span class="o">^</span><span class="n">w</span><span class="w">                 </span><span class="err">相机</span><span class="n">t</span><span class="o">+</span><span class="mi">1</span><span class="o">:</span><span class="w">  </span><span class="n">K</span><span class="o">,</span><span class="w"> </span><span class="n">Tt</span><span class="o">+</span><span class="mi">1</span><span class="o">^</span><span class="n">w</span>
 <span class="w">   </span><span class="o">\</span><span class="w">         </span><span class="err">射线</span><span class="w"> </span><span class="n">r</span><span class="o">(</span><span class="n">t</span><span class="o">)</span><span class="w">  </span><span class="o">------&gt;</span><span class="w">      </span><span class="o">/</span>
@@ -214,13 +214,13 @@ T(t)=\exp!\Big(-\int_{t_n}^{t}\sigma(\mathbf{r}(s)),ds\Big)
 <li><strong>渲染层</strong>：由状态生成可观测的 2D/体渲染。</li>
 </ol>
 <p><strong>运动一致性</strong>（刚体近似）：
-[
-\mathbf{X}<em t_1="t+1">{t+1}^{(k)} \approx T</em>^{(k)}\big(T_t^{(k)}\big)^{-1}\mathbf{X}<em>{t}^{(k)}.
-]
-</em><em>接触/地面约束</em><em t_1="t+1">（以 SDF $f=0$ 为接触面）：
-[
-f(\mathbf{X}</em>) \le 0,\quad \lambda_n \ge 0,\quad |\boldsymbol{\lambda}_\tau| \le \mu,\lambda_n.
-]</p>
+$$
+\mathbf{X}_{t+1}^{(k)} \approx T_{t+1}^{(k)}\big(T_t^{(k)}\big)^{-1}\mathbf{X}*{t}^{(k)}.
+$$
+<strong>接触/地面约束</strong>（以 SDF $f=0$ 为接触面）：
+$$
+f(\mathbf{X}_{t+1}) \le 0,\quad \lambda_n \ge 0,\quad |\boldsymbol{\lambda}_\tau| \le \mu,\lambda_n.
+$$</p>
 <p><strong>三项小基准（建议指标）</strong></p>
 <ul>
 <li><strong>再现率</strong> $\mathcal{R}$：重渲染与真值的 PSNR/LPIPS 达标比例。</li>
@@ -274,9 +274,9 @@ f(\mathbf{X}</em>) \le 0,\quad \lambda_n \ge 0,\quad |\boldsymbol{\lambda}_\tau|
 <li><strong>安全集合</strong> $\mathcal{S}={\mathbf{x}\mid h(\mathbf{x})\ge 0}$ 由 3D 指定（与障碍距离 $d$ 相关）。</li>
 <li>
 <p><strong>CBF 约束</strong>：
-  [
-  \dot h(\mathbf{x},\mathbf{u}) + \alpha, h(\mathbf{x}) \ge 0
-  ]</p>
+  $$
+\dot h(\mathbf{x},\mathbf{u}) + \alpha, h(\mathbf{x}) \ge 0
+$$</p>
 </li>
 <li>
 <p><strong>QP 投影</strong>：将策略输出 $\mathbf{u}_\pi$ 投影到足 CBF 与输入界限的可行集。</p>
@@ -296,16 +296,16 @@ f(\mathbf{X}</em>) \le 0,\quad \lambda_n \ge 0,\quad |\boldsymbol{\lambda}_\tau|
 <li><strong>恢复能力</strong>：遮挡/传感丢帧/形变扰动下，3D‑辅助的重定位与策略恢复时间。</li>
 </ol>
 <p><strong>度量建议</strong>
-[
-\textbf{FeasibilityGap}~g=\min_{{\mathbf{u}}}\sum_k |\hat{\mathbf{x}}<em t_k="t+k">{t+k+1}-f(\hat{\mathbf{x}}</em>,\mathbf{u}<em>{t+k})|</em>Q^2 \quad (\text{越小越好})
-]
-[
-\textbf{ScaleDrift}=\frac{1}{N}\sum<em _text_loop="\text{loop">{i}\left|\frac{\hat d_i}{d_i}-1\right|,\quad
-\textbf{LoopErr}=|\log(T</em>})|<em _tau="\tau">2
-]
-[
-\textbf{RecoveryTime}=\arg\min</em>{\text{性能恢复到阈值}}
-]</p>
+$$
+\textbf{FeasibilityGap}~g=\min_{{\mathbf{u}}}\sum_k |\hat{\mathbf{x}}*{t+k+1}-f(\hat{\mathbf{x}}*{t+k},\mathbf{u}*{t+k})|*Q^2 \quad (\text{越小越好})
+$$
+$$
+\textbf{ScaleDrift}=\frac{1}{N}\sum_{i}\left|\frac{\hat d_i}{d_i}-1\right|,\quad
+\textbf{LoopErr}=|\log(T*{\text{loop}})|*2
+$$
+$$
+\textbf{RecoveryTime}=\arg\min_{\tau}{\text{性能恢复到阈值}}
+$$</p>
 <p><strong>经验法则</strong></p>
 <ul>
 <li><strong>可实现性门槛</strong>：$g$ 超过<strong>控制可达域</strong>半径的 20–30% 时，触发<strong>策略降级或重规划</strong>。</li>
@@ -315,14 +315,14 @@ f(\mathbf{X}</em>) \le 0,\quad \lambda_n \ge 0,\quad |\boldsymbol{\lambda}_\tau|
 <h2 id="68-feasibility-check-3d">6.8 可实现性检查（Feasibility Check）：预测 3D 状态的动力学可达性</h2>
 <p>目标：判定预测状态/轨迹是否存在<strong>输入受限</strong>的控制使之可达；若不可达，给出<strong>最小修正</strong>与<strong>操作化告警</strong>。</p>
 <p><strong>控制‑仿射模型</strong>：
-[
-\mathbf{x}<em>{t+1}=f(\mathbf{x}</em>t)+G(\mathbf{x}<em>t)\mathbf{u}</em>t,\quad \mathbf{u}<em>t\in \mathcal{U},\quad \mathbf{x}</em>t\in \mathcal{X}
-]
+$$
+\mathbf{x}_{t+1}=f(\mathbf{x}_t)+G(\mathbf{x}_t)\mathbf{u}_t,\quad \mathbf{u}_t\in \mathcal{U},\quad \mathbf{x}_t\in \mathcal{X}
+$$
 <strong>最小差异可达性</strong>：
-[
-\min<em>{{\mathbf{u}</em>t}}\sum<em t_k_1="t+k+1">{k=0}^{H-1}|\hat{\mathbf{x}}</em>-f(\hat{\mathbf{x}}<em t_k="t+k">{t+k})-G(\hat{\mathbf{x}}</em>)\mathbf{u}<em Q="Q">{t+k}|</em>^2
+$$
+\min_{{\mathbf{u}_t}}\sum_{k=0}^{H-1}|\hat{\mathbf{x}}_{t+k+1}-f(\hat{\mathbf{x}}_{t+k})-G(\hat{\mathbf{x}}_{t+k})\mathbf{u}_{t+k}|*{Q}^2
 \quad \text{s.t. } \mathbf{u}_t!\in!\mathcal{U},~ \mathbf{x}_t!\in!\mathcal{X}
-]
+$$
 <strong>可达性证书</strong>（Barrier/Viability）：存在控制使 $h(\mathbf{x})\ge0$ 保持成立；否则输出<strong>最近可行点</strong>与<strong>违反幅度</strong>。</p>
 <p><strong>与 VLA 的用法</strong></p>
 <ul>
@@ -341,9 +341,9 @@ f(\mathbf{X}</em>) \le 0,\quad \lambda_n \ge 0,\quad |\boldsymbol{\lambda}_\tau|
 <ol>
 <li>
 <p><strong>重投影残差</strong>（几何）：
-   [
-   r_{\text{geo}}=\big|\pi(K T_{t}^{w}\mathbf{X})-\mathbf{x}_t\big|_2
-   ]</p>
+   $$
+r_{\text{geo}}=\big|\pi(K T_{t}^{w}\mathbf{X})-\mathbf{x}_t\big|_2
+$$</p>
 </li>
 <li>
 <p><strong>光度/外观残差</strong>：$r_{\text{photo}}=|I_t(\mathbf{x})-\hat I_t(\mathbf{x})|$</p>

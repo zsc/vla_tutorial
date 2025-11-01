@@ -185,8 +185,8 @@ $$
 <p><strong>行动即信号</strong>：动作 $a_t$ 构成离散时间序列，其<strong>平滑性、带宽与相位裕度</strong>决定系统可控性与舒适度。以连续控制为例，典型成本可写为
 $$
 \mathcal{J}(\tau) = \underbrace{\sum_{t}\ell_{\text{task}}(s_t, a_t)}*{\text{任务成功}}
-+\lambda*{\text{jerk}} \sum_{t}|\dddot{q}*t|*2^2
-+\lambda*{\text{dev}}\sum_{t}\mathrm{dist}(s_t, \mathcal{M})^2,
++\lambda_{\text{jerk}} \sum_{t}|\dddot{q}*t|*2^2
++\lambda_{\text{dev}}\sum_{t}\mathrm{dist}(s_t, \mathcal{M})^2,
 $$
 其中 $q_t$ 为位姿/速度，$\mathcal{M}$ 为参考车道/轨迹流形。<strong>频域约束</strong>常以能量泄露表示：
 $$

@@ -227,7 +227,7 @@ $$
 <p><strong>频谱一致性</strong>：鼓励 V 的时空特征与 A 的频率成分在<strong>可控带宽</strong>内同调。定义<strong>跨谱相干</strong>：
   $$
 \gamma_{VA}(f)=\frac{|S_{VA}(f)|^2}{S_{VV}(f),S_{AA}(f)},\quad
-  \mathcal{L}*{spec}=\int \big(1-\gamma*{VA}(f)\big),\omega(f),df.
+  \mathcal{L}_{spec}=\int \big(1-\gamma*{VA}(f)\big),\omega(f),df.
 $$</p>
 </li>
 </ul>
@@ -244,92 +244,116 @@ $$</p>
 <span class="w"> </span><span class="n">A</span><span class="o">-</span><span class="n">stream</span><span class="w"> </span><span class="o">-----&gt;</span><span class="w"> </span><span class="o">[</span><span class="n">Enc_A</span><span class="o">]</span><span class="w"> </span><span class="o">--/</span>
 <span class="w">                       </span><span class="o">^</span><span class="w">             </span><span class="o">^</span>
 <span class="w">                       </span><span class="o">|</span><span class="w">             </span><span class="o">|</span>
-<span class="w">                 </span><span class="o">[</span><span class="n">Gating/FiLM</span><span class="o">]</span><span class="w">   </span><span class="err">[</span><span class="n">Shared</span><span class="w"> </span><span class="n">Codebook</span><span class="o">/</span><span class="n">VQ</span><span class="err">$$</span>
+<span class="w">                 </span><span class="o">[</span><span class="n">Gating/FiLM</span><span class="o">]</span><span class="w">   </span><span class="o">[</span><span class="n">Shared Codebook/VQ</span><span class="o">]</span>
 </code></pre></div>
 
-<p>**关键部件**</p>
-<p>* **Cross‑Attention**：( \text{Attn}(Q=Z_L, K=Z_V, V=Z_V) ) 使文本查询视觉。
-* **门控/FiLM**：(g=\sigma(W[z_V;z_L])), ( \tilde z = g\odot z_V + (1-g)\odot z_L)。
-* **共享码本**：将 V/A 离散化为与 L 共享的“语义 token”（VQ‑VAE 样式），方便统一推理与检索。
-* **PoE/MoE**：多专家按模态置信度加权：( z = \sum_k \alpha_k z^{(k)},\ \sum\alpha_k=1)。</p>
+<p><strong>关键部件</strong></p>
+<ul>
+<li><strong>Cross‑Attention</strong>：$ \text{Attn}(Q=Z_L, K=Z_V, V=Z_V) $ 使文本查询视觉。</li>
+<li><strong>门控/FiLM</strong>：$g=\sigma(W[z_V;z_L])$, $ \tilde z = g\odot z_V + (1-g)\odot z_L$。</li>
+<li><strong>共享码本</strong>：将 V/A 离散化为与 L 共享的“语义 token”（VQ‑VAE 样式），方便统一推理与检索。</li>
+<li><strong>PoE/MoE</strong>：多专家按模态置信度加权：$ z = \sum_k \alpha_k z^{(k)},\ \sum\alpha_k=1$。</li>
+</ul>
 <blockquote>
-<p>**Rule‑of‑thumb**：先上 **cross‑attn** + **简洁门控**；共享码本仅在数据充足+需要轻量部署时启用（token 抽稀利于端侧）。</p>
+<p><strong>Rule‑of‑thumb</strong>：先上 <strong>cross‑attn</strong> + <strong>简洁门控</strong>；共享码本仅在数据充足+需要轻量部署时启用（token 抽稀利于端侧）。</p>
 </blockquote>
 <hr />
 <h3 id="56">5.6 训练信号：对比、互信息、互监督与蒸馏</h3>
-<p>* **三对对比 + 三元一致**：
-$$
-  \mathcal{L}<em VL="VL">{align}=\lambda</em>\mathcal{L}<em LA="LA">{V\leftrightarrow L}+\lambda</em>\mathcal{L}<em VA="VA">{L\leftrightarrow A}
-  +\lambda</em>\mathcal{L}<em cyc="cyc">{V\leftrightarrow A}+\lambda</em>\mathcal{L}_{cycle}.
+<ul>
+<li>
+<p><strong>三对对比 + 三元一致</strong>：
   $$
-* **互信息下界（InfoNCE）**：(I(X;Y)\ge \log N-\mathcal{L}_{NCE})；用于监控对齐强度。
-* **互监督**：跨模态伪标签/一致性约束（如时域抖动、遮挡）。
-* **蒸馏**：从几何/控制教师（MPC、轨迹优化器）向对齐空间蒸馏“**可达性 logits**”。</p>
+\mathcal{L}_{align}=\lambda_{VL}\mathcal{L}_{V\leftrightarrow L}+\lambda_{LA}\mathcal{L}_{L\leftrightarrow A}
+  +\lambda_{VA}\mathcal{L}_{V\leftrightarrow A}+\lambda_{cyc}\mathcal{L}_{cycle}.
+$$</p>
+</li>
+<li>
+<p><strong>互信息下界（InfoNCE）</strong>：$I(X;Y)\ge \log N-\mathcal{L}_{NCE}$；用于监控对齐强度。</p>
+</li>
+<li><strong>互监督</strong>：跨模态伪标签/一致性约束（如时域抖动、遮挡）。</li>
+<li><strong>蒸馏</strong>：从几何/控制教师（MPC、轨迹优化器）向对齐空间蒸馏“<strong>可达性 logits</strong>”。</li>
+</ul>
 <blockquote>
-<p>**Rule‑of‑thumb**：权重初值 (\lambda_{VL}=\lambda_{LA}=1,\ \lambda_{VA}=0.5,\ \lambda_{cyc}=0.2)；用**MI 估计**与**检索 R@K**做双指标早停。</p>
+<p><strong>Rule‑of‑thumb</strong>：权重初值 $\lambda_{VL}=\lambda_{LA}=1,\ \lambda_{VA}=0.5,\ \lambda_{cyc}=0.2$；用<strong>MI 估计</strong>与<strong>检索 R@K</strong>做双指标早停。</p>
 </blockquote>
 <hr />
 <h3 id="57">5.7 数据组织：配对/三元组、噪声过滤与难例挖掘</h3>
-<p>**样本形态**</p>
-<p>* **成对**：((V_i,L_i), (L_i,A_i), (V_i,A_i))；
-* **三元**：((V_i,L_i,A_i))；
-* **负例**：同批随机/跨批记忆库/语义近邻难例。</p>
-<p>**清洗与挖掘**</p>
-<p>* **互投票**：三对相似度一致性过滤；
-* **时间对齐**：在视频–动作上做**互相关最大化**找对齐点；
-* **难例矿**：维护“半难例”队列，避开过难/纯噪声。</p>
+<p><strong>样本形态</strong></p>
+<ul>
+<li><strong>成对</strong>：$(V_i,L_i), (L_i,A_i), (V_i,A_i)$；</li>
+<li><strong>三元</strong>：$(V_i,L_i,A_i)$；</li>
+<li><strong>负例</strong>：同批随机/跨批记忆库/语义近邻难例。</li>
+</ul>
+<p><strong>清洗与挖掘</strong></p>
+<ul>
+<li><strong>互投票</strong>：三对相似度一致性过滤；</li>
+<li><strong>时间对齐</strong>：在视频–动作上做<strong>互相关最大化</strong>找对齐点；</li>
+<li><strong>难例矿</strong>：维护“半难例”队列，避开过难/纯噪声。</li>
+</ul>
 <blockquote>
-<p>**Rule‑of‑thumb**：负例数 ≈ **有效批量**（多卡全局 batch）× 2–4；对视频‑动作对齐偏差&gt;150 ms 的样本降权或剔除。</p>
+<p><strong>Rule‑of‑thumb</strong>：负例数 ≈ <strong>有效批量</strong>（多卡全局 batch）× 2–4；对视频‑动作对齐偏差&gt;150 ms 的样本降权或剔除。</p>
 </blockquote>
 <hr />
 <h3 id="58">5.8 评测：跨模态检索 / 指令跟随 / 执行成功率</h3>
-<p>**检索**：R@K、MRR、nDCG；双向（V→L、L→V）与三向（含 A）。
-**指令跟随**：离线轨迹匹配（DTW/FDE/ADE），在线仿真成功率（Success、SPL/舒适度/安全约束违例率）。
-**一致性体检**：</p>
-<p>* **对齐混淆矩阵**（AMat）：统计 top‑K 内跨模态命中率；
-* **互信息曲线**：随数据难度/域偏移变化的 (I(V;L), I(L;A), I(V;A))；
-* **频谱一致性**：(\gamma_{VA}(f)) 带宽内平均相干。</p>
-<p>**ASCII 评测流水线**</p>
-<div class="codehilite"><pre><span></span><code><span class="p">[</span><span class="n">Paired</span><span class="o">/</span><span class="n">Triples</span><span class="p">]</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="p">[</span><span class="n">Align</span><span class="w"> </span><span class="n">Train</span><span class="p">]</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="p">[</span><span class="n">Retrieval</span><span class="w"> </span><span class="n">Bench$$</span>
-<span class="w">                                   </span>\
-<span class="w">                                    </span><span class="err">\</span><span class="o">--&gt;</span><span class="w"> </span><span class="p">[</span><span class="n">Instr</span><span class="o">-</span><span class="n">Follow</span><span class="w"> </span><span class="n">Sim</span><span class="p">]</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="p">[</span><span class="n">Action</span><span class="w"> </span><span class="n">KPIs$$</span>
+<p><strong>检索</strong>：R@K、MRR、nDCG；双向（V→L、L→V）与三向（含 A）。
+<strong>指令跟随</strong>：离线轨迹匹配（DTW/FDE/ADE），在线仿真成功率（Success、SPL/舒适度/安全约束违例率）。
+<strong>一致性体检</strong>：</p>
+<ul>
+<li><strong>对齐混淆矩阵</strong>（AMat）：统计 top‑K 内跨模态命中率；</li>
+<li><strong>互信息曲线</strong>：随数据难度/域偏移变化的 $I(V;L), I(L;A), I(V;A)$；</li>
+<li><strong>频谱一致性</strong>：$\gamma_{VA}(f)$ 带宽内平均相干。</li>
+</ul>
+<p><strong>ASCII 评测流水线</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="k">[Paired/Triples] --&gt; [Align Train] --&gt; [Retrieval Bench]</span>
+<span class="w">                                   </span><span class="na">\</span>
+<span class="w">                                    </span><span class="na">\--&gt; [Instr-Follow Sim] --&gt; [Action KPIs]</span>
 </code></pre></div>
 
 <blockquote>
-<p>**Rule‑of‑thumb**：离线检索改善若 &lt;2–3% R@10，在线成功率往往无感；必须加**在线仿真小基准**联动评测。</p>
+<p><strong>Rule‑of‑thumb</strong>：离线检索改善若 &lt;2–3% R@10，在线成功率往往无感；必须加<strong>在线仿真小基准</strong>联动评测。</p>
 </blockquote>
 <hr />
 <h3 id="59">5.9 误差归因与可解释分析</h3>
-<p>**手段**</p>
-<p>* **Cross‑Attn Rollout / Grad‑CAM**：定位语言 token → 视觉 patch 的对齐热区；
-* **TCAV/概念探针**：语义概念对行动决策的敏感度；
-* **CKA/CCA**：看 (\mathcal{Z}) 中 V/L/A 子空间的重合度；
-* **行为差分**：开启/关闭某模态或打乱该模态，观察执行指标下降（模态重要性）。</p>
+<p><strong>手段</strong></p>
+<ul>
+<li><strong>Cross‑Attn Rollout / Grad‑CAM</strong>：定位语言 token → 视觉 patch 的对齐热区；</li>
+<li><strong>TCAV/概念探针</strong>：语义概念对行动决策的敏感度；</li>
+<li><strong>CKA/CCA</strong>：看 (\mathcal{Z}) 中 V/L/A 子空间的重合度；</li>
+<li><strong>行为差分</strong>：开启/关闭某模态或打乱该模态，观察执行指标下降（模态重要性）。</li>
+</ul>
 <blockquote>
-<p>**Rule‑of‑thumb**：每个失败案例都给一个“**三视图**”报告：注意力热力图 + 频谱相干 + 行动时间线（加速度/跃度），并标注是否违反物理先验。</p>
+<p><strong>Rule‑of‑thumb</strong>：每个失败案例都给一个“<strong>三视图</strong>”报告：注意力热力图 + 频谱相干 + 行动时间线（加速度/跃度），并标注是否违反物理先验。</p>
 </blockquote>
 <hr />
 <h3 id="510-pcgrad-gradnorm">5.10 多目标冲突调和：PCGrad / GradNorm / 自动调度</h3>
-<p>**冲突诊断**：若不同损失的梯度内积为负，说明优化方向相互掣肘。</p>
-<p>* **PCGrad（投影外科）**
-  对每个损失梯度 (g_i)，若 (\langle g_i,g_j\rangle&lt;0)，则
-$$
-  g_i \leftarrow g_i - \frac{\langle g_i,g_j\rangle}{|g_j|^2},g_j.
+<p><strong>冲突诊断</strong>：若不同损失的梯度内积为负，说明优化方向相互掣肘。</p>
+<ul>
+<li>
+<p><strong>PCGrad（投影外科）</strong>
+  对每个损失梯度 (g_i)，若 $\langle g_i,g_j\rangle&lt;0$，则
   $$
-整合后再更新。稳定且实现简单。</p>
-<p>* **GradNorm（梯度范数均衡）**
-  记任务损失 (L_i(t))，目标使 (|w_i g_i|\propto \big(\tfrac{L_i(t)}{\bar L(t)}\big)^\alpha)：
+g_i \leftarrow g_i - \frac{\langle g_i,g_j\rangle}{|g_j|^2},g_j.
 $$
-  \mathcal{L}<em gn="gn">{gn}=\sum_i \Big||w_i g_i| - \bar G \big(\tfrac{L_i}{\bar L}\big)^\alpha\Big|,\quad
-  w_i \leftarrow w_i - \eta \frac{\partial\mathcal{L}</em>}{\partial w_i}.
+  整合后再更新。稳定且实现简单。</p>
+</li>
+<li>
+<p><strong>GradNorm（梯度范数均衡）</strong>
+  记任务损失 (L_i(t))，目标使 $|w_i g_i|\propto \big(\tfrac{L_i(t)}{\bar L(t)}\big)^\alpha$：
   $$
-* **不确定性加权（Kendall）**
+\mathcal{L}*{gn}=\sum_i \Big||w_i g_i| - \bar G \big(\tfrac{L_i}{\bar L}\big)^\alpha\Big|,\quad
+  w_i \leftarrow w_i - \eta \frac{\partial\mathcal{L}*{gn}}{\partial w_i}.
+$$</p>
+</li>
+<li>
+<p><strong>不确定性加权（Kendall）</strong>
+  $$
+\mathcal{L}=\sum_i \frac{1}{2\sigma_i^2}L_i + \log\sigma_i,
 $$
-  \mathcal{L}=\sum_i \frac{1}{2\sigma_i^2}L_i + \log\sigma_i,
-  $$
   让噪声大的任务自动降权。</p>
+</li>
+</ul>
 <blockquote>
-<p><strong>Rule‑of‑thumb</strong>：<strong>先 PCGrad</strong> 防止互踩，再用 <strong>GradNorm((\alpha=0.5))</strong> 做细调；蒸馏/物理先验类损失给<strong>保底权重</strong>，避免被自适应算法“压没”。</p>
+<p><strong>Rule‑of‑thumb</strong>：<strong>先 PCGrad</strong> 防止互踩，再用 <strong>GradNorm$(\alpha=0.5)$</strong> 做细调；蒸馏/物理先验类损失给<strong>保底权重</strong>，避免被自适应算法“压没”。</p>
 </blockquote>
 <hr />
 <h2 id="_3">本章小结</h2>

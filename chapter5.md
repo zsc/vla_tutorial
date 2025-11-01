@@ -114,15 +114,15 @@ $$
  A-stream -----> [Enc_A] --/
                        ^             ^
                        |             |
-                 [Gating/FiLM]   [Shared Codebook/VQ$$
+                 [Gating/FiLM]   [Shared Codebook/VQ]
 ```
 
 **关键部件**
 
-* **Cross‑Attention**：( \text{Attn}(Q=Z_L, K=Z_V, V=Z_V) ) 使文本查询视觉。
-* **门控/FiLM**：(g=\sigma(W[z_V;z_L])), ( \tilde z = g\odot z_V + (1-g)\odot z_L)。
+* **Cross‑Attention**：$ \text{Attn}(Q=Z_L, K=Z_V, V=Z_V) $ 使文本查询视觉。
+* **门控/FiLM**：$g=\sigma(W[z_V;z_L])$, $ \tilde z = g\odot z_V + (1-g)\odot z_L$。
 * **共享码本**：将 V/A 离散化为与 L 共享的“语义 token”（VQ‑VAE 样式），方便统一推理与检索。
-* **PoE/MoE**：多专家按模态置信度加权：( z = \sum_k \alpha_k z^{(k)},\ \sum\alpha_k=1)。
+* **PoE/MoE**：多专家按模态置信度加权：$ z = \sum_k \alpha_k z^{(k)},\ \sum\alpha_k=1$。
 
 > **Rule‑of‑thumb**：先上 **cross‑attn** + **简洁门控**；共享码本仅在数据充足+需要轻量部署时启用（token 抽稀利于端侧）。
 
@@ -132,14 +132,14 @@ $$
 
 * **三对对比 + 三元一致**：
   $$
-  \mathcal{L}*{align}=\lambda*{VL}\mathcal{L}*{V\leftrightarrow L}+\lambda*{LA}\mathcal{L}*{L\leftrightarrow A}
-  +\lambda*{VA}\mathcal{L}*{V\leftrightarrow A}+\lambda*{cyc}\mathcal{L}_{cycle}.
+  \mathcal{L}_{align}=\lambda_{VL}\mathcal{L}_{V\leftrightarrow L}+\lambda_{LA}\mathcal{L}_{L\leftrightarrow A}
+  +\lambda_{VA}\mathcal{L}_{V\leftrightarrow A}+\lambda_{cyc}\mathcal{L}_{cycle}.
   $$
-* **互信息下界（InfoNCE）**：(I(X;Y)\ge \log N-\mathcal{L}_{NCE})；用于监控对齐强度。
+* **互信息下界（InfoNCE）**：$I(X;Y)\ge \log N-\mathcal{L}_{NCE}$；用于监控对齐强度。
 * **互监督**：跨模态伪标签/一致性约束（如时域抖动、遮挡）。
 * **蒸馏**：从几何/控制教师（MPC、轨迹优化器）向对齐空间蒸馏“**可达性 logits**”。
 
-> **Rule‑of‑thumb**：权重初值 (\lambda_{VL}=\lambda_{LA}=1,\ \lambda_{VA}=0.5,\ \lambda_{cyc}=0.2)；用**MI 估计**与**检索 R@K**做双指标早停。
+> **Rule‑of‑thumb**：权重初值 $\lambda_{VL}=\lambda_{LA}=1,\ \lambda_{VA}=0.5,\ \lambda_{cyc}=0.2$；用**MI 估计**与**检索 R@K**做双指标早停。
 
 ---
 
@@ -147,8 +147,8 @@ $$
 
 **样本形态**
 
-* **成对**：((V_i,L_i), (L_i,A_i), (V_i,A_i))；
-* **三元**：((V_i,L_i,A_i))；
+* **成对**：$(V_i,L_i), (L_i,A_i), (V_i,A_i)$；
+* **三元**：$(V_i,L_i,A_i)$；
 * **负例**：同批随机/跨批记忆库/语义近邻难例。
 
 **清洗与挖掘**
@@ -168,15 +168,15 @@ $$
 **一致性体检**：
 
 * **对齐混淆矩阵**（AMat）：统计 top‑K 内跨模态命中率；
-* **互信息曲线**：随数据难度/域偏移变化的 (I(V;L), I(L;A), I(V;A))；
-* **频谱一致性**：(\gamma_{VA}(f)) 带宽内平均相干。
+* **互信息曲线**：随数据难度/域偏移变化的 $I(V;L), I(L;A), I(V;A)$；
+* **频谱一致性**：$\gamma_{VA}(f)$ 带宽内平均相干。
 
 **ASCII 评测流水线**
 
 ```
-[Paired/Triples] --> [Align Train] --> [Retrieval Bench$$
+[Paired/Triples] --> [Align Train] --> [Retrieval Bench]
                                    \
-                                    \--> [Instr-Follow Sim] --> [Action KPIs$$
+                                    \--> [Instr-Follow Sim] --> [Action KPIs]
 ```
 
 > **Rule‑of‑thumb**：离线检索改善若 <2–3% R@10，在线成功率往往无感；必须加**在线仿真小基准**联动评测。
@@ -201,14 +201,14 @@ $$
 **冲突诊断**：若不同损失的梯度内积为负，说明优化方向相互掣肘。
 
 * **PCGrad（投影外科）**
-  对每个损失梯度 (g_i)，若 (\langle g_i,g_j\rangle<0)，则
+  对每个损失梯度 (g_i)，若 $\langle g_i,g_j\rangle<0$，则
   $$
   g_i \leftarrow g_i - \frac{\langle g_i,g_j\rangle}{|g_j|^2},g_j.
   $$
   整合后再更新。稳定且实现简单。
 
 * **GradNorm（梯度范数均衡）**
-  记任务损失 (L_i(t))，目标使 (|w_i g_i|\propto \big(\tfrac{L_i(t)}{\bar L(t)}\big)^\alpha)：
+  记任务损失 (L_i(t))，目标使 $|w_i g_i|\propto \big(\tfrac{L_i(t)}{\bar L(t)}\big)^\alpha$：
   $$
   \mathcal{L}*{gn}=\sum_i \Big||w_i g_i| - \bar G \big(\tfrac{L_i}{\bar L}\big)^\alpha\Big|,\quad
   w_i \leftarrow w_i - \eta \frac{\partial\mathcal{L}*{gn}}{\partial w_i}.
@@ -220,7 +220,7 @@ $$
   $$
   让噪声大的任务自动降权。
 
-> **Rule‑of‑thumb**：**先 PCGrad** 防止互踩，再用 **GradNorm((\alpha=0.5))** 做细调；蒸馏/物理先验类损失给**保底权重**，避免被自适应算法“压没”。
+> **Rule‑of‑thumb**：**先 PCGrad** 防止互踩，再用 **GradNorm$(\alpha=0.5)$** 做细调；蒸馏/物理先验类损失给**保底权重**，避免被自适应算法“压没”。
 
 ---
 
