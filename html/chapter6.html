@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="./">
+    <title>第6章 隐式 3D 时空结构的引入</title>
+    <link rel="stylesheet" href="assets/style.css">
+    <link rel="stylesheet" href="assets/highlight.css">
+    <script src="assets/script.js" defer></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$']],
+                displayMath: [['$$', '$$']],
+                processEscapes: false,
+                packages: {'[+]': ['noerrors', 'ams']}
+            },
+            options: {
+                ignoreHtmlClass: 'tex2jax_ignore',
+                processHtmlClass: 'tex2jax_process'
+            },
+            loader: {
+                load: ['[tex]/noerrors', '[tex]/ams']
+            }
+        };
+    </script>
+</head>
+<body>
+    <div class="container">
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h3>目录</h3>
+                <button id="sidebar-toggle" class="sidebar-toggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+            <div class="sidebar-search">
+                <input type="text" id="sidebar-search-input" placeholder="搜索..." autocomplete="off">
+            </div>
+            <div id="tree-container">
+                <nav class="tree-nav" role="tree">
+                    <div class="tree-item " >
+                        <a href="index.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">Visual-Language Action Model: 预训练、MARL 和 Sim-to-Real</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter1.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第1章 导论与动机案例</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter2.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第2章 视觉模态（chapter2.md）</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter3.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第3章 语言模态</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter4.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第4章 行动模态</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter5.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第5章 模态对齐（Vision–Language–Action）</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item active" >
+                        <a href="chapter6.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第6章 隐式 3D 时空结构的引入</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter7.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第7章 预训练：模态预训练与跨模态对齐</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter8.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第8章 强化学习与微调（模型级）</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter9.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第9章 基于仿真的智能体级强化学习（单智能体）</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter10.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第10章 多智能体博弈与协调：从均衡理论与 MARL 到工程落地</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter11.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第11章 Sim-to-Real：从仿真到现实的最后一公里</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="CLAUDE.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">Untitled</span>
+                        </a>
+                    </div>
+                </nav>
+            </div>
+        </nav>
+        
+        <main class="content">
+            <article>
+                <p>（交流可以用英文，所有文档中文，保留这句）</p>
+<h1 id="6-3d">第6章 隐式 3D 时空结构的引入</h1>
+<blockquote>
+<p><strong>开篇与学习目标</strong>
+本章讨论如何在缺乏大规模 3D 监督的条件下，以<strong>隐式 3D 支架（implicit 3D scaffold）</strong>强化视觉/视频理解，并把 3D 作为<strong>长期记忆</strong>与<strong>可实现性约束</strong>接入到 V‑L‑A 闭环。你将学会：</p>
+<ol>
+<li>用几何与物理先验构造<strong>弱/无监督</strong>的 3D 训练信号；2) 用隐式场（SDF/Occupancy/NeRF）或显式结构（SLAM/TSDF）作为<strong>时空记忆</strong>以应对遮挡与重访；3) 将 3D 与<strong>行动可达性（feasibility）</strong>与<strong>矛盾检测</strong>结合，形成服务于下游决策/控制/Sim‑to‑Real 的工程接口与评测协议。</li>
+</ol>
+</blockquote>
+<hr />
+<h2 id="61-3d">6.1 “隐式 3D 支架”的动机与收益</h2>
+<ul>
+<li><strong>动机</strong>：纯 2D 语义难以约束未来预测的<strong>可实现性</strong>；视频特征易受遮挡与视角变化影响；跨域迁移时，几何更稳定于纹理。</li>
+<li>
+<p><strong>收益</strong>：</p>
+</li>
+<li>
+<p><strong>可实现性</strong>：预测的未来轨/状态存在满足动力学与接触约束的控制序列。</p>
+</li>
+<li><strong>持久化记忆</strong>：3D 地图/体素/隐式场作为<strong>长期记忆（LTM）</strong>，支持重访一致性与跨时间对齐。</li>
+<li><strong>泛化</strong>：几何先验相对外观更稳健，有利于 Sim‑to‑Real。</li>
+<li><strong>可解释</strong>：可视化表面/体密度/法向与可达域，利于审计。</li>
+</ul>
+<p><strong>经验法则（Rule‑of‑Thumb）</strong></p>
+<ul>
+<li>若<strong>任务涉及遮挡/重访/物理相互作用</strong>，应优先引入 3D 支架；若关注<strong>短期语义分类</strong>且延迟要求极低，可以 2D 为主、3D 为辅。</li>
+<li>端到端 VLA 中，<strong>3D 支架的延迟预算</strong>建议 ≤ 总闭环延迟的 30%，其余留给感知与控制。</li>
+</ul>
+<hr />
+<h2 id="62-3d">6.2 无/弱监督 3D：几何一致性与时空约束</h2>
+<p>以针孔模型为基础，像素 $\mathbf{x} !\sim! (u,v,1)^\top$、深度 $D(\mathbf{x})$、相机内参 $K$、位姿 $T_{t}^{w}!\in! SE(3)$。
+重投影一致性（光度配准）：
+[
+I_t(\mathbf{x}) \approx I_{t!+!1}!\left(\pi!\left(K,T_{t+1}^{t}, \underbrace{D_t(\mathbf{x}),K^{-1}\mathbf{x}}<em>{\mathbf{X}</em>t}\right)\right),
+\quad
+T<em t="t">{t+1}^{t}!=!(T</em>^{w})^{-1}T_{t+1}^{w}
+]
+配合鲁棒损失 $\rho$ 与可见性掩码 $M$，得到无监督目标：
+[
+\mathcal{L}<em _mathbf_x="\mathbf{x">{\text{photo}} = \sum</em>} M(\mathbf{x}),\rho!\big(I_t(\mathbf{x})- \hat I_t(\mathbf{x})\big)
+]
+再加几何光滑与边缘保留先验（$\nabla D$ 相对图像梯度加权）：
+[
+\mathcal{L}<em _mathbf_x="\mathbf{x">{\text{smooth}}=\sum</em>} e^{-|\nabla I_t(\mathbf{x})|},|\nabla D_t(\mathbf{x})|_1
+]
+左右/多目时可加入极线约束 $,\mathbf{x}'^{!\top} F \mathbf{x}=0$。</p>
+<p><strong>隐式场正则</strong>：以 SDF $f_\theta(\mathbf{X})$ 表示表面，加入 Eikonal 约束：
+[
+\mathcal{L}<em _mathbf_X="\mathbf{X">{\text{eik}}=\mathbb{E}</em>\sim \Omega}\big(|\nabla_{\mathbf{X}} f_\theta(\mathbf{X})|<em t_n="t_n">2-1\big)^2
+]
+体渲染（NeRF）用体密度 $\sigma$ 与颜色 $c$ 的沿射线积分：
+[
+C(\mathbf{r})=\int</em>^{t_f} T(t),\sigma(\mathbf{r}(t)),c(\mathbf{r}(t)),dt,\quad
+T(t)=\exp!\Big(-\int_{t_n}^{t}\sigma(\mathbf{r}(s)),ds\Big)
+]</p>
+<p><strong>ASCII 示意</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="err">相机</span><span class="n">t</span><span class="o">:</span><span class="w">  </span><span class="n">K</span><span class="o">,</span><span class="w"> </span><span class="n">Tt</span><span class="o">^</span><span class="n">w</span><span class="w">                 </span><span class="err">相机</span><span class="n">t</span><span class="o">+</span><span class="mi">1</span><span class="o">:</span><span class="w">  </span><span class="n">K</span><span class="o">,</span><span class="w"> </span><span class="n">Tt</span><span class="o">+</span><span class="mi">1</span><span class="o">^</span><span class="n">w</span>
+<span class="w">   </span><span class="o">\</span><span class="w">         </span><span class="err">射线</span><span class="w"> </span><span class="n">r</span><span class="o">(</span><span class="n">t</span><span class="o">)</span><span class="w">  </span><span class="o">------&gt;</span><span class="w">      </span><span class="o">/</span>
+<span class="w">    </span><span class="o">\</span><span class="n">_______________________________</span><span class="o">/</span>
+<span class="w">         </span><span class="err">隐式体</span><span class="w"> </span><span class="err">σ</span><span class="o">(</span><span class="n">X</span><span class="o">),</span><span class="w"> </span><span class="n">c</span><span class="o">(</span><span class="n">X</span><span class="o">)</span>
+</code></pre></div>
+
+<p><strong>经验法则</strong></p>
+<ul>
+<li>单目无监督深度若做<strong>控制下游</strong>，必须配<strong>尺度锚</strong>（如已知相机高度/地平线/稀疏激光），否则尺度漂移会放大行动误差。</li>
+<li>光度一致性在<strong>强反射/滚快门/动态光照</strong>下失效，务必引入<strong>可见性/遮挡</strong>与<strong>时域稳健项</strong>。</li>
+</ul>
+<hr />
+<h2 id="63-3d">6.3 基于 3D 的视频预测：物体状态与动力学</h2>
+<p>将视频预测拆为<strong>状态+渲染</strong>两层：</p>
+<ol>
+<li><strong>状态层</strong>：物体位姿 ${T_{t}^{(k)}}$、形状（SDF/mesh）、接触与关节；</li>
+<li><strong>渲染层</strong>：由状态生成可观测的 2D/体渲染。</li>
+</ol>
+<p><strong>运动一致性</strong>（刚体近似）：
+[
+\mathbf{X}<em t_1="t+1">{t+1}^{(k)} \approx T</em>^{(k)}\big(T_t^{(k)}\big)^{-1}\mathbf{X}<em>{t}^{(k)}.
+]
+</em><em>接触/地面约束</em><em t_1="t+1">（以 SDF $f=0$ 为接触面）：
+[
+f(\mathbf{X}</em>) \le 0,\quad \lambda_n \ge 0,\quad |\boldsymbol{\lambda}_\tau| \le \mu,\lambda_n.
+]</p>
+<p><strong>三项小基准（建议指标）</strong></p>
+<ul>
+<li><strong>再现率</strong> $\mathcal{R}$：重渲染与真值的 PSNR/LPIPS 达标比例。</li>
+<li><strong>漂移率</strong> $\mathcal{D}$：重访回路 $t!\to! t'$ 的位姿闭环误差 $|\log!(T_{t'}^{t} T_{t}^{t'})|/\Delta s$。</li>
+<li><strong>重访一致性</strong> $\mathcal{C}$：同一 3D 点多次观测的颜色/法向方差 $\operatorname{Var}([c,\mathbf{n}])$。</li>
+</ul>
+<p><strong>经验法则</strong></p>
+<ul>
+<li><strong>先状态、后渲染</strong>：把预测误差优先约束在状态空间（$SE(3)$/形变场），再映射到渲染域，更稳健。</li>
+<li><strong>长程预测</strong>宜用<strong>潜在轨迹 + 短窗校正</strong>（MPPI/粒子平滑），避免纯自回归漂移。</li>
+</ul>
+<hr />
+<h2 id="64-3d-ltm">6.4 3D 作为长期记忆（LTM）：重访、遮挡与持久化</h2>
+<p>将隐式场或体素/图优化图（pose graph）作为 LTM：</p>
+<ul>
+<li><strong>写入</strong>：把每帧深度/位姿/语义增量融合进地图（TSDF/Occupancy/隐式哈希）。</li>
+<li><strong>读取</strong>：重访时用地图渲染视图/剔除遮挡，给视觉编码器与 VLA 语言层<strong>同一性线索</strong>（“这是之前看到的路口 A”）。</li>
+</ul>
+<p><strong>ASCII：LTM 读写</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="k">[帧t观测] --&gt; [前端:几何/语义特征] --&gt; [融合: TSDF/隐式哈希] --&gt; [LTM]</span>
+<span class="w">                                   </span><span class="na">^                                 |</span>
+<span class="w">                                   </span><span class="na">|--------- [重访检出/回环] &lt;-----|</span>
+</code></pre></div>
+
+<p><strong>经验法则</strong></p>
+<ul>
+<li>机器人操控建议<strong>对象级 LTM</strong>（实例网格+抓取点库）；自动驾驶建议<strong>地形/道路/可通行域级 LTM</strong>。</li>
+<li>LTM <strong>分层缓存</strong>：短期（秒级）在 GPU、长期（分钟+）在 CPU/磁盘；读取走<strong>近似最近邻</strong>而非全量扫描。</li>
+</ul>
+<hr />
+<h2 id="65-vs">6.5 显式 vs. 隐式：精度、延迟、鲁棒性与工程取舍</h2>
+<ul>
+<li><strong>显式</strong>：稀疏/稠密地图、网格、关键点、因子图。优点：易约束与调试；缺点：拓展到外观/复杂 BRDF 较难。</li>
+<li><strong>隐式</strong>：SDF/Occupancy/NeRF。优点：表面/外观统一建模；缺点：<strong>延迟与采样成本</strong>高。</li>
+<li><strong>混合</strong>：显式几何 + 隐式外观/细节（mesh‑guided NeRF）、<strong>轻量前端 + 隐式细化</strong>。</li>
+</ul>
+<p><strong>经验法则</strong></p>
+<ul>
+<li><strong>硬实时控制</strong>（&gt;50 Hz）：优先显式/稀疏表示；隐式作为低频背景线程或先验。</li>
+<li><strong>Sim‑to‑Real</strong>：隐式有利于跨域外观；但必须<strong>冻结相机几何标定</strong>并做<strong>尺度锁定</strong>。</li>
+</ul>
+<hr />
+<h2 id="66-vla">6.6 与 V/L/A 的接口：状态、语义与控制量</h2>
+<ul>
+<li><strong>V→3D</strong>：深度/法向/位姿，作为 3D 写入与渲染。</li>
+<li><strong>L（语言）→3D</strong>：指令引用<strong>世界坐标对象</strong>（“抓取绿色杯子，位于桌面边缘 10 cm”），语言对齐到 LTM 中的实例 ID。</li>
+<li><strong>A（行动）↔ 3D</strong>：规划/控制在 3D 可通行域与障碍约束中求解；3D 反向给出<strong>可达域/屏蔽</strong>。</li>
+</ul>
+<p><strong>控制侧约束接口</strong>（示意）：</p>
+<ul>
+<li><strong>安全集合</strong> $\mathcal{S}={\mathbf{x}\mid h(\mathbf{x})\ge 0}$ 由 3D 指定（与障碍距离 $d$ 相关）。</li>
+<li>
+<p><strong>CBF 约束</strong>：
+  [
+  \dot h(\mathbf{x},\mathbf{u}) + \alpha, h(\mathbf{x}) \ge 0
+  ]</p>
+</li>
+<li>
+<p><strong>QP 投影</strong>：将策略输出 $\mathbf{u}_\pi$ 投影到足 CBF 与输入界限的可行集。</p>
+</li>
+</ul>
+<p><strong>经验法则</strong></p>
+<ul>
+<li>把<strong>3D‑到‑控制</strong>做成<strong>可微但可替换</strong>的接口：训练期可微，部署期可落地为 QP/二次规划以得确定行为。</li>
+<li>语言引用对象时，<strong>在 3D 中绑定</strong>并暴露<strong>不确定性区间</strong>（椭球/界），用于策略风险评估。</li>
+</ul>
+<hr />
+<h2 id="67">6.7 实验协议：可实现性、漂移与恢复</h2>
+<p>建议的<strong>三类实验</strong>：</p>
+<ol>
+<li><strong>可实现性测试</strong>：给定预测未来状态序列 ${\hat{\mathbf{x}}*{t+k}}$，验证存在 ${\mathbf{u}*{t+k}}$ 使 $\mathbf{x}*{t+k+1}=f(\mathbf{x}*{t+k},\mathbf{u}_{t+k})$ 且满足约束。</li>
+<li><strong>漂移与重访</strong>：长序列运行，记录位姿与地图闭环误差、尺度漂移；重访时评估一致性。</li>
+<li><strong>恢复能力</strong>：遮挡/传感丢帧/形变扰动下，3D‑辅助的重定位与策略恢复时间。</li>
+</ol>
+<p><strong>度量建议</strong>
+[
+\textbf{FeasibilityGap}~g=\min_{{\mathbf{u}}}\sum_k |\hat{\mathbf{x}}<em t_k="t+k">{t+k+1}-f(\hat{\mathbf{x}}</em>,\mathbf{u}<em>{t+k})|</em>Q^2 \quad (\text{越小越好})
+]
+[
+\textbf{ScaleDrift}=\frac{1}{N}\sum<em _text_loop="\text{loop">{i}\left|\frac{\hat d_i}{d_i}-1\right|,\quad
+\textbf{LoopErr}=|\log(T</em>})|<em _tau="\tau">2
+]
+[
+\textbf{RecoveryTime}=\arg\min</em>{\text{性能恢复到阈值}}
+]</p>
+<p><strong>经验法则</strong></p>
+<ul>
+<li><strong>可实现性门槛</strong>：$g$ 超过<strong>控制可达域</strong>半径的 20–30% 时，触发<strong>策略降级或重规划</strong>。</li>
+<li><strong>重访门槛</strong>：闭环误差超过 $1^\circ$（旋转）或 $0.5%$ 路程（平移）需回环优化或 LTM 复写。</li>
+</ul>
+<hr />
+<h2 id="68-feasibility-check-3d">6.8 可实现性检查（Feasibility Check）：预测 3D 状态的动力学可达性</h2>
+<p>目标：判定预测状态/轨迹是否存在<strong>输入受限</strong>的控制使之可达；若不可达，给出<strong>最小修正</strong>与<strong>操作化告警</strong>。</p>
+<p><strong>控制‑仿射模型</strong>：
+[
+\mathbf{x}<em>{t+1}=f(\mathbf{x}</em>t)+G(\mathbf{x}<em>t)\mathbf{u}</em>t,\quad \mathbf{u}<em>t\in \mathcal{U},\quad \mathbf{x}</em>t\in \mathcal{X}
+]
+<strong>最小差异可达性</strong>：
+[
+\min<em>{{\mathbf{u}</em>t}}\sum<em t_k_1="t+k+1">{k=0}^{H-1}|\hat{\mathbf{x}}</em>-f(\hat{\mathbf{x}}<em t_k="t+k">{t+k})-G(\hat{\mathbf{x}}</em>)\mathbf{u}<em Q="Q">{t+k}|</em>^2
+\quad \text{s.t. } \mathbf{u}_t!\in!\mathcal{U},~ \mathbf{x}_t!\in!\mathcal{X}
+]
+<strong>可达性证书</strong>（Barrier/Viability）：存在控制使 $h(\mathbf{x})\ge0$ 保持成立；否则输出<strong>最近可行点</strong>与<strong>违反幅度</strong>。</p>
+<p><strong>与 VLA 的用法</strong></p>
+<ul>
+<li>作为<strong>计划‑到‑行动</strong>之间的<strong>“检査关”</strong>：在语言/视觉规划生成候选 3D 目标（抓取位姿/车道中心曲线）后做可达性筛选。</li>
+<li>将 $g$、违规的 $h(\cdot)$、最近可行解的差异 $\Delta\mathbf{x}$ 暴露给语言层，生成<strong>可解释反馈</strong>（“目标抓取姿态超出关节界限 5°，建议旋转 Z 轴 −7°”）。</li>
+</ul>
+<p><strong>经验法则</strong></p>
+<ul>
+<li>控制与碰撞约束<strong>分层校验</strong>：先做控制可达，再做几何碰撞；二者顺序反过来易产生假可行。</li>
+<li>把可达性计算做成<strong>近似上界</strong>（保守）更安全，特别是在 Sim‑to‑Real 的未知摩擦/时延下。</li>
+</ul>
+<hr />
+<h2 id="69-vs">6.9 矛盾检测器：几何一致性 vs. 观测</h2>
+<p>目的：在<strong>地图/隐式场/预测状态</strong>与<strong>新观测</strong>之间快速发现不一致，触发<strong>重定位/回环/屏蔽</strong>。</p>
+<p><strong>三类残差</strong></p>
+<ol>
+<li>
+<p><strong>重投影残差</strong>（几何）：
+   [
+   r_{\text{geo}}=\big|\pi(K T_{t}^{w}\mathbf{X})-\mathbf{x}_t\big|_2
+   ]</p>
+</li>
+<li>
+<p><strong>光度/外观残差</strong>：$r_{\text{photo}}=|I_t(\mathbf{x})-\hat I_t(\mathbf{x})|$</p>
+</li>
+<li><strong>语义残差</strong>：$r_{\text{sem}}=1-\text{IoU}(\hat{\mathcal{S}},\mathcal{S})$</li>
+</ol>
+<p><strong>卡方门限与置信传播</strong></p>
+<ul>
+<li>对 $r_{\text{geo}}$ 用协方差 $S$ 做 $\chi^2$ 门限：$r^\top S^{-1} r \le \tau_\alpha$；拒绝超界观测并降低 LTM 信任度。</li>
+<li>构造<strong>多模态证据融合</strong>：若三个残差一致上升，优先判定<strong>位姿/时间戳问题</strong>；若仅光度残差高，多为<strong>光照/反射</strong>问题。</li>
+</ul>
+<p><strong>ASCII：矛盾路由</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="err">观测</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="err">残差计算</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="err">低</span><span class="o">:</span><span class="w"> </span><span class="err">正常融合</span>
+<span class="w">                     </span><span class="err">中</span><span class="o">:</span><span class="w"> </span><span class="err">权重下降</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="err">局部优化</span>
+<span class="w">                     </span><span class="err">高</span><span class="o">:</span><span class="w"> </span><span class="err">触发重定位</span><span class="o">/</span><span class="err">回环</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="err">屏蔽控制</span>
+</code></pre></div>
+
+<p><strong>经验法则</strong></p>
+<ul>
+<li><strong>时间戳对齐优先于几何优化</strong>：错位10–20 ms 就致重投影残差虚高。</li>
+<li>发生大矛盾时，先冻结隐式场更新，避免<strong>灾难性遗忘</strong>覆盖了正确地图。</li>
+</ul>
+<hr />
+<h2 id="_1">本章小结</h2>
+<ul>
+<li><strong>隐式 3D 支架</strong>通过几何/物理先验提供<strong>稳健的时空约束</strong>与<strong>长期记忆</strong>，补强了 V‑L‑A 的可实现性、可解释性与 Sim‑to‑Real 泛化。</li>
+<li>关键构件：<strong>重投影/体渲染一致性</strong>、<strong>Eikonal/SDF 正则</strong>、<strong>对象/场景级 LTM</strong>、<strong>可达性检査</strong>与<strong>矛盾检测</strong>。</li>
+<li>建议评测：<strong>再现率‑漂移率‑重访一致性</strong>三指标 + <strong>FeasibilityGap/LoopErr/RecoveryTime</strong>，并把结果回灌到第 7 章（预训练数据与损失）与第 11 章（Sim‑to‑Real）设计。</li>
+</ul>
+<hr />
+<h2 id="gotchas">常见陷阱与调试技巧（Gotchas）</h2>
+<ol>
+<li><strong>尺度漂移</strong>（单目/弱监督）</li>
+</ol>
+<ul>
+<li><em>症状</em>：规划里程估计偏差，速度/刹车指令异常。</li>
+<li><em>对策</em>：加入尺度锚（相机高度、地平线、稀疏激光、物理尺寸先验），训练期做<strong>尺度一致性损失</strong>；部署期做<strong>尺锁定与漂移监控</strong>。</li>
+</ul>
+<ol start="2">
+<li><strong>滚快门/时延错位</strong></li>
+</ol>
+<ul>
+<li><em>症状</em>：运动方向关联残差周期性升高。</li>
+<li><em>对策</em>：显式建模滚快门读出，做<strong>时延标定与在线估计</strong>；残差升高先查时间戳。</li>
+</ul>
+<ol start="3">
+<li><strong>遮挡/动态物体导致的光度失败</strong></li>
+</ol>
+<ul>
+<li><em>症状</em>：光度一致性失败，但几何残差正常。</li>
+<li><em>对策</em>：引入可见性预测/遮挡掩码；用<strong>语义‑引导</strong>的重投影而非纯光度。</li>
+</ul>
+<ol start="4">
+<li><strong>隐式场延迟过高</strong></li>
+</ol>
+<ul>
+<li><em>症状</em>：闭环不稳定或超时。</li>
+<li><em>对策</em>：采用<strong>分层渲染</strong>（粗‑细两级）、<strong>稀疏采样</strong>、<strong>显式前端 + 隐式细化</strong>；把隐式更新放低频线程。</li>
+</ul>
+<ol start="5">
+<li><strong>几何‑语义错配</strong></li>
+</ol>
+<ul>
+<li><em>症状</em>：语言引用对象与 3D 实例 ID 对不齐。</li>
+<li><em>对策</em>：建立<strong>语义‑几何绑定表</strong>与不确定性区间；语言侧回传<strong>消歧问题</strong>。</li>
+</ul>
+<ol start="6">
+<li><strong>可达性判断过于乐观/悲观</strong></li>
+</ol>
+<ul>
+<li><em>症状</em>：生成不可执行的目标，或过度保守。</li>
+<li><em>对策</em>：用<strong>保守上</strong>（Barrier‑based）做初筛，再用<strong>短时 MPC</strong>精检；离线回放上做<strong>门槛校准</strong>（ROC/PR）。</li>
+</ul>
+<ol start="7">
+<li><strong>地图污染与灾忘</strong></li>
+</ol>
+<ul>
+<li><em>症状</em>：短时异常观测破坏 LTM，影响重访。</li>
+<li><em>对策</em>：高残差时<strong>冻结写入</strong>；建立<strong>回滚快照</strong>与<strong>版本化</strong>；重定位后再解冻。</li>
+</ul>
+<ol start="8">
+<li><strong>Sim‑to‑Real 外观域差</strong></li>
+</ol>
+<ul>
+<li><em>症状</em>：仿真几何正确，实景光度残差高。</li>
+<li><em>对策</em>：偏重几何/深度一致性；使用<strong>域随机化</strong>与<strong>外观解耦</strong>（几何为主、纹理为辅）。</li>
+</ul>
+<hr />
+<h2 id="_2">关键公式与规则速记</h2>
+<ul>
+<li><strong>重投影与体渲染</strong>：$I \approx \hat I(\pi(KT\mathbf{X})),; C(\mathbf{r})=\int T\sigma c,dt$</li>
+<li><strong>SDF 正则</strong>：$|\nabla f|=1$（Eikonal）</li>
+<li><strong>CBF 约束</strong>：$\dot h+\alpha h\ge0$；违规→QP 投影</li>
+<li><strong>可达性差距</strong>：$g=\min_{{\mathbf{u}}}\sum|\hat{\mathbf{x}}^+ - f(\hat{\mathbf{x}})-G\mathbf{u}|_Q^2$</li>
+<li><strong>经验阈值</strong>：$g$ 超过可达域半径的 $20\text{–}30%$ 触发降级；闭环误差 $&gt;1^\circ / 0.5%$ 程需回环。</li>
+</ul>
+<hr />
+<p><strong>与其他章节的接口</strong></p>
+<ul>
+<li>预训练（第 7 章）：在损失中加入<strong>几何一致性/体渲染/尺度锁</strong>，并把 LTM 作为<strong>记忆先验</strong>。</li>
+<li>强化学习（第 8–10 章）：以可达性与 CBF 为<strong>策略屏蔽</strong>，以 LTM 提供<strong>状态抽象</strong>。</li>
+<li>Sim‑to‑Real（第 11 章）：把隐式 3D 的<strong>域随机化</strong>与<strong>传感/动力学对齐</strong>纳入准入清单与验收流程。</li>
+</ul>
+            </article>
+            
+            <nav class="page-nav"><a href="chapter5.html" class="nav-link prev">← 第5章 模态对齐（Vision–Language–Action）</a><a href="chapter7.html" class="nav-link next">第7章 预训练：模态预训练与跨模态对齐 →</a></nav>
+        </main>
+    </div>
+</body>
+</html>

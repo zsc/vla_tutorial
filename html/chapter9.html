@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="./">
+    <title>第9章 基于仿真的智能体级强化学习（单智能体）</title>
+    <link rel="stylesheet" href="assets/style.css">
+    <link rel="stylesheet" href="assets/highlight.css">
+    <script src="assets/script.js" defer></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$']],
+                displayMath: [['$$', '$$']],
+                processEscapes: false,
+                packages: {'[+]': ['noerrors', 'ams']}
+            },
+            options: {
+                ignoreHtmlClass: 'tex2jax_ignore',
+                processHtmlClass: 'tex2jax_process'
+            },
+            loader: {
+                load: ['[tex]/noerrors', '[tex]/ams']
+            }
+        };
+    </script>
+</head>
+<body>
+    <div class="container">
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h3>目录</h3>
+                <button id="sidebar-toggle" class="sidebar-toggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+            <div class="sidebar-search">
+                <input type="text" id="sidebar-search-input" placeholder="搜索..." autocomplete="off">
+            </div>
+            <div id="tree-container">
+                <nav class="tree-nav" role="tree">
+                    <div class="tree-item " >
+                        <a href="index.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">Visual-Language Action Model: 预训练、MARL 和 Sim-to-Real</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter1.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第1章 导论与动机案例</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter2.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第2章 视觉模态（chapter2.md）</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter3.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第3章 语言模态</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter4.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第4章 行动模态</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter5.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第5章 模态对齐（Vision–Language–Action）</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter6.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第6章 隐式 3D 时空结构的引入</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter7.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第7章 预训练：模态预训练与跨模态对齐</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter8.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第8章 强化学习与微调（模型级）</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item active" >
+                        <a href="chapter9.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第9章 基于仿真的智能体级强化学习（单智能体）</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter10.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第10章 多智能体博弈与协调：从均衡理论与 MARL 到工程落地</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter11.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第11章 Sim-to-Real：从仿真到现实的最后一公里</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="CLAUDE.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">Untitled</span>
+                        </a>
+                    </div>
+                </nav>
+            </div>
+        </nav>
+        
+        <main class="content">
+            <article>
+                <p>（交流可以用英文，所有文档中文，保留这句）</p>
+<h1 id="9">第9章 基于仿真的智能体级强化学习（单智能体）</h1>
+<blockquote>
+<p><em>从“仅离线轨迹与文本监督”的模型级微调，迈向在仿真环境中</em><em>交互学习</em><em>的智能体级强化学习（Agent‑level RL）。本章建立单智能体在仿真中的训练协议、误差来源与控制方法，并把产物与第 11 章（Sim‑to‑Real）的验收接口对齐。</em></p>
+</blockquote>
+<hr />
+<h2 id="_1">开篇段落：本章内容与学习目标</h2>
+<p><strong>你将学到：</strong></p>
+<ol>
+<li>如何将单智能体问题形式化为（P)MDP/CMDP 并在仿真中闭环训练；2) 仿真类型、并行采样与重放机制的工程要点；3) 数值积分、传感噪声、模态漂移等<strong>误差源</strong>与纠偏路径；4) 面向自动驾驶/机器人操控的<strong>奖励设计与指标体系</strong>；5) 面向 Sim‑to‑Real 的<strong>域随机化</strong>与<strong>鲁棒控制</strong>预备；6) <strong>OPE（离线策略评估）</strong>如何在无需上真机时做出可信判断；7) 一个<strong>可复现实验协议</strong>与<strong>评测口</strong>，让策略在仿真里“真的可用”。</li>
+</ol>
+<hr />
+<h2 id="91-vs">9.1 仿真类型：软件物理引擎 vs. 神经仿真</h2>
+<p><strong>问题形式化</strong>
+单智能体问题通常建模为 POMDP
+[
+\mathcal{M}=(\mathcal{S},\mathcal{A},P,\Omega,O,r,\gamma),\quad o_t\sim O(\cdot,|,s_t),; a_t\sim \pi_\theta(\cdot,|,h_t),
+]
+其中 (h_t) 是历史（可由 RNN/Transformer 压缩）。若引入安全成本 (c) 与阈值 (\alpha)，得到 CMDP：(\mathbb{E}_\pi[\sum \gamma^t c_t]\le \alpha)。</p>
+<p><strong>仿真两类：</strong></p>
+<ul>
+<li><strong>软件物理引擎</strong>（Bullet/MuJoCo/Chrono/自研交通物理）：高可解释与可控，参数化清晰，便于<strong>域随机化</strong>；但建模误差/接触近似会引入偏差。</li>
+<li><strong>神经仿真</strong>（学习式动力学、神经渲染/神经场景）：视觉/接触更逼真，适合大规模生成；但<strong>可控性与稳定性</strong>较差，外推风险高。</li>
+</ul>
+<p><strong>设计折中</strong>：推荐<strong>混合仿真</strong>——几何/动力学用软件物理，外观与传感链用神经渲染；把视觉域差与动力学域差解耦，于分别治理。</p>
+<blockquote>
+<p><strong>Rule‑of‑Thumb 9.1</strong>：</p>
+<ul>
+<li>真实部署前至少准备<strong>两级仿真</strong>：快速近似（高吞吐）用于策略搜索，精细仿真（低吞吐）用于验收。</li>
+<li>视觉→先神经渲染多样化，动力学→先做系统辨识再随机化；不要反过来。</li>
+</ul>
+</blockquote>
+<hr />
+<h2 id="92">9.2 交互回路：同步/异步采样、并行仿真与重放</h2>
+<p><strong>采样—学习闭环</strong></p>
+<ul>
+<li><strong>同步（on‑policy）</strong>：收集若干 rollout → 更新 → 广播新策略（PPO/MAPPO 单体版）。优点：分布匹配；缺点：利用率低。</li>
+<li><strong>异步（off‑policy）</strong>：环境并行推进，经验进入<strong>重放池</strong> (\mathcal{D})，学习器持续更新（SAC/TD3/BCQ 等）。优点：吞吐高；缺点：分布偏移需正则。</li>
+</ul>
+<p><strong>经验调度器（文字示意）</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="k">[Env Shards E1..EN] --&gt; [Collector] --&gt; [Prioritized Replay 𝓓]</span>
+<span class="w">                                      </span><span class="na">-&gt; (β anneal)</span>
+<span class="na">[Policy/Value Learner] &lt;------------- Sample(K)</span>
+<span class="w">        </span><span class="na">|                                   ^</span>
+<span class="w">        </span><span class="na">v                                   |</span>
+<span class="w">   </span><span class="na">Broadcast πθ ------------------------------</span>
+</code></pre></div>
+
+<p><strong>优先回放</strong>：按 TD‑error (p_i \propto (|\delta_i|+\epsilon)^\alpha) 采样，重要性权重修正 (w_i = (1/N\cdot 1/p_i)^\beta)。</p>
+<blockquote>
+<p><strong>Rule‑of‑Thumb 9.2（吞吐与稳定）</strong></p>
+<ul>
+<li>环境并行度目标：<strong>更新吞吐≈采样吞吐</strong>，避免学习端或采样端长期堆积。</li>
+<li>Replay 新鲜度：维持<strong>20–40 分钟的经验半衰期</strong>；过旧样本拉低改进率。</li>
+</ul>
+</blockquote>
+<hr />
+<h2 id="93">9.3 误差来源：数值积分、传感噪声、模漂移与纠偏</h2>
+<p><strong>数值积分稳定性</strong>
+离散化步长 (\Delta t) 影响闭环。欧拉法误差 (O(\Delta t))，半隐式或 Runge‑Kutta 可稳定高频模式。采样保持（ZOH）下的闭环离散化增益与相位裕度需在控制频域检视。</p>
+<p><strong>延迟与时钟偏差</strong>
+若感知—控制往返延迟为 (\tau)，可用延迟补偿：在策略输入中追加<strong>状态外推</strong> (\hat{s}<em t-k="t-k">{t}\approx s</em>+\dot{s}_{t-k}\tau)。</p>
+<p><strong>传感噪声与错位</strong></p>
+<ul>
+<li>测噪声：(o_t = h(s_t)+\epsilon_t)。</li>
+<li>时戳错位：(\Delta t_\text{sensor}) 与 (\Delta t_\text{act}) 不一致会产生“幽灵加速度”。</li>
+</ul>
+<blockquote>
+<p><strong>调试小技</strong>：把动作记录成<strong>零阶保持波形</strong>，在频域看是否越界到系统带宽之外；若有，则调低策略频谱或加<strong>跃度惩罚</strong>。</p>
+</blockquote>
+<p><strong>模态漂移</strong>
+视觉/动力学参数随时间漂移；对策：<strong>在线标定</strong>、<strong>域编码潜变量</strong>注入策略（详见第 11 章 11.7/11.8）。</p>
+<hr />
+<h2 id="94">9.4 奖励设计：碰撞/安全间距/舒适度/停车对齐</h2>
+<p><strong>分解式奖励</strong>（示例形式，不是代码）
+[
+r_t = w_c r^\text{collision}_t + w_s r^\text{safety}<em>t + w</em>\ell r^\text{lane}_t + w_u r^\text{comfort}_t + w_g r^\text{goal}_t
+]</p>
+<ul>
+<li><strong>碰撞</strong>：(r^\text{collision}_t = -\mathbb{1}[\text{collision}])（终止或强惩罚）。</li>
+<li><strong>安全间距</strong>：时距 (T_h = d/v)，惩罚 (\max(0, T_\text{ref}-T_h))。</li>
+<li><strong>舒适度</strong>：对加速度/跃度惩罚 (\lambda_a|a_t|^2+\lambda_j|j_t|^2)。</li>
+<li><strong>停车对齐</strong>：姿态误差 (|p_t-p_\star|+\lambda_\psi |\psi_t-\psi_\star|)。</li>
+</ul>
+<p><strong>潜在函数塑形（保证等价最优）</strong>
+[
+F(s,a,s') = \gamma \Phi(s') - \Phi(s)
+]
+把稀疏目标变致密而不改变最优策略。</p>
+<blockquote>
+<p><strong>Rule‑of‑Thumb 9.4（防奖黑客）</strong></p>
+<ul>
+<li><strong>先约束后奖励</strong>：把硬安全做成<strong>成本约束</strong>（CMDP/CBF/RTA），再优化软指标。</li>
+<li><strong>密集奖励仅对过渡态</strong>，终局仍以<strong>二值成功+硬红线</strong>判定。</li>
+</ul>
+</blockquote>
+<hr />
+<h2 id="95">9.5 任务设置：单车道行驶、无信号路口通行、停车</h2>
+<p><strong>通用 reset 分布</strong>
+定义场景参数 (\xi\sim q_\phi(\xi))：车道曲率、摩擦、传感噪声、起点/终点，生成轨迹任务簇。策略优化目标：
+[
+J(\theta;\phi)=\mathbb{E}<em>{\xi\sim q</em>\phi}\Big[\mathbb{E}<em>{\pi</em>\theta}\big[\textstyle\sum_{t}\gamma^t r_t\big]\Big].
+]</p>
+<p><strong>三类教具场景（建议的最小集）</strong></p>
+<ol>
+<li><strong>单车道巡航</strong>：测试速度控制与舒适度；引入限速变换与前车插入。</li>
+<li><strong>无信号路口</strong>：虽然是单智能体训练，但其他车可做<strong>剧本体</strong>（不可控），检验让行与停止线。</li>
+<li><strong>停车入位</strong>：终局姿态精度与接触安全，考查低速动力学与延迟补偿。</li>
+</ol>
+<p><strong>ASCII 场景草图（停车）</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="o">---------------&gt;</span><span class="w">  </span><span class="n">车道</span>
+<span class="w">      </span><span class="o">[</span><span class="n">Start</span><span class="o">]</span><span class="w"> </span><span class="o">--</span><span class="n">o</span><span class="o">----</span><span class="n">o</span><span class="o">----</span><span class="n">o</span><span class="o">----</span><span class="n">o</span><span class="o">--&gt;</span><span class="w"> </span><span class="o">[</span><span class="n">Slot</span><span class="o">]</span>
+<span class="w">                     </span><span class="o">|</span><span class="n">Goal</span><span class="o">|</span>
+<span class="w">                     </span><span class="o">|</span><span class="n">____</span><span class="o">|</span>
+<span class="w">        </span><span class="nl">边界约束</span><span class="p">:</span><span class="w"> </span><span class="n">速度</span><span class="err">≤</span><span class="n">v_max</span><span class="p">,</span><span class="w"> </span><span class="n">轮迹不越线</span><span class="p">,</span><span class="w"> </span><span class="n">碰撞</span><span class="o">=</span><span class="n">终止</span>
+</code></pre></div>
+
+<hr />
+<h2 id="96-simtoreal">9.6 Sim‑to‑Real 预备：域随机化、传感与动力学扰动、鲁棒控制</h2>
+<p><strong>域随机化</strong>
+对传感与动力学参数 (\psi) 采样：(\psi \sim \mathcal{P}(\psi))。鲁棒目标（风险规避版）：
+[
+\max_\theta ; \mathbb{E}<em>{\psi\sim \mathcal{P}}\big[J(\theta;\psi)\big]
+\quad \text{s.t.}\quad \mathrm{CVaR}</em>\alpha!\big[J(\theta;\psi)\big] \ge \tau .
+]
+课程化随机化：从窄到宽、从单变量到多变量联合。</p>
+<p><strong>鲁棒控制先验</strong></p>
+<ul>
+<li><strong>屏蔽/投影</strong>：把策略输出 (u) 投影到安全集合 (\mathcal{S})：(u^\star=\arg\min_{v\in \mathcal{S}}|v-u|)。</li>
+<li><strong>CBF/MPC Shield</strong>：将安全约束转为在线 QP/SOCP，详见第 11 章 11.9。</li>
+</ul>
+<blockquote>
+<p><strong>Rule‑of‑Thumb 9.6（随机化范围）</strong></p>
+<ul>
+<li>先确定<strong>现实参数置信区间</strong>（系统辨识），再把仿真随机化区间设为其<strong>1.2–1.5 倍</strong>；过宽会拖慢学习，过窄会过拟合。</li>
+<li>随机化要<strong>可复现</strong>：把所有 seed/区间版本化，作为<strong>证据链工件</strong>。</li>
+</ul>
+</blockquote>
+<hr />
+<h2 id="97-simtoreal">9.7 Sim‑to‑Real 评测接口：场景簇、失效回放与覆盖率报告</h2>
+<p><strong>参数化场景生成器</strong>
+定义场景生成 (g(z;\theta_\text{scene}))，把关键边界条件（视距、摩擦、曲率、遮挡）编码在 (z)。
+<strong>覆盖率指标</strong></p>
+<ul>
+<li><strong>边界条件覆盖</strong>：对每个维度分箱，最小覆盖率 (\min_b \text{hit}(b)) 作为瓶颈。</li>
+<li><strong>长尾聚类覆盖</strong>：在行为空间上做聚类（如基于关键事件的嵌入），报告 Top‑K 低频簇命中率。</li>
+<li><strong>风险曲线</strong>：绘制 (\mathrm{CVaR}_\alpha) 随 (\alpha) 的曲线，对齐第 11 章验收阈值。</li>
+</ul>
+<p><strong>失效回放（文字示意）</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="k">[Policy πθ] → [Stress Suite S]</span>
+<span class="w">    </span><span class="na">↓                 |</span>
+<span class="w"> </span><span class="na">[Fail Logs] ←--------</span>
+<span class="w">    </span><span class="na">| re-run with sensors+latency noise sweep</span>
+<span class="k">[Root Cause Tagging] → [Fix List] → [Policy Update]</span>
+</code></pre></div>
+
+<hr />
+<h2 id="98">9.8 工程与运维：日志、审计、可复现与回放测试</h2>
+<p><strong>可复现三件套</strong></p>
+<ul>
+<li><strong>确定性开关</strong>：版本化随机种子/仿真参数/重放样本索引。</li>
+<li><strong>事件日志</strong>：关键事件（急刹、越界、碰撞、RTA 触发）带上下文窗口。</li>
+<li><strong>回放器</strong>：离线复现实验，生成<strong>同态报告</strong>（同一策略在不同 seed/域下的指标分布）。</li>
+</ul>
+<blockquote>
+<p><strong>Rule‑of‑Thumb 9.8</strong>：任何“调优”都必须伴随<strong>指标差分与环境 diff</strong>；无法复现的改进一律视为<strong>无效</strong>。</p>
+</blockquote>
+<hr />
+<h2 id="99-fta">9.9 伦理合规与安全沙箱：故障树分析（FTA）与红队</h2>
+<p><strong>故障树</strong>
+把“碰撞/越界”作为顶事件，自上而下分解感知/规划/控制/执行链路，枚举<strong>最小割集</strong>。
+<strong>红队测试</strong>
+引入<strong>对抗扰动/恶劣天气/传感退化</strong>，并记录 RTA 触发率与可恢复性（恢复到安全集的步数）。</p>
+<hr />
+<h2 id="910">9.10 小结与展望：迈向多智能体与真实道路</h2>
+<p>本章落地了<strong>单智能体</strong>在仿真的完整闭环：建模→采样与学习→误差治理→奖励与指标→Sim‑to‑Real 预备与评测接口。下一章（第 10 章）扩展到<strong>多智能体博弈与协调</strong>，而第 11 章将把本章产物接入<strong>现场验收</strong>与<strong>运行时保障</strong>。</p>
+<hr />
+<h2 id="_2">本章小结（关键概念与公式回顾）</h2>
+<ul>
+<li>
+<p><strong>POMDP/CMDP 建模</strong>：(\mathbb{E}[\sum \gamma^t r_t]) 最大化，受 (\mathbb{E}[\sum \gamma^t c_t]\le \alpha) 约束。
+  拉格朗日：
+  [
+  \max_\theta \min_{\lambda\ge 0}; \mathbb{E}\bigg[\sum \gamma^t (r_t - \lambda c_t)\bigg] + \lambda \alpha .
+  ]</p>
+</li>
+<li>
+<p><strong>潜在函数塑形</strong>：(F(s,a,s')=\gamma\Phi(s')-\Phi(s)) 不改变最优策略。</p>
+</li>
+<li><strong>优先回放采样权重</strong>：(p_i \propto (|\delta_i|+\epsilon)^\alpha)，(w_i=(\frac{1}{N}\cdot \frac{1}{p_i})^\beta)。</li>
+<li><strong>鲁棒目标与风险</strong>：(\mathrm{CVaR}_\alpha) 与课程化域随机化。</li>
+<li><strong>评测与覆盖</strong>：参数化场景 (g(z;\theta))、边界覆盖与长尾覆盖、风险曲线。</li>
+</ul>
+<hr />
+<h2 id="gotchas">常见陷阱与错误（Gotchas）与调试建议</h2>
+<ol>
+<li><strong>奖黑客（Reward Hacking）</strong></li>
+</ol>
+<ul>
+<li><em>症状</em>：策略学会“抖动刹车”或“蛇形路线”以薅密集奖励。</li>
+<li><em>对策</em>：硬安全进成本约束/屏蔽；舒适度改用<strong>频域惩罚</strong>；对终局目标保持二值化。</li>
+</ul>
+<ol start="2">
+<li><strong>离散化/延迟未对齐</strong></li>
+</ol>
+<ul>
+<li><em>症状</em>：仿真表现良好，一上真机就振荡/晚刹。</li>
+<li><em>对策</em>：把<strong>总延迟</strong>（感知+网络+执行）注入仿真；策略输入加<strong>状态外推</strong>。</li>
+</ul>
+<ol start="3">
+<li><strong>过度随机化</strong></li>
+</ol>
+<ul>
+<li><em>症状</em>：长期学不动，样本效率极差。</li>
+<li><em>对策</em>：先<strong>系统辨识→窄随机化→课程放宽</strong>；按维度逐步启用联合随机化。</li>
+</ul>
+<ol start="4">
+<li><strong>Replay 池污染与过期样本</strong></li>
+</ol>
+<ul>
+<li><em>症状</em>：训练晚期指标“忽好忽坏”。</li>
+<li><em>对策</em>：设置<strong>样本寿命/半衰期</strong>；重要性加权；定期<strong>刷新行为策略覆盖</strong>。</li>
+</ul>
+<ol start="5">
+<li><strong>指标单一</strong></li>
+</ol>
+<ul>
+<li><em>症状</em>：成功率高但体验差/不稳健。</li>
+<li><em>对策</em>：同时跟踪<strong>安全、效率、舒适、稳健</strong>四元组与<strong>风险曲线</strong>；引入<strong>失效回放清单</strong>。</li>
+</ul>
+<ol start="6">
+<li><strong>OPE 误导</strong>（本章虽未详述 OPE 公式，实践仍常用）</li>
+</ol>
+<ul>
+<li><em>症状</em>：IS 方差爆炸、FQE 偏差大。</li>
+<li><em>对策</em>：倾向<strong>DR（Doubly Robust）</strong>与<strong>FQE</strong>结合；<strong>支持集检查</strong>（行为策略覆盖目标策略）。</li>
+</ul>
+<ol start="7">
+<li><strong>不可复现</strong></li>
+</ol>
+<ul>
+<li><em>症状</em>：换一台机器/seed 结果不同。</li>
+<li><em>对策</em>：版本化<strong>仿真参数/seed/回放索引</strong>；事件日志+离线回放对比必须产出同态报告。</li>
+</ul>
+<hr />
+<h2 id="ope">附：OPE（离线策略评估）三件套速记（用于仿真外快速筛模）</h2>
+<ul>
+<li>
+<p><strong>IPS / WIS</strong>
+  [
+  \hat{J}<em i="i">{\text{WIS}}=\frac{\sum</em> w_i G_i}{\sum_{i} w_i},\quad
+  w_i=\prod_t \frac{\pi(a_t|s_t)}{\pi_\beta(a_t|s_t)}.
+  ]
+  方差高，需裁剪与基准化。</p>
+</li>
+<li>
+<p><strong>Doubly Robust（DR）</strong>
+  [
+  \hat{J}<em 1:t-1="1:t-1">{\text{DR}}=\frac{1}{N}\sum_i \left[\sum_t \gamma^t \big( \hat{Q}(s_t,a_t)-\hat{V}(s_t) \big)\rho</em> + \gamma^t \hat{V}(s_t)\right].
+  ]
+  用近似 (\hat{Q},\hat{V}) 降方差。</p>
+</li>
+<li>
+<p><strong>Fitted Q Evaluation（FQE）</strong>
+  以目标策略的 Bellman 方程做回归，最小化
+  [
+  \mathbb{E}<em _pi_cdot_s_="\pi(\cdot|s')" a_sim="a'\sim">{(s,a,r,s')\sim \mathcal{D}} \big[\hat{Q}(s,a) - \big(r + \gamma \mathbb{E}</em> \hat{Q}(s',a')\big)\big]^2.
+  ]
+  与 DR 结合更稳健。</p>
+</li>
+</ul>
+<blockquote>
+<p><strong>Rule‑of‑Thumb（OPE 使用）</strong>：若<strong>支持集缺失</strong>（目标策略在行为数据中未出现的动作较多），<strong>拒用 IPS</strong>，转向 FQE/DR 并加<strong>不确定性范围</strong>报告。</p>
+</blockquote>
+<hr />
+<h2 id="_3">实践清单（交付导向）</h2>
+<ul>
+<li>[ ] 形式化：POMDP/CMDP、成本红线与拉格朗日器。</li>
+<li>[ ] 采样：并行度、同步/异步策略、Replay 半衰期。</li>
+<li>[ ] 数值：(\Delta t)、延迟、带宽与跃度上限。</li>
+<li>[ ] 奖励：潜在塑形+终局二值化，安全先行。</li>
+<li>[ ] 随机化：参数区间有证据、课程化放宽。</li>
+<li>[ ] 评测：场景簇、覆盖率、CVaR 曲线、失效回放。</li>
+<li>[ ] 复现：seed/参数/索引版本化，事件日志+回放器。</li>
+<li>[ ] OPE：DR+FQE 基线与不确定性区间。</li>
+<li>[ ] 面向第 11 章：RTA 接口、传感—控制时序对齐文档化。</li>
+</ul>
+<hr />
+<p><strong>本章到此。下一章（第 10 章）转向“多智能体博弈与协调：从均衡理论与 MARL 到工程落地”，把本章单体框架拓展到交互与协同。</strong></p>
+            </article>
+            
+            <nav class="page-nav"><a href="chapter8.html" class="nav-link prev">← 第8章 强化学习与微调（模型级）</a><a href="chapter10.html" class="nav-link next">第10章 多智能体博弈与协调：从均衡理论与 MARL 到工程落地 →</a></nav>
+        </main>
+    </div>
+</body>
+</html>

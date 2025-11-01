@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="./">
+    <title>第3章 语言模态</title>
+    <link rel="stylesheet" href="assets/style.css">
+    <link rel="stylesheet" href="assets/highlight.css">
+    <script src="assets/script.js" defer></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$']],
+                displayMath: [['$$', '$$']],
+                processEscapes: false,
+                packages: {'[+]': ['noerrors', 'ams']}
+            },
+            options: {
+                ignoreHtmlClass: 'tex2jax_ignore',
+                processHtmlClass: 'tex2jax_process'
+            },
+            loader: {
+                load: ['[tex]/noerrors', '[tex]/ams']
+            }
+        };
+    </script>
+</head>
+<body>
+    <div class="container">
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h3>目录</h3>
+                <button id="sidebar-toggle" class="sidebar-toggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+            <div class="sidebar-search">
+                <input type="text" id="sidebar-search-input" placeholder="搜索..." autocomplete="off">
+            </div>
+            <div id="tree-container">
+                <nav class="tree-nav" role="tree">
+                    <div class="tree-item " >
+                        <a href="index.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">Visual-Language Action Model: 预训练、MARL 和 Sim-to-Real</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter1.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第1章 导论与动机案例</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter2.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第2章 视觉模态（chapter2.md）</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item active" >
+                        <a href="chapter3.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第3章 语言模态</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter4.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第4章 行动模态</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter5.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第5章 模态对齐（Vision–Language–Action）</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter6.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第6章 隐式 3D 时空结构的引入</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter7.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第7章 预训练：模态预训练与跨模态对齐</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter8.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第8章 强化学习与微调（模型级）</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter9.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第9章 基于仿真的智能体级强化学习（单智能体）</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter10.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第10章 多智能体博弈与协调：从均衡理论与 MARL 到工程落地</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter11.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第11章 Sim-to-Real：从仿真到现实的最后一公里</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="CLAUDE.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">Untitled</span>
+                        </a>
+                    </div>
+                </nav>
+            </div>
+        </nav>
+        
+        <main class="content">
+            <article>
+                <p>（交流可以用英文，所有文档中文，保留这句）</p>
+<h1 id="3">第3章 语言模态</h1>
+<blockquote>
+<p><strong>开篇段落（学习目标）</strong>
+本章讨论语言模态在 V‑L‑A（视觉‑语言‑行动）系统中的角色：<strong>符号推理与过程编排</strong>。我们系统化梳理 Chain‑of‑Thought（CoT）与结构化推理、<strong>记忆与检索</strong>（短期/长期/外部知识库）、<strong>工具与环境调用</strong>（程序、API、规划器、数据库）、以及<strong>思考预算与推理深度的自适应调度</strong>（“少想快做” vs “深想再做”）。你将获得三类产出：</p>
+<ol>
+<li>面向工程的“<strong>语言=调度器</strong>”设计范式；</li>
+<li>可度量的推理—检索—调用闭环目标函数与接口；</li>
+<li>面向部署的<strong>幻觉抑制、审计与可解释</strong>实践清单。
+   <strong>目标</strong>：能把语言模态作为<strong>可验证的控制平面</strong>，桥接感知与行动，服务 Sim‑to‑Real 的<strong>安全与可追溯</strong>。</li>
+</ol>
+</blockquote>
+<hr />
+<h2 id="31">3.1 语言的“智性”地位：符号操作与抽象表达</h2>
+<p>语模型（LM）不仅是文本生成器，更是<strong>任务分解器</strong>与<strong>资源调度器</strong>。在 VLA 中，语言层的职责是：</p>
+<ul>
+<li>将感知摘要与任务目标<strong>离散化为可执行选项</strong>（subgoals / tools / controllers）。</li>
+<li>维护<strong>可解释的过程痕迹</strong>，为审计与回放提供证据。</li>
+<li>在<strong>有限预算</strong>下选择<strong>推理深度</strong>与<strong>外部工具</strong>，达成风险—性能折中。</li>
+</ul>
+<p>从信息论视角，可把语言层目标写成“<strong>效用—成本</strong>”形式：
+[
+\max_{\pi_\theta,,g_\phi}\ \mathbb{E}\big[ U(y,\hat{y}) \big]
+\ -\ \lambda_{\text{tok}},\mathbb{E}\big[ C_{\text{tokens}} \big]
+\ -\ \lambda_{\text{tool}},\mathbb{E}\big[ C_{\text{tools}} \big],
+]
+其中 (\pi_\theta) 为语言策略，(g_\phi) 为<strong>调度门控</strong>（决定是否继续推理/是否调用工具），(U) 度量任务成功/安全/成本，(\lambda_{\cdot}) 为预算权重。</p>
+<p><strong>ASCII：语言作为控制平面</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="k">[视觉摘要] → [语言调度器 πθ]</span>
+<span class="w">                 </span><span class="na">│</span>
+<span class="w">                 </span><span class="na">├─(决定续推理?)→[临时推理缓冲 τ]</span>
+<span class="w">                 </span><span class="na">│</span>
+<span class="w">                 </span><span class="na">├─(调用工具?)→[外部API/规划器/DB]→[观测 o]</span>
+<span class="w">                 </span><span class="na">│</span>
+<span class="w">                 </span><span class="na">└─(提交执行?)→[行动层/控制层]</span>
+</code></pre></div>
+
+<p><strong>Rule‑of‑thumb 3.1</strong>：把语言层当作“<strong>面向安全的调度器</strong>”，而非“万能回答器”。任何高风险决策前，<strong>优先调用可验证的工具</strong>（规划器、约束求解器、数据库），语言仅做编排与解释。</p>
+<hr />
+<h2 id="32-chainofthought">3.2 Chain‑of‑Thought：分步推理与错误驱散</h2>
+<p><strong>CoT 的工程角色</strong>是把<strong>复杂问题→可验证子问题</strong>。但在部署中必须<strong>控制推理长度与偏差传播</strong>。</p>
+<ul>
+<li><strong>结构化 CoT</strong>：把自由文本 CoT 规整为<strong>模式化槽位</strong>（假设→证据→检验→结论），便于审计。</li>
+<li><strong>验证闭环</strong>：在关键结论前加入<strong>“检验子句”</strong>，调用外部证据或单元检查。</li>
+</ul>
+<p>将结构化推理视为有成本的中间轨迹 (\tau)：
+[
+\min_{\theta}\ \mathbb{E}\big[ \ell\big(y, f_\theta(x,\tau)\big) \big] +
+\lambda,\mathbb{E}\big[ C(\tau) \big],\quad
+\tau \sim q_\theta(\cdot\mid x),
+]
+其中 (C(\tau)) 与 token 长度、工具调用次数、延迟等相关。<strong>目标</strong>是在<strong>固定预算</strong>内最小化风险。</p>
+<p><strong>ASCII：结构化 CoT 槽位</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="k">[Plan]</span>
+
+<span class="w"> </span><span class="na">1) 子目标分解</span><span class="o">:</span><span class="w"> </span><span class="s">g1, g2, ...</span>
+<span class="w"> </span><span class="na">2) 证据需求</span><span class="o">:</span><span class="w"> </span><span class="s">视觉/检索/传感器</span>
+<span class="w"> </span><span class="na">3) 验证点</span><span class="o">:</span><span class="w"> </span><span class="s">assert-1, assert-2</span>
+<span class="w"> </span><span class="na">4) 执行意图</span><span class="o">:</span><span class="w"> </span><span class="s">调度(tool-A), 限时(t≤100ms)</span>
+<span class="w"> </span><span class="na">5) 审计摘要</span><span class="o">:</span><span class="w"> </span><span class="s">关键假设与覆盖范围</span>
+</code></pre></div>
+
+<p><strong>Rule‑of‑thumb 3.2</strong>：<strong>少即是多</strong>。面向在线系统，把 CoT 控制在<strong>3–7 步</strong>；超过阈值转入“<strong>工具+检验</strong>”分支，而非继续喋喋不休。</p>
+<hr />
+<h2 id="33">3.3 记忆与抽象：压缩、检索、情境绑定与会话一致性</h2>
+<p>语言层需要三类记忆：</p>
+<ol>
+<li><strong>短期（上下文窗口）</strong>：对话与当前感知摘要，随输入漂移。</li>
+<li><strong>长期/语义记忆（知识库）</strong>：稳定事实、策略模板、规章制度。</li>
+<li><strong>情境记忆（任务/场景特定）</strong>：场景地图、对手画像、危险名录。</li>
+</ol>
+<p><strong>检索—推理联合优化</strong>可写为：
+[
+\max_{\theta,\psi}\ \mathbb{E}<em>{x}\Big[ U\big(y, \pi</em>\theta(x, \mathcal{R}<em>\psi(x))\big) \Big]
+\ -\ \lambda,\mathbb{E}\big[ C\big(\mathcal{R}</em>\psi(x)\big) \big],
+]
+其中 (\mathcal{R}_\psi) 为检索器（dense/lexical/混合），在<strong>效用—检索成本</strong>之间折中。</p>
+<p><strong>混合检索打分</strong>（实践常用）：
+[
+S(q,d) = \alpha, S_{\text{lex}}(q,d) + (1-\alpha), S_{\text{dense}}(q,d),
+\quad \alpha \in [0,1].
+]</p>
+<p><strong>记忆金字塔（ASCII）</strong></p>
+<div class="codehilite"><pre><span></span><code>               ┌───────────────┐  稳定知识/策略模板
+               │  语义长期库   │  (KB/向量检索/规章)
+               └──────┬────────┘
+                      │  索引/召回 (k, α)
+              ┌───────▼────────┐
+              │  情境缓存/会话  │  (近期观测/对手画像)
+              └───────┬────────┘
+                      │  片段选择/摘要
+               ┌──────▼───────┐
+               │  短期上下文  │  (提示窗/KV缓存)
+               └──────────────┘
+</code></pre></div>
+
+<p><strong>Rule‑of‑thumb 3.3</strong>：<strong>检索前先“问题澄清化”</strong>（Query Reformulation）。把模糊的自然语言转成<strong>结构化检索意图</strong>（实体、时空、约束），再混合检索。<strong>Top‑k 不求大</strong>：多数任务 (k\in[3,8]) 足够，超大 (k) 容易引入噪声与延迟。</p>
+<hr />
+<h2 id="34-api">3.4 工具调用：代码执行、API、知识库/记忆接口</h2>
+<p>语言层通过<strong>函数调用/计划执行</strong>将“想法”落成“可验证的产出”。在 VLA 中，常见工具包括：几何/物理求解器、路径规划器（MPC/MIQP）、数据库/知识库、规则引擎、可达性/安全屏蔽（CBF/LTL‑Shield）。</p>
+<p>把“调用工具”建模为<strong>选项（options）/技能（skills）</strong>：
+[
+\pi(a\mid s) =
+\sum_{o \in \mathcal{O}} \pi(o\mid s), \pi(a\mid s,o),
+\quad
+\beta_o(s) = \text{终止概率},
+]
+语言层等价于在状态 (s) 上选择<strong>高层选项 (o)</strong>（如“调用 A* 规划器 50ms”），并在终止条件触发后返回。</p>
+<p><strong>调用成本—风险目标</strong>：
+[
+\min\ \mathbb{E}\big[\ell(y,\hat{y})\big] +
+\lambda_{\text{lat}},\mathbb{E}[T_{\text{lat}}] +
+\lambda_{\text{risk}},\mathbb{E}[\text{UnverifiedStep}],
+]
+优先调用<strong>可验证/可审计</strong>的工具，降低“不可证步骤”的占比。</p>
+<p><strong>ASCII：工具调用闭环</strong></p>
+<div class="codehilite"><pre><span></span><code>[语言意图] → (意图解析/参数化)
+        → [工具执行器] →(结果/置信度/代价)→ [验证/断言]
+        → (通过?) ─Yes→ [行动编排] → 控制层
+                    └No → [回退计划/人类确认/降级]
+</code></pre></div>
+
+<p><strong>Rule‑of‑thumb 3.4</strong>：<strong>把每个工具输出都当“可疑数据”</strong>。务必伴随<strong>元信息</strong>（时间戳、置信度区间、覆盖范围、边界条件），并用<strong>断言/约束</strong>二次校验后再进入行动层。</p>
+<h3 id="341">3.4.1 思考预算与推理深度的自适应调度</h3>
+<p>为避免延迟与幻觉，使用<strong>门控策略 (g_\phi)</strong> 动态决定“继续思考/调用工具/立即执行”。可用<strong>代价敏感决策</strong>：
+[
+g_\phi(s) =
+\begin{cases}
+\text{HALT}, &amp; \Delta U &lt; \lambda_{\text{next}} \
+\text{THINK_MORE}, &amp; \Delta U \ge \lambda_{\text{next}},\ T<T_{\max} \
+\text{TOOL_CALL}, & \text{若可验证增益}>\text{门槛}
+\end{cases}
+]
+(\Delta U) 为继续推理的<strong>边际效用预估</strong>。</p>
+<p><strong>Rule‑of‑thumb 3.4.1</strong>：线上系统设置<strong>双阈值</strong>：</p>
+<ul>
+<li><strong>延迟阈值</strong> (T_{\max})：超过即降级为“快但保守”的策略；</li>
+<li><strong>不确定阈值</strong>（如熵/间隔）：高不确定→<strong>强制工具调用或人机协同</strong>。</li>
+</ul>
+<hr />
+<h2 id="35-vla">3.5 VLA 编排：感知→推理→行动的桥梁</h2>
+<p>语言层的核心职责是把感知输出与行动先验<strong>对齐为可执行计划</strong>。推荐使用“<strong>声明式目标 + 约束 + 验证点</strong>”三件套。</p>
+<p><strong>计划可执行性目标</strong>（示意）：
+[
+\max_{\text{plan}}\ \underbrace{P(\text{success}\mid x_{\text{vision}}, \text{plan})}<em s="s">{\text{达成任务}}
+-\lambda</em>,\underbrace{\text{SafetyViolation}(\text{plan})}<em c="c">{\text{安全}}
+-\lambda</em>,\underbrace{\text{ControlCost}(\text{plan})}_{\text{平滑/舒适}},
+]
+并要求<strong>显式接口</strong>把计划转换为<strong>可控轨迹/约束</strong>（详见第 4 章）。</p>
+<p><strong>ASCII：从视觉摘要到可控轨迹</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="k">[视觉摘要/3D支架] → [语言计划: 目标+约束+验证点]</span>
+<span class="w">                  </span><span class="na">→ [规划器(MPC/MIQP/CBF)]</span>
+<span class="w">                  </span><span class="na">→ [轨迹/控制参考 + 置信区间]</span>
+<span class="w">                  </span><span class="na">→ [执行器/屏蔽RTA]</span>
+</code></pre></div>
+
+<p><strong>Rule‑of‑thumb 3.5</strong>：规划与控制的“<strong>最后一跳</strong>”避免自然语言自由输出，改为<strong>结构化产物</strong>（代价函数系数、约束参数、软硬阈值），以便与第4/11章的<strong>可验证链</strong>对接。</p>
+<hr />
+<h2 id="36">3.6 安全与稳健：幻觉抑制、可解释提示与审计</h2>
+<p><strong>三层防护</strong>：</p>
+<ol>
+<li><strong>前馈防护（提示/检索）</strong>：把<strong>高风险事实</strong>从模型内隐知识转为<strong>显式检索</strong>；提示中明确“不可执行/需确认”的边界。</li>
+<li><strong>中途防护（断言/屏蔽）</strong>：在关键转折处加入<strong>断言/CBF/Shield</strong>；不通过即<strong>回退/人机协同</strong>。</li>
+<li><strong>后验防护（审计/回放）</strong>：存储<strong>过程摘要</strong>（非全量私密 CoT，而是结构化证据与决策点），用于责任界定与回放调试。</li>
+</ol>
+<p><strong>不确定校准</strong>（温度/能量分数/间隔）可作为<strong>门控信号</strong>。
+简化表示：若
+[
+H(p_\theta(\cdot\mid x))&gt;\tau_H\quad\text{或}\quad
+\text{margin}(x)&lt;\tau_M,
+]
+则进入“<strong>检索+工具</strong>”分支，且需要<strong>二次验证</strong>通过才触发行动。</p>
+<p><strong>Rule‑of‑thumb 3.6</strong>：<strong>高风险=双重来源 + 双重验证</strong>。至少使用两条<strong>统计独立</strong>的证据路径（如视觉→几何、语言→数据库），且通过<strong>不同失效模式</strong>的校验器。</p>
+<hr />
+<h2 id="37">3.7 面向部署：人机协同与策略可解释</h2>
+<p>现场部署强调<strong>互操作与责任可追溯</strong>：</p>
+<ul>
+<li><strong>人机分工</strong>：语言层把<strong>“需人确认”</strong>的决策点结构呈现（选项+证据+风险），人类一键选择或修改阈值。</li>
+<li><strong>运行日志</strong>：面向审计导出<strong>决策关键帧</strong>（触发原因、参数、证据哈希、时间戳），而非泄露全部私密推理文本。</li>
+<li><strong>策略解释</strong>：将执行前的语言计划压缩为<strong>“因果链卡片”</strong>（目标→证据→约束→断言→行动），用于回放与仲裁。</li>
+</ul>
+<p><strong>ASCII：人机闭环</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="k">[语言调度器] → [证据卡片/选项A|B|C]</span>
+<span class="w">           </span><span class="na">└→ [自动模式?]  是→ 执行</span>
+<span class="w">                         </span><span class="na">否→ [人类确认/编辑] → 执行</span>
+<span class="na">(全程输出</span><span class="o">:</span><span class="w"> </span><span class="s">审计摘要+哈希)</span>
+</code></pre></div>
+
+<p><strong>Rule‑of‑thumb 3.7</strong>：把<strong>确认动作</strong>放在<strong>低频高风险</strong>节点；<strong>高频低风险</strong>动作自动化，但必须有<strong>可中断/可回退</strong>机制与<strong>时间上界</strong>。</p>
+<hr />
+<h2 id="_1">本章小结</h2>
+<ul>
+<li>语言层是 VLA 的<strong>控制平面</strong>：负责<strong>任务分解、资源调度与证据汇合</strong>。</li>
+<li><strong>CoT</strong>在工程中应转化为<strong>结构化推理</strong>与<strong>验证点</strong>，并受<strong>预算门控</strong>。</li>
+<li><strong>记忆/检索</strong>采用<strong>混合召回 + 结构化改写</strong>，追求<strong>小 k 高精度</strong>与低延迟。</li>
+<li><strong>工具调用</strong>以<strong>选项/技能</strong>建模，目标函数显式惩罚<strong>不可验证步骤</strong>与延迟。</li>
+<li><strong>安全闭环</strong>采用<strong>前馈（检索）—中途（断言/屏蔽）—后验（审计）</strong>三层。</li>
+<li>面向部署，输出<strong>结构化计划/参数</strong>而非自由文本，服务第 4/11 章的<strong>可验证控制链</strong>。</li>
+</ul>
+<p><strong>关键公式速查</strong></p>
+<ol>
+<li>
+<p>效用—成本目标：
+   [
+   \max_{\pi_\theta,g_\phi}
+   \mathbb{E}[U]-\lambda_{\text{tok}}\mathbb{E}[C_{\text{tokens}}]-\lambda_{\text{tool}}\mathbb{E}[C_{\text{tools}}].
+   ]</p>
+</li>
+<li>
+<p>结构化推理正则：
+   [
+   \min_\theta \mathbb{E}[\ell(y,f_\theta(x,\tau))] + \lambda,\mathbb{E}[C(\tau)].
+   ]</p>
+</li>
+<li>
+<p>检索—推理联合：
+   [
+   \max_{\theta,\psi} \mathbb{E}\big[U\big(y,\pi_\theta(x,\mathcal{R}<em>\psi(x))\big)\big]-\lambda C(\mathcal{R}</em>\psi).
+   ]</p>
+</li>
+<li>
+<p>混合打分：
+   [
+   S(q,d)=\alpha S_{\text{lex}}+(1-\alpha)S_{\text{dense}}.
+   ]</p>
+</li>
+<li>
+<p>选项策与终止：
+   [
+   \pi(a\mid s)=\sum_o \pi(o\mid s)\pi(a\mid s,o),\quad \beta_o(s).
+   ]</p>
+</li>
+</ol>
+<hr />
+<h2 id="gotchas">常见陷阱与错误（Gotchas）</h2>
+<ol>
+<li><strong>把语言当“真理源”而非“调度器”</strong></li>
+</ol>
+<ul>
+<li><strong>症状</strong>：自由生成指令直接驱动控制，无验证。</li>
+<li><strong>修复</strong>：将高风险产出改为<strong>结构化参数</strong>，通过规划器/屏蔽二次生成。</li>
+</ul>
+<ol start="2">
+<li><strong>CoT 过长导致延迟与偏差累积</strong></li>
+</ol>
+<ul>
+<li><strong>症状</strong>：在线推理超时、越想越偏。</li>
+<li><strong>修复</strong>：设置<strong>边际效用门控</strong>与<strong>步数上限</strong>；超限则转入<strong>检索/工具</strong>分支。</li>
+</ul>
+<ol start="3">
+<li><strong>检索喂入噪声（Top‑k 过大/改写不佳）</strong></li>
+</ol>
+<ul>
+<li><strong>症状</strong>：幻觉升级为“带证据的幻觉”。</li>
+<li><strong>修复</strong>：先做<strong>问题澄清化</strong>与实体对齐；<strong>小 k 高质</strong>；对冲<strong>lexical+dense</strong>。</li>
+</ul>
+<ol start="4">
+<li><strong>工具调用不可验证/无元信息</strong></li>
+</ol>
+<ul>
+<li><strong>症状</strong>：工具结果可信度未知，导致错误升级。</li>
+<li><strong>修复</strong>：强制输出<strong>置信度/时间戳/覆盖声明</strong>；未达阈值则回退或人。</li>
+</ul>
+<ol start="5">
+<li><strong>记忆污染与越界适配</strong></li>
+</ol>
+<ul>
+<li><strong>症状</strong>：长期库混入临时假设或隐私内容。</li>
+<li><strong>修复</strong>：区分<strong>长期/情境</strong>命名空间；设<strong>TTL/审核</strong>；启用<strong>数据血缘与回滚</strong>。</li>
+</ul>
+<ol start="6">
+<li><strong>不确定性未闭环触发</strong></li>
+</ol>
+<ul>
+<li><strong>症状</strong>：高熵输出仍直接执行。</li>
+<li><strong>修复</strong>：以<strong>熵/间隔/能量</strong>为门控信号，强制进入<strong>检索+验证</strong>路径。</li>
+</ul>
+<ol start="7">
+<li><strong>可解释性停留在自然语言“故事”</strong></li>
+</ol>
+<ul>
+<li><strong>症状</strong>：复盘仅有叙述，没有<strong>可执行证据</strong>。</li>
+<li><strong>修复</strong>：记录<strong>断言通过/失败、阈值、约束、工具参数</strong>的结构化摘要与哈希。</li>
+</ul>
+<ol start="8">
+<li><strong>与控制层接口松散</strong></li>
+</ol>
+<ul>
+<li><strong>症状</strong>：语言输出难以落地为轨迹/约束。</li>
+<li><strong>修复</strong>：采用<strong>代价/约束槽位</strong>与<strong>单位/范围校验</strong>；在第 4 章的轨迹/频域接口上对齐。</li>
+</ul>
+<ol start="9">
+<li><strong>人机协同位置不当</strong></li>
+</ol>
+<ul>
+<li><strong>症状</strong>：把人类塞进高频环路，导致延迟与疲劳。</li>
+<li><strong>修复</strong>：仅在<strong>低频高风险</strong>节点插入确；其他采用<strong>可中断自动化</strong>。</li>
+</ul>
+<ol start="10">
+<li>
+<p><strong>审计材料过度/不足</strong></p>
+<ul>
+<li><strong>症状</strong>：要么泄露隐私，要么无法复盘。</li>
+<li><strong>修复</strong>：保存<strong>关键决策点的结构化证据</strong>而非全量自由文本；支持<strong>回放与签名验证</strong>。</li>
+</ul>
+</li>
+</ol>
+<hr />
+<h3 id="_2">本章实践清单（可直接落地）</h3>
+<ul>
+<li>以“<strong>目标+约束+验证点</strong>”生成<strong>结构化计划</strong>，避免口语化控制。</li>
+<li>部署<strong>双阈值门控</strong>：延迟上界 (T_{\max}) 与不确定阈值（熵/间隔）。</li>
+<li>检索采用<strong>混合打分</strong>与<strong>问题澄清化</strong>；将 Top‑k 收敛到 3–8。</li>
+<li>每个工具输出附带：<strong>置信度、时间戳、覆盖、边界条件</strong>。</li>
+<li>审计导出<strong>因果链卡片</strong>（目标→证据→约束→断言→行动）+ 哈希。</li>
+<li>将“不可验证步骤”比例纳入 KPI，与安全/延迟一起考核。</li>
+</ul>
+<hr />
+<p><strong>与后续章节的接口</strong></p>
+<ul>
+<li>第 4 章：把语言计划映射为<strong>频域/时域</strong>控制参数与<strong>安全屏蔽</strong>接口。</li>
+<li>第 5 章：将语言—行动对齐转化为<strong>令到轨迹</strong>的短序列建模与蒸馏。</li>
+<li>第 8–11 章：把<strong>预算门控、不确定触发与审计</strong>迁移到 RL、仿真与 Sim‑to‑Real 的<strong>运行规程</strong>中。</li>
+</ul>
+            </article>
+            
+            <nav class="page-nav"><a href="chapter2.html" class="nav-link prev">← 第2章 视觉模态（chapter2.md）</a><a href="chapter4.html" class="nav-link next">第4章 行动模态 →</a></nav>
+        </main>
+    </div>
+</body>
+</html>

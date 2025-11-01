@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="./">
+    <title>第7章 预训练：模态预训练与跨模态对齐</title>
+    <link rel="stylesheet" href="assets/style.css">
+    <link rel="stylesheet" href="assets/highlight.css">
+    <script src="assets/script.js" defer></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$']],
+                displayMath: [['$$', '$$']],
+                processEscapes: false,
+                packages: {'[+]': ['noerrors', 'ams']}
+            },
+            options: {
+                ignoreHtmlClass: 'tex2jax_ignore',
+                processHtmlClass: 'tex2jax_process'
+            },
+            loader: {
+                load: ['[tex]/noerrors', '[tex]/ams']
+            }
+        };
+    </script>
+</head>
+<body>
+    <div class="container">
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h3>目录</h3>
+                <button id="sidebar-toggle" class="sidebar-toggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+            <div class="sidebar-search">
+                <input type="text" id="sidebar-search-input" placeholder="搜索..." autocomplete="off">
+            </div>
+            <div id="tree-container">
+                <nav class="tree-nav" role="tree">
+                    <div class="tree-item " >
+                        <a href="index.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">Visual-Language Action Model: 预训练、MARL 和 Sim-to-Real</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter1.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第1章 导论与动机案例</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter2.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第2章 视觉模态（chapter2.md）</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter3.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第3章 语言模态</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter4.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第4章 行动模态</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter5.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第5章 模态对齐（Vision–Language–Action）</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter6.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第6章 隐式 3D 时空结构的引入</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item active" >
+                        <a href="chapter7.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第7章 预训练：模态预训练与跨模态对齐</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter8.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第8章 强化学习与微调（模型级）</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter9.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第9章 基于仿真的智能体级强化学习（单智能体）</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter10.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第10章 多智能体博弈与协调：从均衡理论与 MARL 到工程落地</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter11.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第11章 Sim-to-Real：从仿真到现实的最后一公里</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="CLAUDE.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">Untitled</span>
+                        </a>
+                    </div>
+                </nav>
+            </div>
+        </nav>
+        
+        <main class="content">
+            <article>
+                <p>（交流可以用英文，所有文档中文，保留这句）</p>
+<h1 id="7">第7章 预训练：模态预训练与跨模态对齐</h1>
+<blockquote>
+<p><strong>开篇段落（学习目标）</strong>
+本章围绕 <strong>两阶段</strong>策略构建 V‑L‑A 基座模型：<strong>模态内预训练</strong>（视觉/语言/行动）→ <strong>跨模态对齐预训练</strong>（V–L、L–A、V–A）。你将掌握：如何设计<strong>训练日程（Curriculum）</strong>、如何以 <strong>Token Buckets</strong> 管理数据/算力预算、如何组合<strong>对比/重建/策略蒸馏/频域</strong>等多源损失并进行<strong>梯度冲突调和</strong>，以及如何在产出端设置<strong>“可迁移性体检”</strong>，确保后续 RL、仿真与 Sim‑to‑Real 可顺滑接力。读完本章，你应能：</p>
+<ol>
+<li>复现实用的两阶段预训练流水线；2) 将对齐目标与工程约束（带宽、时延、安全）合并进损失与日程；3) 用若干低成本 Probe 评估“是否具备 RL/Sim‑to‑Real 可迁移性”。</li>
+</ol>
+</blockquote>
+<hr />
+<h2 id="71">7.1 总览与阶段划分：模态 → 对齐 → 指令化</h2>
+<p><strong>目标</strong>：将三态学习拆解为稳定、可迭代的阶段化流程，并明确每一阶段的<strong>可观测指标</strong>与<strong>退出条件</strong>。</p>
+<div class="codehilite"><pre><span></span><code>[视觉表征 V]──┐
+               ├─► 阶段Ⅱ：跨模态对齐（V–L, L–A, V–A）
+[语言基座 L]──┘            │
+                           ├─► 指令化与轻量监督（SFT/偏好）
+[行动先验 A]───────────────┘            │
+                                         └─► 模型级/智能体级 RL（见第8–11章）
+</code></pre></div>
+
+<p><strong>阶段Ⅰ（模态内）</strong>：</p>
+<ul>
+<li>视觉：对比/掩码建模/视频预测，产出<strong>稳健、多尺度、时序一致</strong>的表征。</li>
+<li>语言：复用通用 LLM + 领域词表/Adapter/指令化语料，获得<strong>可解释编排</strong>能力。</li>
+<li>行动：从示教/回放中预建<strong>轨迹分布</strong>与<strong>控制先验</strong>（加速度/跃度/带宽）。</li>
+</ul>
+<p><strong>阶段Ⅱ（对齐）</strong>：</p>
+<ul>
+<li>V–L：语义对齐 + 局部细节保真（短语-区域对应）。</li>
+<li>L–A：从“指令/目标”到“迹/控制”的映射与<strong>时序一致性</strong>。</li>
+<li>V–A：视觉约束下的行动可实现性与<strong>频域耦合</strong>（低带宽、安全）。</li>
+</ul>
+<blockquote>
+<p>📌 <strong>经验法则</strong>：若“阶段Ⅰ”的表征在 OOD Probe 上<strong>置信度过饱和</strong>（过度自信），暂停“阶段Ⅱ”，优先做<strong>温度缩放/能量分数校准</strong>与<strong>开集识别</strong>再推进。</p>
+</blockquote>
+<hr />
+<h2 id="72-cnn">7.2 视觉预训练：CNN/对比/掩码视频自监督</h2>
+<p><strong>对比学习（CL/InfoNCE）</strong>：
+给定成对样本 ((x_i, y_i))（可为图–文、视–视增强），相似度 (s(\cdot,\cdot)) 与温度 (\tau)：</p>
+<p>[
+\mathcal{L}<em i="1">{\text{InfoNCE}}
+= -\frac{1}{N}\sum</em>^{N}
+\log\frac{\exp\left(s(x_i,y_i)/\tau\right)}
+{\sum_{j=1}^{N}\exp\left(s(x_i,y_j)/\tau\right)}.
+]</p>
+<p><strong>掩码视频建模（MVM）与重建</strong>：
+对时空块集合 (\mathcal{M}) 预测像素/码本：</p>
+<p>[
+\mathcal{L}<em _t_p_in_mathcal_M="(t,p)\in\mathcal{M">{\text{MVM}}=\sum</em>}
+\left|\hat{x}<em t_p="t,p">{t,p}-x</em>\right|<em _text_VQ-CE="\text{VQ-CE">1
+\quad\text{或}\quad
+\mathcal{L}</em>}=-\sum \log P(z_{t,p}=z^\star_{t,p}).
+]</p>
+<p><strong>时一致性与开集识别</strong>：</p>
+<ul>
+<li>一致性：短窗变换一致性 (\mathcal{L}<em t_Delta="t+\Delta">{\text{TC}}=\sum_t|f(x</em>)-T_\Delta(f(x_t))|_2^2)。</li>
+<li>开集：能量分数 (E(x)=-\tau \log \sum_k \exp(\phi_k(x)/\tau)) 用于阈值化不确定性。</li>
+</ul>
+<blockquote>
+<p>📌 <strong>经验法则</strong>：<strong>不要</strong>把 CL 负样本全当“真负样本”。对近邻帧/近景图像做<strong>半负</strong>或<strong>软标签</strong>可显著降低“伪负样本”带来的语义撕裂。</p>
+</blockquote>
+<hr />
+<h2 id="73">7.3 行动预训练：示教/频谱表征/控制先验</h2>
+<p><strong>目标</strong>：让模型在无交互/无奖励下，学得<strong>平滑、因果、可控</strong>的轨迹分布。</p>
+<ul>
+<li>
+<p><strong>行为克隆（BC）</strong>：
+  [
+  \mathcal{L}<em _s_t_a_t_="(s_t,a_t)">{\text{BC}}=\mathbb{E}</em>\big[-\log \pi_\theta(a_t\mid s_t)\big].
+  ]</p>
+</li>
+<li>
+<p><strong>频域/带宽先验</strong>（对轨迹 (x(t)) 的 DFT：(X[k])）：
+  [
+  \mathcal{L}<em k="0">{\text{spec}}=\sum</em>^{K}w_k\big(,|X[k]|-|\hat{X}[k]|\big)^2,\quad
+  w_k \propto \frac{1}{(1+k)^\alpha}.
+  ]
+  低频加权抑制高频抖动，映射到<strong>舒适度</strong>与<strong>执行器带宽</strong>。</p>
+</li>
+<li>
+<p><strong>几与动力学约束</strong>（曲率 (\kappa)、加速度 (a)、跃度 (j)）：
+  [
+  \mathcal{L}<em>{\text{dyn}}=\lambda</em>\kappa !\sum! [|\kappa|-\kappa_{\max}]<em _max="\max">+ +
+  \lambda_a !\sum! [|a|-a</em>]<em _max="\max">+ +
+  \lambda_j !\sum! [|j|-j</em>]_+ .
+  ]</p>
+</li>
+<li>
+<p><strong>教师–学生蒸馏（控制教师 → 行动学生）</strong>：用 MPC/CBF 的可行轨迹作为“软标签”，蒸馏到学生策略分布（KLD/EMD）。</p>
+</li>
+</ul>
+<blockquote>
+<p>📌 <strong>经验法则</strong>：若离线回放含<strong>人类瞬时纠正</strong>（高 jerk），用 <strong>Huber</strong> 或 <strong>分位回归</strong>替代 MSE，并在 (\mathcal{L}_{\text{spec}}) 中<strong>下压高频权重</strong>，再配合<strong>jerk 裁剪</strong>，能显著改善部署时的舒适度与执行器饱和。</p>
+</blockquote>
+<hr />
+<h2 id="74-llm">7.4 语言预训练：复用通用 LLM 与领域适配</h2>
+<ul>
+<li><strong>指令化与检索增强</strong>：在领域语料上做轻量 SFT/LoRA/Adapter；对<strong>任务规划/工具调用</strong>相关模板做数据增强（问题分解、失败解释、动作约束表述）。</li>
+<li><strong>术语与单位一致性</strong>：构建<strong>控制/几何/安全</strong>术语词表，统到语言端约束模板。</li>
+<li><strong>思考预算</strong>：为后续 RFT/RL 做准备，引入<strong>自反式评估</strong>描述（“为什么此动作安全/可达”）。</li>
+</ul>
+<blockquote>
+<p>📌 <strong>经验法则</strong>：领域适配尽量<strong>冻结主干</strong>仅训练适配层；当你发现对齐阶段 L–A 过拟合文本花样时，提高<strong>术语模板比重</strong>并降低“花式表达”的采样温度。</p>
+</blockquote>
+<hr />
+<h2 id="75-curriculum">7.5 训练日程（Curriculum）：难度分级与混合采样</h2>
+<p><strong>目标</strong>：让学习信号“由易到难、先稳后快”，避免早期梯度噪声破坏跨模态对齐。</p>
+<ul>
+<li><strong>难度维度</strong>：视角变化、光照/噪声、遮挡率、目标密度、动作曲率、文本歧义度。</li>
+<li>
+<p><strong>冻结/解冻策略</strong>：</p>
+</li>
+<li>
+<p>早期冻结 LLM 主干 &amp; 视觉低层，先学门控/交互层；</p>
+</li>
+<li>中期逐步解冻视觉高层与跨模态注意力；</li>
+<li>后期小步解冻语言高层用于任务化表达。</li>
+</ul>
+<h3 id="751">7.5.1 日程原型示例（数字可按资源调整）</h3>
+<ul>
+<li><strong>总步数</strong>：(500\text{k})；<strong>批大小</strong>：按 GPU/TPU 资源。</li>
+<li><strong>阶段 A（0–100k）</strong>：模态内（V:60%、A:25%、L:15%），除顶层外全部冻结跨模态层。</li>
+<li><strong>阶段 B（100k–300k）</strong>：V–L 对齐 + 轻量 L–A（对比:40%、重建:25%、蒸馏:20%、频域:15%）。</li>
+<li><strong>阶段 C（300k–450k）</strong>：三模态联合（门控/互信息/循环一致），逐步解冻跨模态注意力。</li>
+<li><strong>阶段 D（450k–500k）</strong>：指令化微调（SFT 小步长）+ 稳定化（EMA/噪声退火）。</li>
+</ul>
+<p><strong>ASCII 时间线</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="err">步数</span><span class="o">:</span><span class="w">   </span><span class="mi">0</span><span class="n">k</span><span class="w">         </span><span class="mi">100</span><span class="n">k</span><span class="w">               </span><span class="mi">300</span><span class="n">k</span><span class="w">            </span><span class="mi">450</span><span class="n">k</span><span class="w">       </span><span class="mi">500</span><span class="n">k</span>
+<span class="w">        </span><span class="o">|-----------|-------------------|---------------|----------|</span>
+<span class="err">阶段</span><span class="o">:</span><span class="w">   </span><span class="n">A</span><span class="w">  </span><span class="err">模态内</span><span class="w">   </span><span class="n">B</span><span class="w">  </span><span class="n">V</span><span class="err">–</span><span class="n">L</span><span class="o">+</span><span class="err">轻</span><span class="n">L</span><span class="err">–</span><span class="n">A</span><span class="w">        </span><span class="n">C</span><span class="w">  </span><span class="err">三模态联合</span><span class="w">    </span><span class="n">D</span><span class="w">  </span><span class="err">指令化</span><span class="o">/</span><span class="err">稳定</span>
+<span class="err">冻结</span><span class="o">:</span><span class="w">   </span><span class="n">L主干锁</span><span class="w">     </span><span class="err">解跨模态顶层</span><span class="w">        </span><span class="err">逐步解冻</span><span class="w">         </span><span class="err">小步全局解冻</span>
+<span class="err">损失</span><span class="o">:</span><span class="w">   </span><span class="err">重建</span><span class="sr">/对比   +对齐/蒸馏/频域     +互信息/循环     +SFT/</span><span class="n">EMA</span>
+</code></pre></div>
+
+<blockquote>
+<p>📌 <strong>经验法则</strong>：<strong>不要</strong>在阶段 A 就上强 L–A；先把视觉时序稳定住（错位鲁棒），否则对齐阶段会把<strong>时域偏差</strong>“语言化”，后续很难纠正。</p>
+</blockquote>
+<hr />
+<h2 id="76-token-buckets">7.6 Token Buckets 分配：按模态/任务/难度的预算治理</h2>
+<p><strong>设定</strong>：为每个数据簇/任务 (k) 分配桶容量 (B_k)、漏出速率 (r_k)、当前已消耗令牌 (u_k(t))。每次采样满足：
+[
+p_k(t) \propto \max\big(0,,B_k - u_k(t)\big)^\gamma \cdot q_k(\text{难度}, t),
+]
+其中 (q_k) 可随课程升高难度，(\gamma) 控制“补齐性”。</p>
+<p><strong>多目标公平</strong>：加入下限 (p_k^{\min}) 防止冷门任务饿死；关键安全/开集 Probe 的桶给<strong>优先级</strong>。</p>
+<p><strong>ASCII：三桶示意</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="k">[V-CLIP桶] [L-指令桶] [A-轨迹桶]</span>
+<span class="w">   </span><span class="na">████▊      ██▏        ████▍      ← 当前剩余令牌（越高越优先被抽样）</span>
+<span class="na">漏速 r</span><span class="o">:</span><span class="w">       </span><span class="s">r_v        r_l        r_a</span>
+</code></pre></div>
+
+<blockquote>
+<p>📌 <strong>经验法则</strong>：当对齐损失震荡，先看<strong>桶是否失衡</strong>——常见现象是“容易样本”被过度采样导致<strong>可见集过拟合</strong>与<strong>OOD 崩溃</strong>。</p>
+</blockquote>
+<hr />
+<h2 id="77">7.7 对齐数据构建：配对、三元组、合成与清洗</h2>
+<ul>
+<li>
+<p><strong>配对/三元组</strong>：((v,l,a))、((v,l))、((v,a)) 混合；引入<strong>循环一致</strong>约束：
+  [
+  \mathcal{L}<em A="A" L_to="L\to">{\text{cycle}}=|g</em>(g_{V\to L}(v))-g_{V\to A}(v)|_1 + \cdots
+  ]</p>
+</li>
+<li>
+<p><strong>合成数据</strong>：程序化生成<strong>可控难度</strong>样本（视角/光照/交通密度/目标曲率），便于课程与“失效放大”。</p>
+</li>
+<li>
+<p><strong>清洗</strong>：</p>
+</li>
+<li>
+<p>时间戳对齐（相机–IMU–里程计），剔除<strong>错位帧</strong>；</p>
+</li>
+<li>文本去幻觉/去冗词，保留<strong>约束短语</strong>（“不超速/不越线/保持时距”等）；</li>
+<li>行动轨迹去毛刺（jerk 裁剪、速度负值异常）。</li>
+</ul>
+<blockquote>
+<p>📌 <strong>经验法则</strong>：优先做<strong>时域对齐清洗</strong>。时间错位 50–100 ms 就足以让 L–A 对齐学出<strong>系统性滞后</strong>，后续再做延迟补偿的代价更大。</p>
+</blockquote>
+<hr />
+<h2 id="78">7.8 损失与多目标优化：权重平衡与梯度冲突缓解</h2>
+<p><strong>总损失</strong>（示意）：
+[
+\mathcal{L}
+= \lambda_{\text{CL}}\mathcal{L}_{\text{InfoNCE}}</p>
+<ul>
+<li>\lambda_{\text{REC}}(\mathcal{L}<em _text_VQ-CE="\text{VQ-CE">{\text{MVM}}+\mathcal{L}</em>})</li>
+<li>\lambda_{\text{KD}}\mathcal{L}_{\text{KD}}</li>
+<li>\lambda_{\text{spec}}\mathcal{L}_{\text{spec}}</li>
+<li>\lambda_{\text{dyn}}\mathcal{L}_{\text{dyn}}</li>
+<li>\lambda_{\text{cycle}}\mathcal{L}_{\text{cycle}}.
+  ]</li>
+</ul>
+<p><strong>自适应权重（不确定性加权）</strong>：
+[
+\mathcal{L}_{\text{multi}}=\sum_i \frac{1}{2\sigma_i^2}\mathcal{L}_i + \log \sigma_i,
+]
+(\sigma_i) 可学习，反映任务噪声与重要度。</p>
+<p><strong>梯度冲突调和</strong>：</p>
+<ul>
+<li><strong>PCGrad</strong>：若两任务梯度夹角为负，则投影去除相互冲突分量。</li>
+<li><strong>GradNorm</strong>：按目标梯度范数平衡多任务学习进度。</li>
+<li><strong>损失退火</strong>：早期放大稳定项（重建/频域），中后期提高对齐/蒸馏权重。</li>
+</ul>
+<blockquote>
+<p>📌 <strong>经验法则</strong>：当你需要“快对齐、慢重建”，先<strong>退火 InfoNCE 的温度 (\tau)</strong> 而不是一味提高其权重。较大的 (\tau) 往往能缓解<strong>过分拉开难负样本</strong>导致的训练抖动。</p>
+</blockquote>
+<hr />
+<h2 id="79">7.9 正则与稳定：模态均衡、去塌缩、负迁移防护</h2>
+<ul>
+<li><strong>模均衡 Dropout</strong>：训练时随机屏蔽某一模态（按小概率），强制学习<strong>跨模态冗余</strong>。</li>
+<li><strong>去塌缩</strong>：对齐空间增加<strong>分布约束</strong>（如高斯混合先验、最大化对角协方差），防止所有样本聚到单团。</li>
+<li><strong>负迁移防护</strong>：对“视觉噪声段/文本冗词段/异常轨迹段”设置<strong>遮挡标记</strong>，避免错误传播到对齐头。</li>
+<li><strong>动量教师（EMA）</strong>：跨模态编码器用动量更新的教师网络做目标，平滑训练信号。</li>
+</ul>
+<blockquote>
+<p>📌 <strong>经验法则</strong>：一旦发现“<strong>好看但不可行</strong>”的动作（轨迹平滑却越界），立刻提高 (\lambda_{\text{dyn}}) 并引入<strong>QP 投影后的教师轨迹</strong>做蒸馏；不要指望后续 RL 全部修复。</p>
+</blockquote>
+<hr />
+<h2 id="710-rlsimtoreal">7.10 可迁移性检查点：面向 RL/仿真/Sim‑to‑Real 的“可迁移性体检”</h2>
+<p><strong>目的</strong>：在预训练末期进行<strong>体检</strong>，只保留“对后续强化学习友好”的检查点。</p>
+<p><strong>体检项目</strong>（建议至少通过 8/10）：</p>
+<ol>
+<li><strong>延迟鲁棒 Probe</strong>：输入时间错位 (\pm)50–100 ms，L–A 输出相位偏差 &lt; 阈值。</li>
+<li><strong>频域平滑度</strong>：(\int |j(t)| dt) 与高频能量比不超过教师上界的 1.2×。</li>
+<li><strong>开集拒识</strong>：未知场景能量分数分离度（AUROC）≥ 0.9。</li>
+<li><strong>循环一致</strong>：V→L→A 与 V→A 的 L1 距离 &lt; 设定阈值。</li>
+<li><strong>文本约束遵循</strong>：加入否定/边界词（“不越线/不逆行”）的遵循率 ≥ 0.98。</li>
+<li><strong>对抗随机化</strong>：光照/噪声/遮挡 stress 下的对齐召回率下降 &lt; 20%。</li>
+<li><strong>低带宽可执行性</strong>：将动作下采样至执行器带宽，误差 &lt; 设定阈值。</li>
+<li><strong>教师一致性</strong>：MPC/CBF 参考下，KLD(学生‖教师) &lt; 预设上限。</li>
+<li><strong>负样本诡计</strong>：近邻帧伪负样本测试下的 InfoNCE 退化 &lt; 10%。</li>
+<li><strong>数据泄露扫描</strong>：仿真评测集与训练集视/语/轨迹去重通过。</li>
+</ol>
+<p><strong>导出物</strong>：</p>
+<ul>
+<li><strong>权重包 + 日志</strong>（包含温度、桶状态、损失曲线）；</li>
+<li><strong>Probe 报告</strong>（包含时域/频域指标与门限）；</li>
+<li><strong>兼容第8章</strong>的 RFT/RL 初始化配置（冻结/学习率建议）。</li>
+</ul>
+<blockquote>
+<p>📌 <strong>经验法则</strong>：当<strong>体检得分相近</strong>时，优先选<strong>高不确定性识别能力</strong>而非<strong>表面成功率更高</strong>的检查点；后者在 Sim‑to‑Real 常因过度自信而失稳。</p>
+</blockquote>
+<hr />
+<h2 id="_1">本章小结</h2>
+<ul>
+<li>采用<strong>两阶段</strong>策略：<strong>模态内</strong>稳固表征 → <strong>跨模态对齐</strong>构建 V–L–A 桥梁。</li>
+<li>用 <strong>Curriculum + Token Buckets</strong> 管理采样，兼顾难度爬升与数据/算力公平。</li>
+<li>将 <strong>对比/重建/蒸馏/频域/动力学</strong>等损失在<strong>自适应权重</strong>与<strong>梯度外科</strong>下稳健融合。</li>
+<li>在产出端实施 <strong>“可迁移性体检”</strong>，以<strong>时域、频域、开集、可执行性</strong>四维指标为主，筛选可用于 RL 与 Sim‑to‑Real 的检查点。</li>
+</ul>
+<hr />
+<h2 id="gotchas">常见陷阱与错误（Gotchas）与调试技巧</h2>
+<ol>
+<li><strong>伪负样本导致的对齐撕裂</strong></li>
+</ol>
+<ul>
+<li>现象：近景/相邻帧被强行拉远，跨模态嵌入空间不稳定。</li>
+<li>对策：软负样本、近邻抑制、温 (\tau) 退火、语义聚类内不做负样本。</li>
+</ul>
+<ol start="2">
+<li><strong>时间错位与滞后学习</strong></li>
+</ol>
+<ul>
+<li>现象：L–A 输出整体滞后，RL 阶段需要过大延迟补偿。</li>
+<li>对策：在预训练加入<strong>错位增强</strong>与<strong>延迟校正 Probe</strong>；曲线拟合时加入<strong>相位惩罚</strong>。</li>
+</ul>
+<ol start="3">
+<li><strong>频域失衡：表面平滑、实则越界</strong></li>
+</ol>
+<ul>
+<li>现象：低频平滑但轨迹越线/超速。</li>
+<li>对策：增加 (\mathcal{L}_{\text{dyn}}) 与 QP 投影蒸馏；限制频域损失对低频的过度偏好。</li>
+</ul>
+<ol start="4">
+<li><strong>桶失衡导致的 OOD 崩溃</strong></li>
+</ol>
+<ul>
+<li>现象：对齐在训练分布上优雅，OOD 上断崖。</li>
+<li>对策：检查 Token Buckets 与课程采样，设定 (p_k^{\min}) 与“失效放大”样本的高优先级。</li>
+</ul>
+<ol start="5">
+<li><strong>负迁移：噪声段污染对齐头</strong></li>
+</ol>
+<ul>
+<li>现象：少量坏数据牵引模型到错误对齐。</li>
+<li>对策：显式<strong>遮挡/异常标记</strong>、段级权重衰减、EMA 教师平滑目标。</li>
+</ul>
+<ol start="6">
+<li><strong>损失权重拍脑袋</strong></li>
+</ol>
+<ul>
+<li>现象：调参靠感觉、震荡频繁。</li>
+<li>对策：使<strong>不确定性加权</strong>与<strong>GradNorm/PCGrad</strong>；记录每项梯度范数趋势并做闭环调整。</li>
+</ul>
+<ol start="7">
+<li><strong>语言端“花式表达”压过“约束短语”</strong></li>
+</ol>
+<ul>
+<li>现象：模型更会“说”，却不懂“规”。</li>
+<li>对策：提高“否定/边界”模板占比；降低 SFT 阶段的采样温度与 n‑gram 多样性奖励。</li>
+</ul>
+<ol start="8">
+<li><strong>检查点选择只看 val loss</strong></li>
+</ol>
+<ul>
+<li>现象：线上 RL/仿真效果与离线指标脱节。</li>
+<li>对策：采用本章的<strong>体检十项</strong>，尤其关注<strong>开集识别</strong>与<strong>低带宽可执行性</strong>。</li>
+</ul>
+<ol start="9">
+<li><strong>忽视执行器带宽与量化误差</strong></li>
+</ol>
+<ul>
+<li>现象：实验室顺滑，设备端抖动。</li>
+<li>对策：预训练即引入<strong>带宽约束</strong>与<strong>量化噪声注入</strong>，在 (\mathcal{L}_{\text{spec}}) 中设定截止频率。</li>
+</ul>
+<ol start="10">
+<li>
+<p><strong>把“预训练”当终点</strong></p>
+<ul>
+<li>现象：期望预训练直接可部署。</li>
+<li>对策：把预训练视为<strong>证据链</strong>的前半程；为第8–11章的 RFT/RL/Sim‑to‑Real 留出<strong>结构化接口</strong>（残差策略、RTA 兼容）。</li>
+</ul>
+</li>
+</ol>
+<hr />
+<blockquote>
+<p><strong>本章产出清单（建议）</strong></p>
+<ul>
+<li>训练日程 JSON（阶段边界/冻结策略/损失退火曲线）。</li>
+<li>Token Buckets 配置与每桶消费曲线。</li>
+<li>多目标损失与梯度统计面板（范数、夹角、PCGrad 命中率）。</li>
+<li>“可迁移性体检”报告（含阈值、通过/失败项与建议）。</li>
+</ul>
+<p><strong>衔接提示</strong>：带着通过体检的检查点进入第8章（模型级 RL 微调/RFT），优先采用<strong>小步长、行为正则与 KL 约束</strong>，以保持本章形成的<strong>平滑/可执行</strong>行动分布与<strong>可解释</strong>对齐结构。</p>
+</blockquote>
+            </article>
+            
+            <nav class="page-nav"><a href="chapter6.html" class="nav-link prev">← 第6章 隐式 3D 时空结构的引入</a><a href="chapter8.html" class="nav-link next">第8章 强化学习与微调（模型级） →</a></nav>
+        </main>
+    </div>
+</body>
+</html>

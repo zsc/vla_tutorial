@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="./">
+    <title>第4章 行动模态</title>
+    <link rel="stylesheet" href="assets/style.css">
+    <link rel="stylesheet" href="assets/highlight.css">
+    <script src="assets/script.js" defer></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$']],
+                displayMath: [['$$', '$$']],
+                processEscapes: false,
+                packages: {'[+]': ['noerrors', 'ams']}
+            },
+            options: {
+                ignoreHtmlClass: 'tex2jax_ignore',
+                processHtmlClass: 'tex2jax_process'
+            },
+            loader: {
+                load: ['[tex]/noerrors', '[tex]/ams']
+            }
+        };
+    </script>
+</head>
+<body>
+    <div class="container">
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h3>目录</h3>
+                <button id="sidebar-toggle" class="sidebar-toggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+            <div class="sidebar-search">
+                <input type="text" id="sidebar-search-input" placeholder="搜索..." autocomplete="off">
+            </div>
+            <div id="tree-container">
+                <nav class="tree-nav" role="tree">
+                    <div class="tree-item " >
+                        <a href="index.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">Visual-Language Action Model: 预训练、MARL 和 Sim-to-Real</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter1.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第1章 导论与动机案例</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter2.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第2章 视觉模态（chapter2.md）</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter3.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第3章 语言模态</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item active" >
+                        <a href="chapter4.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第4章 行动模态</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter5.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第5章 模态对齐（Vision–Language–Action）</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter6.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第6章 隐式 3D 时空结构的引入</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter7.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第7章 预训练：模态预训练与跨模态对齐</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter8.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第8章 强化学习与微调（模型级）</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter9.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第9章 基于仿真的智能体级强化学习（单智能体）</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter10.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第10章 多智能体博弈与协调：从均衡理论与 MARL 到工程落地</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter11.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第11章 Sim-to-Real：从仿真到现实的最后一公里</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="CLAUDE.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">Untitled</span>
+                        </a>
+                    </div>
+                </nav>
+            </div>
+        </nav>
+        
+        <main class="content">
+            <article>
+                <p>（交流可以用英文，所有文档中文，保留这句）</p>
+<h1 id="4">第4章 行动模态</h1>
+<blockquote>
+<p><strong>开篇段落与学习目标</strong>
+本章把“行动”从<strong>离散 token 输出</strong>还原为<strong>受物理约束的时间序列信号</strong>，以控制与信号处理的统一视角构建可评估、可解释、可控的行动生成链路。我们将系统化梳理轨迹表示（含 Frenet‑Serret 标架）、频域/谱域先验、加速度/跃度（jerk）等安全与舒适约束，分析闭环稳定性与时延、采样保持（ZOH）对策略落地的影响，并给出“低带宽安全轨迹生成器”的接口规范，作为后续仿真与 Sim‑to‑Real 的坚实接口。
+<strong>完成本章后，你将能够：</strong></p>
+<ol>
+<li>把行动当作带带宽与相位约束的控制信号来设计与评测；</li>
+<li>在 Frenet 标架下把任务目标转化为曲率/侧向加速度/舒适度等可检验指标；</li>
+<li>依据相位裕度与采样理论，为策略与执行器匹配合理的频带；</li>
+<li>设计遵循 jerk/加速度/摩擦圆等约束的安全轨迹生成器接口。</li>
+</ol>
+</blockquote>
+<hr />
+<h2 id="41">4.1 行动即信号：时间序列、因果性与时延</h2>
+<p>行动序列 (u(t)) 是<strong>因果</strong>的：(\forall t,\ u(t)) 只能依赖于过去与当前观测 ({y(\tau)}_{\tau\le t})。闭环系统可抽象为
+[
+\dot{x}(t)=f\big(x(t),u(t-\tau_u)\big),\quad y(t)=h\big(x(t-\tau_s)\big),
+]
+其中 (\tau_s,\tau_u) 为传感与执行时延。时延带来<strong>相位滞后</strong>，在频域中可写为 (e^{-j\omega\tau})，其相位贡献为 (-\omega \tau)。</p>
+<p><strong>行动是带宽受限的信号</strong>。执行链路（执行器+控制器）存在截止频率 (\omega_\mathrm{act})。当策略在更高频段输出能量时，只会转化为相位滞后与放大噪声，降低稳定裕度与舒适度。</p>
+<p><strong>ASCII 示意：时延叠加</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="n">y</span><span class="p">(</span><span class="n">t</span><span class="p">)</span><span class="w"> </span><span class="o">--[</span><span class="n">state est Δts</span><span class="o">]--&gt;</span><span class="w"> </span><span class="n">ŷ</span><span class="p">(</span><span class="n">t</span><span class="p">)</span><span class="w"> </span><span class="o">--[</span><span class="n">policy</span><span class="o">]--&gt;</span><span class="w"> </span><span class="n">u</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="w">                                        </span><span class="err">\</span>
+<span class="w">                                         </span><span class="err">\</span><span class="o">--[</span><span class="n">exec delay Δtu</span><span class="o">]--&gt;</span><span class="w"> </span><span class="n">actuator</span>
+<span class="n">净滞后</span><span class="w"> </span><span class="n">τ</span><span class="w"> </span><span class="err">≈</span><span class="w"> </span><span class="n">Δts</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">Δtu</span>
+</code></pre></div>
+
+<p><strong>📌 经验法则（4.1‑A）</strong>：将闭环目标带宽 (\omega_c) 约束在执行器可用带宽的 <strong>(1/3\sim1/5)</strong>；策略侧输出在 ([0,,0.3\cdot f_s]) 频段内占到 &gt;90% 的能量（(f_s) 为策略更新频率）。</p>
+<hr />
+<h2 id="42-frenetserret">4.2 轨迹坐标系：笛卡尔/极坐标/Frenet‑Serret</h2>
+<p>在平面运动（自动驾驶/移动机器人）中，常将轨迹 (\gamma: s\mapsto (x(s),y(s))) 及随动量化到 Frenet 标架 ((\mathbf{T},\mathbf{N})) 上：
+[
+\mathbf{T}=\frac{d\mathbf{r}/ds}{|d\mathbf{r}/ds|},\quad
+\kappa(s)=\left|\frac{d\mathbf{T}}{ds}\right|,\quad
+\dot{\psi}=v\kappa,\quad a_\mathrm{lat}=v^2\kappa.
+]
+其中 (\kappa) 为曲率，(\dot{\psi}) 为偏航角速率，(a_\mathrm{lat}) 为侧向加速度。对参考路径 (\gamma_\mathrm{ref}) 定义<strong>横向误差</strong> (e_y) 与<strong>航向误差</strong> (e_\psi)，可得典型误差动力学
+[
+\dot{e}<em>y=v\sin(e</em>\psi),\quad
+\dot{e}<em>\psi=\omega-\kappa</em>\mathrm{ref}(s)v.
+]</p>
+<p><strong>摩擦圆与可达性</strong>：平地无侧滑近似下，纵横向加速度满足
+[
+\left(\frac{a_x}{\mu g}\right)^2+\left(\frac{a_y}{\mu g}\right)^2\le 1,\quad a_y=v^2\kappa,
+]
+(\mu) 为等效摩擦系数。该约束将几何曲率与动力学边界直接耦合。</p>
+<p><strong>📌 经验法则（4.2‑A）</strong>：在城市/园区低速场景，舒适上限常取 (a_\mathrm{lat}^{95%}\le 2\ \mathrm{m/s^2})，对应曲率上限 (\kappa_{\max}\approx 2/v^2)（(v) 以 m/s 计）。高速更应收紧。</p>
+<hr />
+<h2 id="43">4.3 频域/谱域表征：平滑性、带宽与先验约束</h2>
+<p>将轨迹/控制量视为信号，设 (U(j\omega)=\mathcal{F}{u(t)})。舒适与可控可用<strong>谱能量惩罚</strong>度量：
+[
+\mathcal{J}<em>\mathrm{smooth}=\int_0^\infty w(\omega),|U(j\omega)|^2,d\omega,\quad
+w(\omega)\uparrow \text{ 随 }\omega \text{ 增大}.
+]
+在时间域，常见</em><em>jerk</em><em>（加速度导数）与</em><em>snap</em><em>（jerk 导数）正则：
+[
+\mathcal{J}</em>\mathrm{jerk}=\int |\ddot{v}(t)|^2dt,\quad
+\mathcal{J}_\mathrm{snap}=\int |\dddot{v}(t)|^2dt.
+]</p>
+<p><strong>ASCII：Bode 直观</strong></p>
+<div class="codehilite"><pre><span></span><code>|U(jω)|:  ────────┐
+                  └───\  -20 dB/dec
+相位 φ(ω):  0°  ──────╲── -90° → -180°
+</code></pre></div>
+
+<p><strong>📌 经验法则（4.3‑A）</strong>：
+(1) 行动带宽≤执行器闭环带宽的 20–30%；
+(2) 规划采样频率 (f_s) ≥ 10×闭环带宽；
+(3) 在离线评测报告中给出<strong>谱能量累计曲线</strong>，用 90% 频能量截止频率比较不同策略的平滑性。</p>
+<hr />
+<h2 id="44">4.4 控制先验：加速度/跃度限制、稳定性与安全边界</h2>
+<p><strong>jerk 限制的 S‑curve</strong>（7 段式）在工业轨迹中广泛采用。设最大加速度 (a_\mathrm{max})、最大 jerk (j_\mathrm{max})。单调加速阶段时间
+[
+t_j=\frac{a_\mathrm{max}}{j_\mathrm{max}},\quad
+\Delta v_\mathrm{acc}=a_\mathrm{max}(t_a- t_j),\ \ t_a\ge 2t_j.
+]
+当位移/速度裕度不足以进入恒加速段时转为“全 S 曲线”模式（只含加/减 jerk 对称段）。
+<strong>侧向舒适</strong>可用<strong>曲率变化率</strong>（curvature rate）度量：(\dot{\kappa}=\frac{d\kappa}{dt})，对应侧向 jerk (j_y = 2v\kappa\dot{v}+v^2\dot{\kappa})。</p>
+<p><strong>安全边界</strong>：制动可达（TTC/MTTC）、摩擦圆、动态包络（Minkowski 和）等形成 hard‑constraint，平滑性、能耗为 soft‑constraint，可通过原始–对偶或 QP 投影实现：
+[
+u^\star=\arg\min_{u\in\mathcal{U}} |u-u_\mathrm{raw}|_W^2\quad
+\text{s.t. } A u\le b.
+]</p>
+<p><strong>📌 经验法则（4.4‑A）</strong>：纵向 jerk (j_x^{95%}\le 2\ \mathrm{m/s^3})；侧向 jerk (j_y^{95%}\le 4\ \mathrm{m/s^3})。当路面 (\mu) 不明时，先以 (\mu=0.4) 设计安全边界，再随估计值放宽。</p>
+<hr />
+<h2 id="45-zoh">4.5 闭环稳定性：相位裕度与 ZOH（零阶保持）影响</h2>
+<p>闭环频域指标：<strong>相位裕度</strong> (\phi_m) 与<strong>增益裕度</strong> (g_m)。总时延 (\tau) 使相位额外降低 (\omega \tau)。
+<strong>ZOH 频响</strong>：采样并零阶保持可等效为
+[
+H_\mathrm{ZOH}(j\omega)=e^{-j\omega T/2},\mathrm{sinc}!\left(\frac{\omega T}{2}\right),
+]
+引入幅值下垂与额外相位 (-\omega T/2)。</p>
+<p>离散化常用 <strong>Tustin</strong>（双线性）：
+[
+s \approx \frac{2}{T}\cdot \frac{1-z^{-1}}{1+z^{-1}},
+]
+能将稳定半平面映射到单位圆内，但高频相位更保守。</p>
+<p><strong>📌 经验法则（4.5‑A）</strong>：
+(1) 目标相位裕度 (\phi_m\ge 45^\circ)，关键安全回路 ≥ <strong>60°</strong>；
+(2) 采样周期 (T \le \frac{1}{10\omega_c})，并在设计时把<strong>等效时延</strong> (\tau_\mathrm{eq}\approx T/2+\tau) 纳入裕度预算；
+(3) 上线前做<strong>闭环 Bode 扫频</strong>或时域阶跃，验证幅相与超调。</p>
+<hr />
+<h2 id="46-vs-vs">4.6 行动解码：自回归 vs. 并行、开环 vs. 闭环</h2>
+<ul>
+<li><strong>自回归（AR）</strong>：逐步生成 (a_{t})，利于<strong>因果一致</strong>与在线纠偏，但对时延敏感，误差可积累。</li>
+<li><strong>并行（非自回归）</strong>：一次输出整段轨迹 ({a_{t:t+H}})，有利于<strong>全局平滑</strong>与约束投影，但需在线再规划（MPC 风格）以抵御扰动。</li>
+<li><strong>开环</strong>用于短时无扰任务或做初值；<strong>闭环</strong>通过反馈抑制不确定性。工程上常采用<strong>并行+闭环</strong>：批量产生候选轨迹→投影→选优→随环境滚动重规划。</li>
+</ul>
+<p><strong>📌 经验法则（4.6‑A）</strong>：在线滚动窗口 (H) 选在<strong>2–5 s</strong>公路）或 <strong>1–3 s</strong>（园区/室内），重规划频率≥10 Hz；候选轨迹在 jerk 与摩擦圆上做硬投影。</p>
+<hr />
+<h2 id="47">4.7 传感—执行器同步与时间戳一致性</h2>
+<p>真实系统中，时间错位是行动“抖动”的重要来源。定义<strong>时间基准</strong>与<strong>统一时间戳</strong>后，需做<strong>外推/回推</strong>对齐：
+[
+\hat{x}(t_k)=\Phi(\Delta t),x(t_k-\Delta t),\quad \Delta t=t_\mathrm{now}-t_\mathrm{meas}.
+]
+若估计器能提供 (\Phi(\cdot))（如常速度/常加速度或 EKF 传播），可在控制侧得到<strong>近似零延时状态</strong>。</p>
+<p><strong>ASCII：时序对齐</strong></p>
+<div class="codehilite"><pre><span></span><code>cam ts ──●───────●───────●──
+lidar  ────●────────●────────
+ctrl    align ⇦ extrapolate/propagate ⇨
+</code></pre></div>
+
+<p><strong>📌 经验法则（4.7‑A）</strong>：
+(1) 端到端时间漂移 ≤ 1 ms（本体）/ ≤ 5 ms（分布式）；
+(2) 估计器输出状态带<strong>协方差与时间戳</strong>，控制侧据此做延迟补偿与置信加权；
+(3) 若无法保证硬同步，宁取<strong>保守延迟模型</strong>并收紧带宽。</p>
+<hr />
+<h2 id="48">4.8 行动质量评估：误差、舒适度、鲁棒性与可解释性</h2>
+<p><strong>基础误差</strong>：RMS/95‑percentile 轨迹误差、速度/加速度跟踪误差。
+<strong>舒适度</strong>：纵/横向 jerk 的分位数，速度变化率，方向盘角速度/加速度。
+<strong>鲁棒性</strong>：对观测噪声/时延/动力学偏差的<strong>参数化扰动扫描</strong>下的成功率与退化曲线。
+<strong>可解释性</strong>：在 Frenet 下报告 (\kappa,\ \dot{\kappa},\ a_\mathrm{lat}) 与<strong>约束活跃度</strong>（active set 的时间比例），对应“为何此处减速/限转”。</p>
+<p><strong>📌 经验法则（4.8‑A）</strong>：报告统一为<strong>四象限雷达图</strong>（安全/效率/舒适/合规）+ <strong>约束活跃热度条</strong>；上线门槛以 <strong>95% 分位</strong>口径对齐。</p>
+<hr />
+<h2 id="49">4.9 数据来源：示教轨迹、回放、干预与纠偏</h2>
+<ul>
+<li><strong>示教/人类回放</strong>：提供<strong>可行性先验</strong>与舒适分布，但含分布偏置。</li>
+<li><strong>DAgger/纠偏</strong>：在策略分布下收集干预，缓解 covariate shift。</li>
+<li><strong>对抗式/失败集重放</strong>：强调长尾与边界条件覆盖。</li>
+<li><strong>频域重采样</strong>：统一重建到目标带宽，避免混叠带入策略。</li>
+</ul>
+<p><strong>📌 经验法则（4.9‑A）</strong>：离线数据进入训练前做<strong>反混叠滤波</strong>并限制到统一 (f_s)；提供<strong>jerk 分布报告</strong>，剔除&gt;99.9% 极端 outlier 以稳健训练。</p>
+<hr />
+<h2 id="410-vs">4.10 力控 vs. 位控：接触动力学与混合策略</h2>
+<p><strong>位控（position control）</strong>：跟踪 (x_d(t))；
+<strong>力控（force/torque control）</strong>：跟踪 (F_d(t))；
+<strong>阻抗/顺应控制</strong>在任务空间建模等效弹簧‑阻尼：
+[
+F = K(x_d-x) + B(\dot{x}_d-\dot{x}) + M(\ddot{x}_d-\ddot{x}),
+]
+借助显式/隐式接触模型在接触中吸能、抑振。复杂任务常用<strong>混合控制</strong>：在切向跟踪位置，在法向跟踪力（Khatib 式任务优先级/约束投影）。</p>
+<p><strong>📌 经验法则（4.10‑A）</strong>：接触前的<strong>预接触速度</strong>与<strong>法向阻尼</strong>配对调参：先定最大可接受冲击（峰值接触），再回推触发距离与软着陆 jerk。</p>
+<hr />
+<h2 id="411">4.11 参考实现：<strong>“低带宽安全轨迹生成器”</strong>接口（概念规范）</h2>
+<blockquote>
+<p>目标：在执行器可用带宽内，生成<strong>jerk 限制</strong>、<strong>摩擦圆可达</strong>、<strong>时延鲁棒</strong>的轨迹；并产出可审计的<strong>证书</strong>（约束活跃、最坏制动余度、谱能量曲线）。</p>
+</blockquote>
+<p><strong>输入（参考字段）</strong></p>
+<ul>
+<li>参考路径：(\gamma_\mathrm{ref}(s))（离散点+弧长）</li>
+<li>速度/时间约束：(v_\mathrm{max}(s),\ a_{x,\max},\ j_{x,\max})</li>
+<li>舒适/安全约束：(a_\mathrm{lat,max},\ j_{y,\max},\ \mu)（摩擦估计）</li>
+<li>时延与频带：(\tau_\mathrm{eq},\ \omega_c,\ f_s)</li>
+<li>初始状态：((x_0,y_0,\psi_0,v_0,a_{x0})) 及协方差</li>
+<li>环境约束：占据网格/碰撞代价、路权规则（软/硬）</li>
+</ul>
+<p><strong>核心步骤（无代码）</strong></p>
+<ol>
+<li><strong>时延‑带宽配平</strong>：依据 (\tau_\mathrm{eq}) 收紧 (\omega_c) 与 jerk 上限。</li>
+<li><strong>Frenet‑S 速度曲线</strong>：按 (a_\mathrm{lat}=v^2\kappa\le a_{\mathrm{lat},\max}) 限制 (v(s))。</li>
+<li><strong>纵向 S‑curve</strong>：用 (j_\mathrm{max}, a_\mathrm{max}) 生成 7 段式速度‑加速度型谱形。</li>
+<li><strong>摩擦圆投影</strong>：对 ((a_x, a_y=v^2\kappa)) 作二范数投影，保证 ((a_x/\mu g)^2+(a_y/\mu g)^2\le 1)。</li>
+<li><strong>ZOH 校正</strong>：加入 (H_\mathrm{ZOH}) 的幅相修正，提前留出 (-\omega T/2) 相位余量。</li>
+<li><strong>安全证书</strong>：输出最坏制动距离/时间 (d_\mathrm{brake}, t_\mathrm{brake})，约束活跃时间比例，90% 频能量截止频率。</li>
+<li><strong>滚动更新</strong>：以 ≥10 Hz 重规划，保持闭环与场景一致。</li>
+</ol>
+<p><strong>输出（参考字段）</strong></p>
+<ul>
+<li>轨迹片段：({x,y,\psi,v,a_x,j_x,\kappa,\ a_y}_{t:t+H})（时间戳齐全）</li>
+<li>证书：(\phi_m) 估计、谱能量曲线、活跃约束集、(t_\mathrm{brake})、最小 TTC 等</li>
+<li>诊断：是否触发保守模式（低 (\mu)、高时延、感知置信低）</li>
+</ul>
+<p><strong>📌 经验法则（4.11‑A）</strong>：若感知不确定性升高（协方差增大），对<strong>jerk 与 (\omega_c)</strong>施加自适应收紧；证书中<strong>最小 TTC</strong>小于值即触发<strong>RTA/屏蔽</strong>接管。</p>
+<hr />
+<h2 id="_1">本章小结</h2>
+<ul>
+<li><strong>信号视角</strong>统一了策略输出与执行器物理约束：带宽/相位/时延决定了可行的行动风格。</li>
+<li><strong>Frenet‑Serret</strong>把几何（曲率）与动力学（侧向加速度）对接，形成可解释指标：(\dot{\psi}=v\kappa,\ a_\mathrm{lat}=v^2\kappa)。</li>
+<li><strong>频域先验</strong>（jerk/snap 正则与谱能量惩罚）直接关系舒适与稳定；</li>
+<li><strong>闭环稳定性</strong>受时延与 ZOH 显著影响：(\phi_m\ge 45^\circ)，(T\le 1/(10\omega_c))，(H_\mathrm{ZOH}=e^{-j\omega T/2}\mathrm{sinc}(\omega T/2))。</li>
+<li><strong>低带宽安全轨迹生成器</strong>作为工程接口，统一 jerk‑S 曲线、摩擦圆投影与时延‑带宽配平，并产出可审计的安全证书。</li>
+</ul>
+<hr />
+<h2 id="gotchas">常见陷阱与错误（Gotchas）</h2>
+<ol>
+<li><strong>频带失配</strong>：策略在 &gt;0.5·(\omega_\mathrm{act}) 区间输出大量能量，在线呈现“高频抖动/迟滞放大”。</li>
+</ol>
+<ul>
+<li><em>调试</em>：做频谱分析与 Bode 扫频；在训练与评测链路中加入一致的反混叠滤波与 jerk 正则。</li>
+</ul>
+<ol start="2">
+<li><strong>忽略时延/采样保持</strong>：离线表现良好，线上因 (\tau) 与 ZOH 相位丢失导致超调与振荡。</li>
+</ol>
+<ul>
+<li><em>调试</em>：在仿真注入实测 (\tau)；把 (\tau_\mathrm{eq}) 纳入规划/控制的裕度设计与证书。</li>
+</ul>
+<ol start="3">
+<li><strong>几何‑动力学脱节</strong>：仅在几何上可行（曲率/碰撞过关），动力学上不可达（(a_y) 超摩擦圆）。</li>
+</ol>
+<ul>
+<li><em>调试</em>：统一在 Frenet 标架约束 (v(s))；使用摩擦圆投影并监控活跃约束比例。</li>
+</ul>
+<ol start="4">
+<li><strong>jerk 与舒适度口径不一致</strong>：不同模块采样频率与滤波不同，jerk 统计不一致。</li>
+</ol>
+<ul>
+<li><em>调试</em>：统一重采样到公共 (f_s)，用相同滤波器与同一<strong>95% 分位</strong>口径。</li>
+</ul>
+<ol start="5">
+<li><strong>开环漂移</strong>：并行解码的长预测窗在扰动下漂移积累。</li>
+</ol>
+<ul>
+<li><em>调试</em>：改滚动‑闭环，缩短窗口，加入候选轨迹库与在线投影。</li>
+</ul>
+<ol start="6">
+<li><strong>时钟不同步</strong>：多传感器时间基不一致导致“看‑想‑做”错位。</li>
+</ol>
+<ul>
+<li><em>调试</em>：强制统一时间；控制侧做状态外推/回推并记录 (\Delta t) 统计作灰度阈值。</li>
+</ul>
+<ol start="7">
+<li><strong>过度随机化/过度平滑</strong>：为稳健强行压缩带宽，导致效率与可达性下降。</li>
+</ol>
+<ul>
+<li><em>调试</em>：分离安全硬约束与平滑软约束；多目标调权并报告“频能量‑任务成功率”折衷曲线。</li>
+</ul>
+<ol start="8">
+<li><strong>证书缺失</strong>：没有导出相位裕度/制动余度/TTC 等证据，无法审计与灰度放量。</li>
+</ol>
+<ul>
+<li><em>调试</em>：把证书生成纳入“轨迹生成器”输出契约，作为上线门槛。</li>
+</ul>
+<hr />
+<p><strong>到此为止，你已具备以信号与控制的语言重写行动生成的能力。下一章（第 5 章）将把这些先验嵌入到模态对齐（V–L–A）的训练与评测协议中，确保语义到控制的端到端一致性。</strong></p>
+            </article>
+            
+            <nav class="page-nav"><a href="chapter3.html" class="nav-link prev">← 第3章 语言模态</a><a href="chapter5.html" class="nav-link next">第5章 模态对齐（Vision–Language–Action） →</a></nav>
+        </main>
+    </div>
+</body>
+</html>

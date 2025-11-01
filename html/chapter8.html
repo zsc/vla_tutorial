@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="./">
+    <title>第8章 强化学习与微调（模型级）</title>
+    <link rel="stylesheet" href="assets/style.css">
+    <link rel="stylesheet" href="assets/highlight.css">
+    <script src="assets/script.js" defer></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$']],
+                displayMath: [['$$', '$$']],
+                processEscapes: false,
+                packages: {'[+]': ['noerrors', 'ams']}
+            },
+            options: {
+                ignoreHtmlClass: 'tex2jax_ignore',
+                processHtmlClass: 'tex2jax_process'
+            },
+            loader: {
+                load: ['[tex]/noerrors', '[tex]/ams']
+            }
+        };
+    </script>
+</head>
+<body>
+    <div class="container">
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h3>目录</h3>
+                <button id="sidebar-toggle" class="sidebar-toggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+            <div class="sidebar-search">
+                <input type="text" id="sidebar-search-input" placeholder="搜索..." autocomplete="off">
+            </div>
+            <div id="tree-container">
+                <nav class="tree-nav" role="tree">
+                    <div class="tree-item " >
+                        <a href="index.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">Visual-Language Action Model: 预训练、MARL 和 Sim-to-Real</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter1.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第1章 导论与动机案例</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter2.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第2章 视觉模态（chapter2.md）</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter3.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第3章 语言模态</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter4.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第4章 行动模态</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter5.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第5章 模态对齐（Vision–Language–Action）</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter6.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第6章 隐式 3D 时空结构的引入</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter7.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第7章 预训练：模态预训练与跨模态对齐</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item active" >
+                        <a href="chapter8.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第8章 强化学习与微调（模型级）</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter9.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第9章 基于仿真的智能体级强化学习（单智能体）</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter10.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第10章 多智能体博弈与协调：从均衡理论与 MARL 到工程落地</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter11.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第11章 Sim-to-Real：从仿真到现实的最后一公里</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="CLAUDE.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">Untitled</span>
+                        </a>
+                    </div>
+                </nav>
+            </div>
+        </nav>
+        
+        <main class="content">
+            <article>
+                <p>（交流可以用英文，所有文档中文，保留这句）</p>
+<h1 id="8">第8章 强化学习与微调（模型级）</h1>
+<blockquote>
+<p>目标：在已完成模态预训练与对齐的 V‑L‑A 基座上，完成<strong>模型级强化学习微调</strong>（SFT→RFT/RL），使策略既能<strong>遵循指令</strong>又能<strong>优化实际任务指标</strong>，同时满足<strong>安全与可迁移</strong>约束。本章强调奖励/偏好学习、KL 正则与行为约束、离线策略评估（OPE：IPS/DR/FQE），以及面向仿真与 Sim‑to‑Real 的<strong>策略平滑与延迟补偿</strong>。</p>
+</blockquote>
+<hr />
+<h2 id="_1">内容导览</h2>
+<ul>
+<li>8.1 SFT vs. RFT vs. RL：记忆与泛化的权衡</li>
+<li>8.2 策略优化：PPO/离线 RL/行为克制与 KL 正则</li>
+<li>8.3 IFT/偏好学习：从指令与偏好到策略改进</li>
+<li>8.4 自反式指导：CoT 评估、行动打分与自训练</li>
+<li>8.5 奖励设计：成功率/安全/效率与奖黑客防范</li>
+<li>8.6 数据效率：演示启动、DAgger 式纠偏与回放池</li>
+<li>8.7 OPE（离线策略评估）：IPS/DR/FQE 三件套</li>
+<li>8.8 稳健与安全：约束 RL、可恢复性与人机协同</li>
+<li>8.9 面向落地的策略整形：平滑、延迟补偿与安全裕度</li>
+<li>8.10 评测与消融：含“可迁移性探针”，服务于 Sim‑to‑Real</li>
+</ul>
+<hr />
+<h3 id="ascii">总体框架（ASCII 管线）</h3>
+<div class="codehilite"><pre><span></span><code>数据/演示 ──► 监督微调(SFT) ──► 参考策略 π_ref
+                              │
+偏好/奖励模型 r_φ  ◄──────────┤   （RLVR: 视觉-语言奖励）
+                              ▼
+      强化微调(RFT/RL) with KL(π||π_ref) + 约束
+                              │
+                   OPE: IPS/DR/FQE 校准
+                              │
+            策略整形(平滑/延迟补偿/安全裕度)
+                              ▼
+            仿真评测 ──► Sim-to-Real 准入/验收
+</code></pre></div>
+
+<blockquote>
+<p><strong>Rule‑of‑thumb（全局）</strong></p>
+<ol>
+<li><strong>先 SFT，后 RFT</strong>：用 SFT 把“能听懂”做扎实，再用 RFT/RL 让策略“做对”。</li>
+<li><strong>始终绑 KL 到参考策略</strong>：$\mathrm{KL}(\pi|\pi_{\text{ref}})$ 是稳定器与控制阀。</li>
+<li><strong>离线先跑 OPE</strong>，在线再小步试错，<strong>回放优先级覆盖长尾</strong>。</li>
+<li><strong>奖励 = 成功 + 安全 − 不适</strong>（可分解项便于审计与调参）。</li>
+<li><strong>部署前做“延迟与带宽审计”</strong>：训练-部署时域一致性优先于任何 trick。</li>
+</ol>
+</blockquote>
+<hr />
+<h2 id="81-sft-vs-rft-vs-rl">8.1 SFT vs. RFT vs. RL：记忆与泛化的权衡</h2>
+<p><strong>开篇</strong>：SFT（监督微调）最像“示范记忆”；RFT（Reinforcement Fine‑Tuning）与 RL 则通过奖励信号推动<strong>性能与偏好一致</strong>。三者并非替代，而是层层递进。</p>
+<ul>
+<li><strong>SFT</strong>：最小化交叉熵，学习 $\pi_{\text{SFT}}(a|s)$，优点是<strong>稳定、数据效率高</strong>；缺点是<strong>目标退火</strong>（imitate ≠ optimize）。</li>
+<li><strong>RFT/RL</strong>：最大化期望回报 $\mathbb{E}*{\pi*\theta}[\sum_t \gamma^t r(s_t,a_t)]$，可追求<strong>成功率/安全/舒适</strong>等<strong>任务指标</strong>。</li>
+<li><strong>组合原则</strong>：以 SFT 为<strong>参考策略</strong> $\pi_{\text{ref}}$，RFT/RL 时施加 KL 正则，使策略<strong>在“能听懂”的稳定域内优化</strong>。</li>
+</ul>
+<blockquote>
+<p><strong>Rule‑of‑thumb</strong>：SFT 做“基线能力 + 风格对齐”，RFT/RL 只做“最后 20% 的任务优化”，并<strong>量化 KL 漂移</strong>（如相对熵预算）。</p>
+</blockquote>
+<hr />
+<h2 id="82-ppo-rl-kl">8.2 策略优化：PPO/离线 RL/行为克制与 KL 正则</h2>
+<p><strong>目标函数（带 KL 与熵）</strong>：
+[
+\max_\theta;\mathbb{E}<em>{t}\Big[\min\big(r_t(\theta)A_t,;\mathrm{clip}(r_t(\theta),1-\epsilon,1+\epsilon)A_t\big)\Big]
+-\beta,\mathrm{KL}!\left(\pi</em>\theta(\cdot|s_t),|,\pi_{\text{ref}}(\cdot|s_t)\right)
++\alpha,\mathcal{H}!\left(\pi_\theta(\cdot|s_t)\right),
+]
+其中 (r_t(\theta)=\frac{\pi_\theta(a_t|s_t)}{\pi_{\text{old}}(a_t|s_t)})。</p>
+<ul>
+<li>
+<p><strong>KL 两种使用法</strong>：
+  (i) 罚项（上式中的 (\beta) 固定或自适应）；
+  (ii) <strong>KL‑control</strong> 解释：最优化 $\mathbb{E}[r]-\frac{1}{\beta}\mathrm{KL}$，等价软约束。</p>
+</li>
+<li>
+<p><strong>行为克制（Behavior Regularization）</strong>：对<strong>离线/混合</strong>数据，加入
+  [
+  \lambda_{\text{BC}},\mathbb{E}<em>{(s,a)\sim \mathcal{D}}\big[-\log \pi</em>\theta(a|s)\big],
+  ]
+  或采用 <strong>CQL/IQL</strong> 风格制 OOD 动作价值膨胀。</p>
+</li>
+<li>
+<p><strong>连续控制的动作平滑先验</strong>：对轨迹加速度/跃度惩罚，或在解码端约束<strong>带宽</strong>（参见第 4 章）。</p>
+</li>
+</ul>
+<blockquote>
+<p><strong>工程提示</strong>：(\beta) 自适应调节使 <strong>KL per‑token</strong> 维持在目标区间（例如 0.1–0.3 nats），显著降低崩溃风险。</p>
+</blockquote>
+<hr />
+<h2 id="83-ift">8.3 IFT/偏好学习：从指令与偏好到策略改进</h2>
+<ul>
+<li><strong>偏好数据</strong>：成对比较 ((\tau^+, \tau^-))，训练奖励模型 (r_\phi) 或直接进行<strong>直接偏好优化</strong>（DPO/IPO 类）。</li>
+<li>
+<p><strong>偏好到奖励</strong>：最大化
+  [
+  \log \sigma!\Big(\sum_t r_\phi(s_t,a_t)\ \text{for}\ \tau^+ - \sum_t r_\phi(s_t,a_t)\ \text{for}\ \tau^-\Big).
+  ]</p>
+</li>
+<li>
+<p><strong>RLVR（Vision‑Language Reward）</strong>：将<strong>视觉‑语言判别器</strong>或<strong>多模态 LM 评分</strong>蒸馏为 (r_\phi)，面向<strong>无标注环境</strong>给出可扩展奖励。</p>
+</li>
+<li><strong>IFT（Instruction‑Follow Tuning）</strong>：将<strong>语言一致性</strong>（指令遵从/风格/安全）和<strong>任务完成度</strong>写入统一奖励：
+  (r = w_{\text{succ}}r_{\text{succ}} + w_{\text{lang}}r_{\text{IF}} - w_{\text{tox}}r_{\text{tox}})。</li>
+</ul>
+<blockquote>
+<p><strong>Rule‑of‑thumb</strong>：偏好模型<strong>先做标定</strong>（温度/校准曲线），再用于长序列评分；把“语言一致性”与“物理达成”拆成<strong>不同通道</strong>的奖励，便于诊断。</p>
+</blockquote>
+<hr />
+<h2 id="84-cot">8.4 自反式指导：CoT 评估、行动打分与自训练</h2>
+<ul>
+<li><strong>自评估（Self‑Critique）</strong>：让模型在动作后生成<strong>解释/打分</strong>，作为<strong>辅助奖励</strong>或过滤器。</li>
+<li><strong>过程监督（Process Reward）</strong>：对“中间思考/分解步骤”评分，抑制<strong>捷径与伪相关</strong>。</li>
+<li><strong>不确定性驱动采样</strong>：根据<strong>价值方差/分歧度</strong>挑选回放样本（优先级回放 + 反事实切片）。</li>
+</ul>
+<blockquote>
+<p><strong>实践要点</strong>：把“解释”当作<strong>可稽核产物</strong>保存到回放元数据中，供 OPE 与故障回放调用。</p>
+</blockquote>
+<hr />
+<h2 id="85">8.5 奖励设计：成功率/安全/效率与奖黑客防范</h2>
+<p><strong>可分解奖励</strong>（示例）：
+[
+r_t = w_s,\underbrace{\mathbb{1}[\text{成功}]}_{\text{终局}}</p>
+<ul>
+<li>w_c,\underbrace{\text{碰撞/越界/违规}}_{\text{硬约束}}</li>
+<li>w_j,\underbrace{\text{跃度/不适}}_{\text{舒适}}</li>
+<li>
+<p>w_e,\underbrace{\text{能耗/耗时}}_{\text{效率}}</p>
+</li>
+<li>
+<p>w_x,\underbrace{\text{社交合规/礼让}}_{\text{交互}}
+  ]</p>
+</li>
+<li>
+<p><strong>奖黑客</strong>：对代理可能“投机”的信号做<strong>反作弊</strong>（如密度惩罚、检测器矛盾惩罚、可达性检查失败惩罚）。</p>
+</li>
+<li><strong>CVaR/风险敏感</strong>：最小化<strong>分位损失</strong> (\mathrm{CVaR}_\alpha) 提升长尾安全。</li>
+</ul>
+<blockquote>
+<p><strong>Rule‑of‑thumb</strong>：先把<strong>硬约束</strong>（安全/合规）做成<strong>屏蔽或不可行域投影</strong>，再优化软目标；能“投影”的就别“罚”。</p>
+</blockquote>
+<hr />
+<h2 id="86-dagger">8.6 数据效率：演示启动、DAgger 式纠偏与回放池</h2>
+<ul>
+<li><strong>演示启动（Demonstrations Bootstrapping）</strong>：用专家或“几何教师”初始化 (\pi_{\text{ref}})。</li>
+<li><strong>DAgger/AGGREVATE 思想</strong>：在线聚集<strong>自身访问的状态分布</strong>，请求教师纠偏，减轻<strong>分布漂移</strong>。</li>
+<li>
+<p><strong>回放池治理</strong>：</p>
+</li>
+<li>
+<p><strong>分层缓存</strong>：成功/失败/界样本分池；</p>
+</li>
+<li><strong>优先级</strong>：基于 TD‑error、价值方差、发生稀有度；</li>
+<li><strong>去重与漂移管控</strong>：窗口化采样 + 版本化元数据。</li>
+</ul>
+<blockquote>
+<p><strong>工程建议</strong>：回放条目附带<strong>场景签名</strong>（地图/天气/对手策略 hash），为 Sim‑to‑Real 的<strong>复现实验</strong>与<strong>边界覆盖率</strong>铺路。</p>
+</blockquote>
+<hr />
+<h2 id="87-opeipsdrfqe">8.7 OPE（离线策略评估）：IPS/DR/FQE 三件套</h2>
+<p>当在线试验代价高或有安全约束时，<strong>OPE</strong>提供离线估计新策略 (\pi) 的价值 (\hat{V}^\pi)。</p>
+<p><strong>(1) IPS / PD‑IPS（逐决策重要性采样）</strong>
+行为策略 (\mu)，重要性比：
+[
+\rho_{0:t}=\prod_{k=0}^t \frac{\pi(a_k|s_k)}{\mu(a_k|s_k)}.
+]
+分步 IPS 估计：
+[
+\hat{V}<em i="1">{\text{PD-IPS}}=\frac{1}{n}\sum</em>^n \sum_{t=0}^{T-1}\gamma^t,\rho_{0:t}^{(i)},r_t^{(i)}.
+]
+<strong>优点</strong>：无模型偏差；<strong>缺点</strong>：方差高，对支持重叠极敏感。</p>
+<p><strong>(2) Doubly‑Robust（DR）</strong>
+引入近似 ( \hat{Q}(s,a),\hat{V}(s) )：
+[
+\hat{V}<em i="1">{\text{DR}}=\frac{1}{n}\sum</em>^n\sum_{t=0}^{T-1}\gamma^t\Big[
+\rho_{0:t}^{(i)}\big(r_t^{(i)}-\hat{Q}(s_t^{(i)},a_t^{(i)})\big)
++\rho_{0:t-1}^{(i)}\hat{V}(s_t^{(i)})\Big].
+]
+<strong>性质</strong>：模型或重要性权任一正确即无偏；常配合截断权重与控制变元降方差。</p>
+<p><strong>(3) FQE（Fitted Q Evaluation）</strong>
+固定策略 (\pi)，拟合 (Q^\pi) 解
+[
+\min_\psi \mathbb{E}<em>{(s,a,r,s')\sim \mathcal{D}}\Big[
+Q</em>\psi(s,a) - \big(r + \gamma,\mathbb{E}<em _bar_psi="\bar\psi">{a'\sim \pi(\cdot|s')}[Q</em>(s',a')]\big)
+\Big]^2,
+]
+再以 (\hat{V}^\pi=\mathbb{E}<em a_sim_pi="a\sim\pi">{s\sim d_0}\mathbb{E}</em>[Q_\psi(s,a)]) 估计。
+<strong>优点</strong>：方差较低、可诊断；<strong>关键</strong>：<strong>覆盖度</strong>与<strong>函数近似误差</strong>。</p>
+<blockquote>
+<p><strong>OPE Rule‑of‑thumb</strong>：</p>
+<ul>
+<li><strong>先 DR 再 FQE</strong>：DR 做快速筛查，FQE 做深度评估与剖析。</li>
+<li><strong>报告置信条</strong>：自举（bootstrap）+ 截断比（如 (c=10)）的<strong>敏感性曲线</strong>必须呈现。</li>
+<li><strong>检查支持重叠</strong>：估计 (\Pr_\mu(a|s)) 低于阈值则标红（OOD 风险）。</li>
+</ul>
+</blockquote>
+<hr />
+<h2 id="88-rl">8.8 稳健与安全：约束 RL、可恢复性与机协同</h2>
+<ul>
+<li>
+<p><strong>CMDP/拉格朗日</strong>：约束 ( \mathbb{E}<em>\pi[\sum c_t] \leq C )，解
+  [
+  \max</em>\pi \min_{\lambda\ge0}\ \mathbb{E}_\pi\Big[\sum_t \gamma^t(r_t-\lambda c_t)\Big] + \lambda C.
+  ]</p>
+</li>
+<li>
+<p><strong>RTA（运行时保障）</strong>：训练期<strong>不放松的硬约束</strong>→ 部署期<strong>屏蔽/投影</strong>（QP/CBF/STL‑Shield）。</p>
+</li>
+<li><strong>可恢复性（Recovery）</strong>：学习<strong>恢复策略</strong> (\pi_{\text{rec}}) 与<strong>安全集合</strong>，结合<strong>危险率估计</strong>触发切换。</li>
+<li><strong>人机协同</strong>：在不确定阈高的状态维持<strong>共享控制</strong>，将<strong>干预</strong>记录入回放以改进策略。</li>
+</ul>
+<blockquote>
+<p><strong>Rule‑of‑thumb</strong>：让“约束惩罚”只作为<strong>训练信号</strong>，把<strong>合规</strong>交给<strong>屏蔽/投影</strong>；训练期就按部署期的<strong>同一屏蔽逻辑</strong>执行。</p>
+</blockquote>
+<hr />
+<h2 id="89">8.9 面向落地的策略整形：平滑、延迟补偿与安全裕度</h2>
+<p><strong>时域一致性问题</strong>（训练—部署）是现实落地的“隐形杀手”。</p>
+<ul>
+<li><strong>采样/执行延迟</strong>：观测 (s_t) → 动作 (a_{t+\Delta})。用 <strong>Smith 预估/延迟补偿</strong> 或<strong>并行预测多步动作</strong>降低相位滞后。</li>
+<li><strong>带宽/平滑</strong>：在解码端加<strong>谱域正则</strong>或在输出后级接<strong>低带宽安全轨迹生成器</strong>（第 4.11 节接口）。</li>
+<li><strong>安全裕度</strong>：把 OOD/高不确定性区域映射到<strong>保守动作集</strong>；对阈值（距离/速度/时距）设<strong>安全系数</strong> (&gt;1)。</li>
+<li><strong>温度与采样策略</strong>：训练时的<strong>温度/Top‑p</strong>与部署一致；对<strong>确定性控制</strong>优先采用<strong>均值/投影</strong>而不是采样。</li>
+</ul>
+<blockquote>
+<p><strong>调参准则</strong>：离线重放 + 台架（HIL）测出<strong>延迟‑相位裕度曲线</strong>，再定平滑与裕度；<strong>先稳再快</strong>。</p>
+</blockquote>
+<hr />
+<h2 id="810-simtoreal">8.10 评测与消融：含“可迁移性探针”，服务于 Sim‑to‑Real</h2>
+<ul>
+<li><strong>指标分层</strong>：</li>
+</ul>
+<ol>
+<li><strong>成功</strong>（达成率/里程碑）；</li>
+<li><strong>安全</strong>（碰撞/违规/最小时距）；</li>
+<li><strong>舒适</strong>（加速度/跃度统计）；</li>
+<li><strong>社交合规/公平</strong>（第 10 章对应）；</li>
+<li><strong>可迁移性探针</strong>（对传感/动力学扰动的降级曲线）。
+* <strong>消融</strong>去掉 KL、去掉偏好、去掉屏蔽、去掉平滑，观察<strong>退化形态</strong>。
+* <strong>可解释诊断</strong>：对失败轨迹生成<strong>反事实</strong>（若更保守/若更靠右…）、显示<strong>奖励分解与约束激活</strong>时间线。</li>
+</ol>
+<blockquote>
+<p><strong>交付建议</strong>：评测脚本输出<strong>覆盖率报告</strong>（场景簇×扰动等级×成功率），为第 11 章的<strong>准入清单</strong>直接复用。</p>
+</blockquote>
+<hr />
+<h2 id="_2">本章小结</h2>
+<ol>
+<li><strong>SFT→RFT/RL 的两阶段</strong>：用 SFT 固化语言/风格与基本能力，RFT/RL 绑定 KL 进行任务优化。</li>
+<li><strong>偏好与 RLVR</strong>：多模态偏好/奖励把“语言一致性 + 物理成功”统一在奖励层。</li>
+<li><strong>OPE 三件套（IPS/DR/FQE）</strong>：离线先估计、带置信条与支持检查，再小步在线。</li>
+<li><strong>稳健与安全</strong>：CMDP + 屏蔽/投影（RTA），并训练可恢复策略。</li>
+<li><strong>落地整形</strong>：平滑、延迟补偿、安全裕度与采样一致性是 Sim‑to‑Real 的桥面铺装。</li>
+</ol>
+<hr />
+<h2 id="gotchas">常见陷阱与错误（Gotchas）与调试技巧</h2>
+<ol>
+<li><strong>KL 失控 → 策略崩溃</strong></li>
+</ol>
+<ul>
+<li><em>症状</em>：训练回报飙升但离线/线上崩。</li>
+<li>
+<p><em>技巧</em>：设 <strong>KL 目标环</strong>（per‑token 0.1–0.3 nats），(\beta) 自适应；监控 <strong>支持重叠</strong>热力图。
+2. <strong>奖励黑客</strong></p>
+</li>
+<li>
+<p><em>症状</em>：策略“刷分”但不达成真实目标。</p>
+</li>
+<li>
+<p><em>技巧</em>：奖励<strong>分解与可视化</strong>；引入<strong>可达性/一致性检查</strong>和<strong>矛盾检测器</strong>；对探测器加入<strong>反事实审计</strong>。
+3. <strong>离线分布外动作膨胀</strong></p>
+</li>
+<li>
+<p><em>症状</em>：FQE 乐观，线上不稳。</p>
+</li>
+<li>
+<p><em>技巧</em>：行为正则（BC/CQL/IQL），<strong>动作投影</strong>到可行域；FQE 做<strong>保守估计</strong>与不确定性报告。
+4. <strong>训练‑部署时域不一致</strong></p>
+</li>
+<li>
+<p><em>症状</em>：仿真稳，实机振荡/超调。</p>
+</li>
+<li>
+<p><em>技巧</em>：统一<strong>采样率/延迟</strong>；Smith 预测/多步并行；<strong>轨迹后端平滑器</strong>替代前端“软罚”。
+5. <strong>偏好模型未校准</strong></p>
+</li>
+<li>
+<p><em>症状</em>：长序列评分漂移，RFT 方向错误。</p>
+</li>
+<li>
+<p><em>技巧</em>：<strong>温度标定</strong>、E‑Brier/ECE；对<strong>多通道奖励</strong>分别做灵度扫描。
+6. <strong>OPE 误导</strong></p>
+</li>
+<li>
+<p><em>症状</em>：离线估好，线上掉坑。</p>
+</li>
+<li>
+<p><em>技巧</em>：DR + FQE <strong>交叉验证</strong>；报告<strong>权重截断敏感性</strong>；用<strong>场景签名</strong>做分簇评估。
+7. <strong>安全约束用“罚”替代“屏蔽”</strong></p>
+</li>
+<li>
+<p><em>症状</em>：训练 OK，部署仍违规。</p>
+</li>
+<li>
+<p><em>技巧</em>：把<strong>硬约束</strong>实现为<strong>投影/屏蔽</strong>（RTA），与训练环境<strong>同构</strong>。
+8. <strong>采样温度不一致</strong></p>
+</li>
+<li>
+<p><em>症状</em>：离线评测温和，部署随机发散。</p>
+</li>
+<li>
+<p><em>技巧</em>：部署期<strong>固定温度/Top‑p</strong>或用<strong>确定性解码</strong>；与 OPE 评测设定一致。
+9. <strong>回放池污染与遗忘</strong></p>
+</li>
+<li>
+<p><em>症状</em>：灾难性遗忘，或过拟合近期数据。</p>
+</li>
+<li>
+<p><em>技巧</em>：窗口化 + 分层缓存 + 优先级回放；定期<strong>冷启动抽检</strong>历史关键场景。
+10. <strong>指标只看均值</strong></p>
+<ul>
+<li><em>症状</em>：平均好，长尾差。</li>
+<li><em>技巧</em>：报告 <strong>CVaR/分位</strong> 与<strong>最坏 5%</strong>；绘制扰动‑成功率<strong>降级曲线</strong>。</li>
+</ul>
+</li>
+</ul>
+<hr />
+<h2 id="_3">附：关键公式与记忆卡</h2>
+<ul>
+<li><strong>PPO（带 KL/熵）</strong>：见 §8.2。</li>
+<li>
+<p><strong>偏好到奖励（对比）</strong>：
+  (\max_\phi \sum \log \sigma\big(R_\phi(\tau^+)-R_\phi(\tau^-)\big))。</p>
+</li>
+<li>
+<p><strong>DR OPE</strong>：见 §8.7。</p>
+</li>
+<li><strong>CMDP 原始‑对偶</strong>：(\max_\pi \min_{\lambda\ge0}\mathbb{E}_\pi[\sum \gamma^t(r_t-\lambda c_t)]+\lambda C)。</li>
+<li><strong>策略整形</strong>：部署端<strong>投影/屏蔽</strong> + <strong>低带宽轨迹器</strong> + <strong>延迟补偿</strong>。</li>
+</ul>
+<hr />
+<h3 id="_4">本章完成后应能回答</h3>
+<ul>
+<li>何时用 SFT、何时切入 RFT/RL？KL 目标选多少？</li>
+<li>如何把视觉‑语言评分做成可用的 RL 奖励（RLVR）？</li>
+<li>在不做在线试验前，如何用 IPS/DR/FQE 可靠地做离线价值估计？</li>
+<li>策略部署前应如何做<strong>延迟与带宽审计</strong>并设置<strong>安全裕度</strong>？</li>
+</ul>
+<blockquote>
+<p><strong>下一章预告</strong>：第 9 章将在仿真中让策略<strong>真正交互</strong>，并把本章的奖励/偏好/OPE 管线接入<strong>环境闭环</strong>，为多智能体与 Sim‑to‑Real 铺路。</p>
+</blockquote>
+            </article>
+            
+            <nav class="page-nav"><a href="chapter7.html" class="nav-link prev">← 第7章 预训练：模态预训练与跨模态对齐</a><a href="chapter9.html" class="nav-link next">第9章 基于仿真的智能体级强化学习（单智能体） →</a></nav>
+        </main>
+    </div>
+</body>
+</html>

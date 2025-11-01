@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="./">
+    <title>第10章 多智能体博弈与协调：从均衡理论与 MARL 到工程落地</title>
+    <link rel="stylesheet" href="assets/style.css">
+    <link rel="stylesheet" href="assets/highlight.css">
+    <script src="assets/script.js" defer></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$']],
+                displayMath: [['$$', '$$']],
+                processEscapes: false,
+                packages: {'[+]': ['noerrors', 'ams']}
+            },
+            options: {
+                ignoreHtmlClass: 'tex2jax_ignore',
+                processHtmlClass: 'tex2jax_process'
+            },
+            loader: {
+                load: ['[tex]/noerrors', '[tex]/ams']
+            }
+        };
+    </script>
+</head>
+<body>
+    <div class="container">
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h3>目录</h3>
+                <button id="sidebar-toggle" class="sidebar-toggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+            <div class="sidebar-search">
+                <input type="text" id="sidebar-search-input" placeholder="搜索..." autocomplete="off">
+            </div>
+            <div id="tree-container">
+                <nav class="tree-nav" role="tree">
+                    <div class="tree-item " >
+                        <a href="index.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">Visual-Language Action Model: 预训练、MARL 和 Sim-to-Real</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter1.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第1章 导论与动机案例</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter2.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第2章 视觉模态（chapter2.md）</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter3.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第3章 语言模态</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter4.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第4章 行动模态</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter5.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第5章 模态对齐（Vision–Language–Action）</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter6.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第6章 隐式 3D 时空结构的引入</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter7.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第7章 预训练：模态预训练与跨模态对齐</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter8.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第8章 强化学习与微调（模型级）</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter9.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第9章 基于仿真的智能体级强化学习（单智能体）</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item active" >
+                        <a href="chapter10.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第10章 多智能体博弈与协调：从均衡理论与 MARL 到工程落地</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter11.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第11章 Sim-to-Real：从仿真到现实的最后一公里</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="CLAUDE.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">Untitled</span>
+                        </a>
+                    </div>
+                </nav>
+            </div>
+        </nav>
+        
+        <main class="content">
+            <article>
+                <p>（交流可以用英文，所有文档中文，保留这句）</p>
+<h1 id="10-marl">第10章 多智能体博弈与协调：从均衡理论与 MARL 到工程落地</h1>
+<blockquote>
+<p><strong>开篇段落（本章导引）</strong>
+多智能体问题的本质是<strong>相互耦合的决策与共享约束</strong>。在自动驾驶无信号交汇、编队机器人、仓储搬运等场景中，<strong>安全—效率—公平—舒适—社交合规</strong>往往相互牵制。本章从<strong>均衡理论（Nash/相关/Stackelberg/贝叶斯）</strong>与<strong>多智能体强化学习（MARL）</strong>双线并行，落到<strong>形式化安全屏蔽（LTL/STL/CBF）、求解器（MPC/MIQP/QP）</strong>与<strong>运行时保障（RTA）</strong>的工程组合，给出<strong>可复现的评测协议</strong>与<strong>落地模板</strong>。读者将获得：</p>
+<ol>
+<li>何时用<strong>均衡建模</strong>，何时用<strong>MARL 残差</strong>；2) 如何将<strong>安全约束</strong>嵌入学习闭环；3) 面向<strong>Sim‑to‑Real</strong>的<strong>通信与意图协议、对手失范处置和公平性</strong>治理。</li>
+</ol>
+</blockquote>
+<hr />
+<h2 id="101">10.1 为什么是“多智能体”：外部性、互惠与礼让</h2>
+<ul>
+<li>
+<p><strong>式化</strong>：标准静态博弈
+  [
+  G=\langle \mathcal N,{\mathcal A_i}<em N="N" i_in_mathcal="i\in\mathcal">{i\in\mathcal N},{u_i}</em>\rangle,\quad
+  \pi_i\in\Delta(\mathcal A_i)
+  ]
+  其中 (\mathcal N) 为智能体集合，(\mathcal A_i) 为动作集，(u_i) 为效用/回报。</p>
+</li>
+<li>
+<p><strong>外部性</strong>：一个体的加速/刹车改变他人的可行域与风险（如 TTC、可达集）。</p>
+</li>
+<li><strong>礼让与社会合规</strong>：策略含<strong>他人体验项</strong>（他人急刹/大跃度视为负外部性）。</li>
+</ul>
+<blockquote>
+<p><strong>经验法则 10‑A（问题刻画）</strong>
+先画出<strong>共享约束</strong>（碰撞避免、优先权、速度/加速度/跃度、CBF 不变集），再讨论个体目标；共享约束优先级<strong>高于</strong>个体效用。</p>
+</blockquote>
+<hr />
+<h2 id="102-nashstackelberg">10.2 均衡建模：Nash/相关均衡/Stackelberg 与效率—公平</h2>
+<ul>
+<li>
+<p><strong>Nash 均衡（NE）</strong>：(\pi^<em>) 使得任一体单独偏离非增益
+  [
+  \forall i,\ \pi_i^</em>\in\arg\max_{\pi_i}\ \mathbb E_{a\sim \pi_i,\pi_{-i}^*}[u_i(a)].
+  ]</p>
+</li>
+<li>
+<p><strong>相关均衡（CE）</strong>：存在联合分布 (q(a)) 满足对任意 (i,a_i,a_i'),
+  [
+  \sum_{a_{-i}} q(a_i,a_{-i})\big(u_i(a_i,a_{-i})-u_i(a_i',a_{-i})\big)\ge 0.
+  ]
+  <strong>解释</strong>：有一个“信号器”给出相关建议，遵循建议无激励偏离。</p>
+</li>
+<li>
+<p><strong>Stackelberg（领从）</strong>：Leader 承诺 (\pi_L)，Follower 取最佳应对 (\mathrm{BR}(\pi_L))。</p>
+</li>
+<li><strong>效率与公平</strong>：社会福利 (W=\sum_i w_i u_i)；<strong>Anarchy 代价</strong>（PoA）与<strong>稳定性代价</strong>（PoS）评估 NE 偏离最优的程度。</li>
+<li><strong>近似 NE（(\epsilon)-NE）</strong>：<strong>Nash gap</strong>
+  [
+  \mathrm{Gap}(a)=\max_i\ \max_{a_i'}\big(u_i(a_i',a_{-i})-u_i(a)\big)\le \epsilon.
+  ]</li>
+</ul>
+<div class="codehilite"><pre><span></span><code>效率 ↑
+      ┌────────────────  社会最优
+      │     ●
+      │            ○   NE
+      │
+      └────────────────────────→ 公平（差异↓）
+</code></pre></div>
+
+<blockquote>
+<p><strong>经验法则 10‑B（范式选型）</strong></p>
+<ul>
+<li><strong>NE/CE</strong>：需要<strong>解释性/合规性</strong>强，通信可用（CE 时）——适合<strong>策略审计</strong>与合规证明。</li>
+<li><strong>Stackelberg</strong>存在<strong>路权/优先权层级</strong>（如应急车）或<strong>基础设施先手</strong>（路侧单元）。</li>
+<li><strong>MARL</strong>：动态、部分可观、非线性约束强时用作<strong>近似与残差</strong>，再配<strong>安全投影</strong>。</li>
+</ul>
+</blockquote>
+<hr />
+<h2 id="103">10.3 不完全信息与贝叶斯博弈：类型、信念与风险态度</h2>
+<ul>
+<li><strong>贝叶斯博弈</strong>：每个体有类型 (\theta_i\sim p(\theta))，效用 (u_i(a,\theta))。目标最大化<strong>条件期望效用</strong>。</li>
+<li>
+<p><strong>风险敏感</strong>：CVaR(<em>\alpha) 或极端事件加权
+  [
+  J_i(\pi)=\mathrm{CVaR}</em>\alpha\big(\sum_t r_{i,t}\big)
+  ]
+  兼顾长尾安全。</p>
+</li>
+<li>
+<p><strong>鲁棒博弈</strong>：对不确定集 (\Theta) 取 (\min_{\theta\in\Theta}) 的 worst‑case 效用。</p>
+</li>
+</ul>
+<blockquote>
+<p><strong>经验法则 10‑C（类型与意图）</strong>
+把“激进/保守、顺/逆规、自动/人类驾驶、网联/非网联”<strong>折叠为类型变量</strong>，在规划器中进行<strong>信念更新</strong>与<strong>保守化半径</strong>调节。</p>
+</blockquote>
+<hr />
+<h2 id="104">10.4 学习与收敛：虚拟对弈、无悔学习与复制子动态</h2>
+<ul>
+<li>
+<p><strong>无悔学习</strong>：平均外悔 (\bar R_T\to 0) 则经验分布收敛到<strong>粗相关均衡（CCE）</strong>。
+  [
+  \bar R_T=\max_{a_i'}\frac1T\sum_{t=1}^T \big(u_i(a_i',a_{-i}^t)-u_i(a_i^t)\big)\to 0.
+  ]</p>
+</li>
+<li>
+<p><strong>虚拟对弈（Fictitious Play）</strong>：对他人频率做最优响应，潜在博弈中收敛。</p>
+</li>
+<li><strong>复制子动态</strong>（连续时间）：
+  [
+  \dot\pi_i(a)=\pi_i(a)\big(u_i(a,\pi_{-i})-\langle \pi_i,u_i(\cdot,\pi_{-i})\rangle\big).
+  ]</li>
+</ul>
+<blockquote>
+<p><strong>经验法则 10‑D（可收敛性）</strong>
+尽量将交互建模为<strong>潜在博弈</strong>或引入<strong>潜在函数近似</strong>；否则转向<strong>CCE</strong>并在工程上提供<strong>屏蔽</strong>与<strong>恢复</strong>路径。</p>
+</blockquote>
+<hr />
+<h2 id="105-marl-ctde">10.5 MARL 综述：CTDE、价值分解、策梯度、对手建模与通信</h2>
+<ul>
+<li>
+<p><strong>CTDE</strong>（集中训练、分散执行）：训练用全局状态 (s)/联合动作 (a)，执行仅用局部观测 (o_i)。
+  [
+  \nabla_{\theta_i}J=\mathbb E\big[\nabla_{\theta_i}\log\pi_i(a_i|o_i),A_i^{\text{central}}(s,a)\big].
+  ]</p>
+</li>
+<li>
+<p><strong>价值分解</strong>：VDN (Q_{tot}=\sum_i Q_i)；QMIX 要求单调性 (\partial Q_{tot}/\partial Q_i\ge 0)。</p>
+</li>
+<li>
+<p><strong>多智能体策梯度</strong>：MADDPG/MAPPO；<strong>信用分配</strong>（COMA 优势）
+  [
+  A_i=Q(s,a)-\sum_{a_i'}\pi_i(a_i'|o_i),Q(s,(a_i',a_{-i})).
+  ]</p>
+</li>
+<li>
+<p><strong>对手建模与通信</strong>：显式 belief 网络、消息通道（bandwidth/延迟/安全）。</p>
+</li>
+</ul>
+<blockquote>
+<p><strong>经验法则 10‑E（训练稳定性）</strong>
+非平稳性由<strong>对手策略漂移</strong>引起：使用<strong>对手池/策略混合（PSRO/BR 缓存）</strong>、<strong>冻结‑解冻节奏</strong>与<strong>KL/行为正则</strong>降低漂移。</p>
+</blockquote>
+<hr />
+<h2 id="106-cmdp-rta">10.6 约束与安全：CMDP、拉格朗日/原始–对偶、鲁棒与 RTA</h2>
+<ul>
+<li>
+<p><strong>约束 MDP</strong>：(\max_\pi \mathbb E[\sum\gamma^t r_t]) s.t. (\mathbb E[\sum\gamma^t c_t]\le d)。
+  <strong>拉格朗日</strong>：
+  [
+  \max_\pi\min_{\lambda\ge0}\ \mathbb E\textstyle\sum_t\gamma^t\big(r_t-\lambda c_t\big)+\lambda d.
+  ]
+  更新 (\lambda\leftarrow\big[\lambda+\eta(\hat C-d)\big]_+)。</p>
+</li>
+<li>
+<p><strong>控制障碍函数（CBF）</strong>：安全集 (\mathcal S={x:h(x)\ge0})，满足
+  [
+  \dot h(x)+\alpha h(x)\ge0
+  ]
+  或离散式 (h(x_{t+1})-h(x_t)+\alpha h(x_t)\ge0)。
+  <strong>QP 投影</strong>（安全屏蔽）：
+  [
+  \min_u |u-u_{\text{nom}}|^2\ \ \text{s.t.}\ \ \nabla h f(x)+\nabla h g(x)u+\alpha h(x)\ge0.
+  ]</p>
+</li>
+<li>
+<p><strong>运行时保障（RTA）</strong>：在线监控预测风险，违反阈值时切换到<strong>保证安全的备份控制</strong>。</p>
+</li>
+</ul>
+<div class="codehilite"><pre><span></span><code>Teacher (MPC/博弈) + Residual MARL
+           │
+           ▼
+   QP/CBF Safety Projection  ──►  RTA Gate  ──►  执行器
+</code></pre></div>
+
+<blockquote>
+<p><strong>经验法则 10‑F（两层盾）</strong>
+先用<strong>QP/CBF</strong>做<strong>连续域安全投影</strong>，再用<strong>RTA</strong>处理<strong>不可预见离散事件</strong>（对手闯入、传感失配）。</p>
+</blockquote>
+<hr />
+<h2 id="107-ltlstl-shieldcbfclfmiqp">10.7 形式化方法与求解器：LTL/STL Shield、CBF/CLF、(M/I)QP</h2>
+<ul>
+<li><strong>时序逻辑</strong>：将“永不碰撞、最终通过、红灯必停”等映射为 LTL/STL 公式，在线/离线合成<strong>盾（Shield）</strong>。</li>
+<li><strong>MPC with CBF</strong>：在滚动优化中把 CBF 作为硬约束/软约束。</li>
+<li><strong>MIQP</strong>：离散决策（让/行、道次、车道变换）+ 连续控制（速度/转角）混合，big‑M 约束编码优先权。</li>
+</ul>
+<blockquote>
+<p><strong>经法则 10‑G（可审计性）</strong>
+将<strong>合规红线</strong>用 STL/LTL/CBF 显式化；训练/推理日志<strong>记录约束活性度</strong>与<strong>QP 残差</strong>，供审计与回放。</p>
+</blockquote>
+<hr />
+<h2 id="108">10.8 案例：<strong>无信号交汇</strong>协同通行（“博弈 + 求解器 + 残差”）</h2>
+<p><strong>几何与交互</strong></p>
+<div class="codehilite"><pre><span></span><code>        ↑  B
+--------┼---------
+        │
+A → → → + ← ← ← D
+--------┼---------
+        │
+        ↓  C
+</code></pre></div>
+
+<ul>
+<li><strong>共享约束</strong>：时空冲突区、最小时距 (\mathrm{TTC}=\frac{d}{\max(\epsilon,v_{\text{rel}})}\ge \tau)、最大加/减速度 (|a|\le a_{\max})、跃度 (|\dot a|\le j_{\max})。</li>
+<li><strong>建模</strong>：</li>
+</ul>
+<ol>
+<li><strong>贝叶斯类型</strong>（激进/保守）；</li>
+<li><strong>Stackelberg</strong>（主路/支路或路侧单元作 Leader）；</li>
+<li>
+<p><strong>CE</strong>（车群有轻通信时基于信号器相关化）。
+* <strong>落地流水线</strong></p>
+</li>
+<li>
+<p><strong>教师（MPC/博弈求解）</strong>：在 CBF/STL 约束下求社会目标（效率+公平+舒适）解；</p>
+</li>
+<li><strong>学生（MARL 残差）</strong>：在教师解的<strong>残差空间</strong>学习人性化/细节；</li>
+<li><strong>QP 投影</strong>：将残差叠加后的控制量投影回安全集；</li>
+<li><strong>RTA</strong>：监测 (\mathrm{TTC},\ \text{CBF margin},\ \text{jerk}) 等阈值，越界即切换备份；</li>
+<li><strong>僵局解除</strong>：注入轻量随机/优先权令牌，或路侧广播<strong>turn‑taking</strong>。</li>
+</ol>
+<blockquote>
+<p><strong>经验法则 10‑H（礼让定价）</strong>
+引入<strong>礼让成本</strong>：导致他车 (|a|&gt;a_c) 或 (|\dot a|&gt;j_c) 记负分；在社会福利中加入<strong>(\alpha)-公平</strong>项（见 10.13），兼顾效率与公平。</p>
+</blockquote>
+<hr />
+<h2 id="109">10.9 评测协议：安全/效率/舒适/社交合规/公平性的多目标</h2>
+<ul>
+<li><strong>安全</strong>：碰撞率↓、最小 (\mathrm{TTC}) 分位数↑、越界率（CBF 违约）↓。</li>
+<li><strong>效率</strong>：通行率、平均延误、ETA 偏差。</li>
+<li><strong>舒适</strong>：加速度/跃度 RMS、急刹频次。</li>
+<li><strong>社交合规</strong>：红线违例 0、让行礼让率、对交通流扰动。</li>
+<li><strong>公平</strong>：等待时间 Gini 系数、<strong>(\alpha)-公平</strong>（10.13）、<strong>Nash gap</strong> 作为稳定性指标。</li>
+<li><strong>覆盖率报告</strong>：参数场景（来车速度/间隙/能见度）网格覆盖 + <strong>长尾簇</strong>抽样。</li>
+<li><strong>异常注入</strong>：失范/恶意对手占比 (p)，评估<strong>可恢复性</strong>与<strong>优雅降级</strong>。</li>
+</ul>
+<hr />
+<h2 id="1010">10.10 工程设计模式：分层协同、消息/意图、对手建模与失效回放</h2>
+<ul>
+<li><strong>分层</strong>：预测（他车意图/类型 belief）→ 规划（博弈/MPC+残差）→ 控制（QP/CBF）→ 屏蔽与 RTA。</li>
+<li><strong>消息与意图</strong>：<strong>显式</strong> turn‑taking/路权令牌、<strong>隐式</strong>轨迹意图（闪灯/微操）。</li>
+<li><strong>对手建模</strong>：策略池/混合分布、类型滤波、最坏情形半径。</li>
+<li><strong>运维</strong>：统一时间戳、可复现随机种子、回放与“影子模式”AB 实验、失败簇成因标注。</li>
+</ul>
+<hr />
+<h2 id="1011">10.11 从多智能体仿真到真实部署：域随机化、隐域估计与策略残差</h2>
+<ul>
+<li><strong>域随机化</strong>（交互域）：对人类驾驶<strong>反应时/保守度</strong>、通信丢包/延迟进行课程化随机。</li>
+<li><strong>隐域估计</strong>：在线估计对手类型 (\hat\theta)，将策略写成 (\pi(a|o,\hat\theta))。</li>
+<li><strong>残差策略</strong>：(,u=u_{\text{teacher}}+\Delta u_{\text{MARL}})，残差幅度受<strong>RTA 限幅</strong>。</li>
+</ul>
+<hr />
+<h2 id="1012-turntaking-implicit-signaling">10.12 通信与意图协议：显式 turn‑taking / implicit signaling</h2>
+<ul>
+<li><strong>显式</strong>：最小消息集（意图、预计到达时间窗、优先权令牌），拥塞时退化为<strong>先到先服务</strong>。</li>
+<li><strong>隐式</strong>：轨迹意图编码（减速坡度、车头姿态）；对人类友好<strong>可解释提示</strong>（转向灯/刹灯节拍）。</li>
+<li><strong>健壮性</strong>：消息签名/时效、丢包下回退为 CE/BR 策略。</li>
+</ul>
+<hr />
+<h2 id="1013">10.13 公平性度量：价格‑公平权衡、社交合规罚则</h2>
+<ul>
+<li>
+<p><strong>(\alpha)-公平</strong>：对“资源”(x_i)（如通过率/绿窗）
+  [
+  U_\alpha(x)=
+  \begin{cases}
+  \sum_i \frac{x_i^{1-\alpha}}{1-\alpha}, &amp; \alpha\neq 1[4pt]
+  \sum_i \log x_i, &amp; \alpha=1
+  \end{cases}
+  ]
+  (\alpha\uparrow) 更公平、效率可能下降。</p>
+</li>
+<li>
+<p><strong>礼让罚则</strong>：若我方动作使他车 (|a|&gt;a_c) 或 (|\dot a|&gt;j_c)，施加惩罚 (\lambda_c,\lambda_j)。</p>
+</li>
+<li><strong>队列公平</strong>：等待时长 Gini/95%分位差、最大滞后界。</li>
+</ul>
+<hr />
+<h2 id="1014-agent">10.14 对手失范/恶意行为：异常 agent 注入与恢复流程</h2>
+<ul>
+<li><strong>检测</strong>：<strong>Nash gap/CE 条件</strong>异常、<strong>CBF margin</strong>持续为负、<strong>TTC</strong> 急剧下降。</li>
+<li><strong>处置</strong>：策略转入<strong>保守集</strong>（更大安全半径），路侧触发<strong>turn‑taking</strong>重置；记录证据。</li>
+<li><strong>恢复</strong>：异常消退后<strong>缓启动</strong>（jerk 限制、渐近恢复权重）。</li>
+</ul>
+<hr />
+<h2 id="1015-11-simtoreal">10.15 小结与与第 11 章（Sim‑to‑Real）的接口</h2>
+<ul>
+<li><strong>两条路并行</strong>：<strong>均衡可解释性</strong> + <strong>MARL 可扩展性</strong> → <strong>残差结构化</strong>。</li>
+<li><strong>两层安全</strong>：<strong>QP/CBF 投影</strong> + <strong>RTA 切换</strong>。</li>
+<li><strong>面向 S2R</strong>：交互域随机化、意图协议与<strong>异常回放基准</strong>。下一章将把本章策略接上<strong>系统辨识/传感延迟/带宽配平</strong>等现实要素，完成<strong>准入清单与验收</strong>。</li>
+</ul>
+<hr />
+<h2 id="key-takeaways">本章小结（Key Takeaways）</h2>
+<ol>
+<li><strong>建模优先</strong>：先固化<strong>共享安全约束</strong>与<strong>红线逻辑</strong>，再优化个体目标。</li>
+<li><strong>均衡 vs. 学习</strong>：NE/CE/Stackelberg 提供<strong>审计友好</strong>骨架，MARL 提供<strong>非线性与人性化残差</strong>。</li>
+<li><strong>安全闭环</strong>：CMDP‑拉格朗日 + CBF‑QP + RTA，保证<strong>硬约束不被学习突破</strong>。</li>
+<li><strong>评测多目标</strong>：安全、效率、舒适、合规、<strong>公平</strong>与<strong>稳定性（Nash gap/PoA）</strong>共同报告。</li>
+<li><strong>实战路线</strong>：教师（博弈/MPC）→ 学生（MARL 残差）→ 屏蔽（QP/CBF）→ 保障（RTA）→ S2R。</li>
+</ol>
+<hr />
+<h2 id="gotchas">常见陷阱与错误（Gotchas）与调试技巧</h2>
+<ul>
+<li>
+<p><strong>非平稳性被忽视</strong>：把环境当作静态 MDP 训练，导致部署时崩溃。
+  <em>调试</em>：对手策略池与混合采样；冻结‑解冻与 KL 正则；离线回放 + 在线微调 A/B。</p>
+</li>
+<li>
+<p><strong>把“安全”当软目标</strong>：将碰撞当 soft penalty，训练中短期收益压过安全。
+  <em>调试</em>：CBF/QP 作为<strong>硬约束</strong>，RTA 兜底；分离“安全红线”与“性能目标”优化器。</p>
+</li>
+<li>
+<p><strong>信用分配不当</strong>：个体奖励受噪声淹没。
+  <em>调试</em>：COMA/差分奖励（difference rewards）、基于影响度的 credit。</p>
+</li>
+<li>
+<p><strong>均衡选型错误</strong>：明明有路权层级却用 NE，或通信稀缺却假设 CE。
+  <em>调试</em>：做<strong>协议可用性审计</strong>；Stackelberg/CE 需<strong>最小通信保证</strong>。</p>
+</li>
+<li>
+<p><strong>过拟合自博弈</strong>：只在自我同质对手中训练，现实混杂类型失败。
+  <em>调试</em>：类型随机化（激进/保守/违规）、对手分布移位测试（dataset/agent shift）。</p>
+</li>
+<li>
+<p><strong>MIQP 不稳定或求解超时</strong>：混合整数求解卡住实时性。
+  <em>调试</em>：预生成策略库/热启动；将离散决策下沉为<strong>RTA/令牌</strong>；对连续层用 QP。</p>
+</li>
+<li>
+<p><strong>通信脆弱</strong>：把轻通信当可靠总线。
+  <em>调试</em>：显式<strong>丢包/延迟/篡改</strong>随机化；设计<strong>无通信回退</strong>（CE/BR 备份）。</p>
+</li>
+<li>
+<p><strong>公平性缺位</strong>：整体吞吐高但个别车辆长期饥饿。
+  <em>调试</em>：(\alpha)-公平/等待时间 Gini 进入目标；监控<strong>最坏分位</strong>。</p>
+</li>
+<li>
+<p><strong>评测窄化</strong>：只报平均成功率，忽略长尾与边界条件。
+  <em>调试</em>：<strong>参化场景网格 + 长尾聚类</strong>覆盖；异常注入（恶意/失范）与恢复指标。</p>
+</li>
+<li>
+<p><strong>日志不可审计</strong>：缺失约束活性度、QP 残差与切换原因。
+  <em>调试</em>：强制记录<strong>CBF margin、RTA 触发、Nash gap</strong>与“谁先行”的证据链。</p>
+</li>
+</ul>
+<blockquote>
+<p><strong>排障清单（最小闭环）</strong></p>
+<ol>
+<li>CBF margin 全时 ≥0？ 2) (\mathrm{TTC}) 分位数合规？ 3) RTA 触发频率 &lt; 1% 吗？</li>
+<li>Nash gap ≤ (\epsilon)？ 5) 等待时间 Gini ≤ 阈值？ 6) 影子模式与回放一致？</li>
+</ol>
+</blockquote>
+<hr />
+<h3 id="_1">附：常用公式与度量速览</h3>
+<ul>
+<li><strong>TTC</strong>：(\mathrm{TTC}=\frac{d}{\max(\epsilon,v_{\text{rel}})})。</li>
+<li><strong>Nash gap</strong>：(\max_i\max_{a_i'} [u_i(a_i',a_{-i})-u_i(a)])。</li>
+<li><strong>(\alpha)-公平</strong>：见 10.13。</li>
+<li><strong>CMDP 拉格朗日更新</strong>：(\lambda\leftarrow[\lambda+\eta(\hat C-d)]_+)。</li>
+<li><strong>CBF QP</strong>：见 10.6。</li>
+<li><strong>COMA 优势</strong>：见 10.5。</li>
+</ul>
+<blockquote>
+<p><strong>本章产出（建议）</strong></p>
+<ul>
+<li>一页纸<strong>设计蓝图</strong>（教师‑学生‑屏蔽‑RTA 数据流）。</li>
+<li><strong>评测卡</strong>：指标、阈值、异常注入脚本清单与场景覆盖率报告模板。</li>
+<li><strong>回放用例包</strong>：含代表性僵局/失范/公平性边界场景。</li>
+</ul>
+</blockquote>
+            </article>
+            
+            <nav class="page-nav"><a href="chapter9.html" class="nav-link prev">← 第9章 基于仿真的智能体级强化学习（单智能体）</a><a href="chapter11.html" class="nav-link next">第11章 Sim-to-Real：从仿真到现实的最后一公里 →</a></nav>
+        </main>
+    </div>
+</body>
+</html>

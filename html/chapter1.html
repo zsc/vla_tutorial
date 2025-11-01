@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="./">
+    <title>第1章 导论与动机案例</title>
+    <link rel="stylesheet" href="assets/style.css">
+    <link rel="stylesheet" href="assets/highlight.css">
+    <script src="assets/script.js" defer></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$']],
+                displayMath: [['$$', '$$']],
+                processEscapes: false,
+                packages: {'[+]': ['noerrors', 'ams']}
+            },
+            options: {
+                ignoreHtmlClass: 'tex2jax_ignore',
+                processHtmlClass: 'tex2jax_process'
+            },
+            loader: {
+                load: ['[tex]/noerrors', '[tex]/ams']
+            }
+        };
+    </script>
+</head>
+<body>
+    <div class="container">
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h3>目录</h3>
+                <button id="sidebar-toggle" class="sidebar-toggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+            <div class="sidebar-search">
+                <input type="text" id="sidebar-search-input" placeholder="搜索..." autocomplete="off">
+            </div>
+            <div id="tree-container">
+                <nav class="tree-nav" role="tree">
+                    <div class="tree-item " >
+                        <a href="index.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">Visual-Language Action Model: 预训练、MARL 和 Sim-to-Real</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item active" >
+                        <a href="chapter1.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第1章 导论与动机案例</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter2.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第2章 视觉模态（chapter2.md）</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter3.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第3章 语言模态</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter4.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第4章 行动模态</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter5.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第5章 模态对齐（Vision–Language–Action）</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter6.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第6章 隐式 3D 时空结构的引入</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter7.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第7章 预训练：模态预训练与跨模态对齐</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter8.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第8章 强化学习与微调（模型级）</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter9.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第9章 基于仿真的智能体级强化学习（单智能体）</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter10.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第10章 多智能体博弈与协调：从均衡理论与 MARL 到工程落地</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter11.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第11章 Sim-to-Real：从仿真到现实的最后一公里</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="CLAUDE.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">Untitled</span>
+                        </a>
+                    </div>
+                </nav>
+            </div>
+        </nav>
+        
+        <main class="content">
+            <article>
+                <h1 id="1">第1章 导论与动机案例</h1>
+<p><strong>Visual‑Language‑Action（VLA）范式与工程化目标</strong></p>
+<blockquote>
+<p><strong>开篇段落（本章目标）</strong>
+本章建立 VLA 的系统化认知：以<strong>视觉—语言—行动</strong>三模态闭环为骨架，澄清“<strong>行动是价值载体</strong>”这一核心命题，给出可操作的建模符号、关键指标与评测方法。通过<strong>自动驾驶</strong>与<strong>机器人操控</strong>两个动机案例，刻画多智能体互动与不确定性下的决策挑战；并引入后续章节主线：<strong>预训练 → 跨模态对齐 → 模型级 RL/RLVR →（单/多智能体）仿真 → Sim‑to‑Real</strong>。读完本章你应能：</p>
+<ol>
+<li>用统一记号描述 VLA 闭环；2) 说清“行动质量”与<strong>时序/频域</strong>约束；3) 明确评测指标与<strong>安全优先的多目标</strong>聚合；4) 理解无信号路口与精细操控中的<strong>礼让/失范/恢复</strong>要点；5) 了解<strong>RLVR（RL with Vision‑Language Rewards）</strong>在缺乏标注奖时的可行路径。</li>
+</ol>
+</blockquote>
+<hr />
+<h2 id="11-vla">1.1 什么是 VLA：三模态闭环与系统视角</h2>
+<p>我们以<strong>策略</strong>与<strong>系统</strong>两层来刻画 VLA。策略层关注条件分布
+[
+\pi_\theta(a_{1:T}\mid o_{1:T},,x);=;\prod_{t=1}^{T}\pi_\theta(a_t\mid h_t),\quad
+h_t = f_\theta(o_{1:t}, a_{1:t-1}, x),
+]
+其中 (o_t) 为多模态观测（视觉为主），(x) 为语言指令/上下文，(a_t) 为动作（轨迹/离散指令/控制量）。系统层强调<strong>延迟、采样、屏蔽与回放</strong>，确保策略可在<strong>闭环</strong>中稳定运行。</p>
+<p><strong>VLA 闭环（概念图）</strong></p>
+<div class="codehilite"><pre><span></span><code>         ┌─────────────┐         ┌─────────────┐
+  传感器 ─► 视觉编码器  ├──v_t───►  语言/推理器  ──┐
+ (相机/雷达)└─────────────┘         └─────────────┘  │
+         ▲             辅助文本/工具调用  ▲         │
+         │                                 │       │
+         │             ┌─────────────┐     │       ▼
+         │             │  行动解码器  │◄────┘   运行时屏蔽/安全RTA
+         │             └─────┬───────┘             │
+         │                   a_t                    │
+         │                    │                     │
+         │                 ┌──▼───┐                 │
+         └─────────────────┤ 执行器│◄───────────────┘
+                           └──┬───┘
+                              │  （车辆/机械臂/末端执行器）
+                         环境动力学→新观测 o_{t+1}
+</code></pre></div>
+
+<p><strong>Rule‑of‑Thumb（RoT）</strong></p>
+<ul>
+<li><strong>RoT‑1（闭环优先）</strong>：任何离线指标若不在<strong>闭环回放/仿真</strong>中复现，均不应被用于上线决策。</li>
+<li><strong>RoT‑2（安全先行）</strong>：评估采用<strong>词典序</strong>聚合：先约束安后优化效率/舒适，避免“以均值掩盖红线”。</li>
+<li><strong>RoT‑3（时序为王）</strong>：所有模块需显式记录<strong>时间戳与延迟预算</strong>；(\text{控制周期} \ll \text{视觉/语言推理周期}) 是常态。</li>
+</ul>
+<hr />
+<h2 id="12">1.2 行动质量为何关键：时间序列/信号观与评估指标</h2>
+<p><strong>行动即信号</strong>：动作 (a_t) 构成离散时间序列，其<strong>平滑性、带宽与相位裕度</strong>决定系统可控性与舒适度。以连续控制为例，典型成本可写为
+[
+\mathcal{J}(\tau) = \underbrace{\sum_{t}\ell_{\text{task}}(s_t, a_t)}<em _text_jerk="\text{jerk">{\text{任务成功}}
++\lambda</em>} \sum_{t}|\dddot{q}<em>t|</em>2^2
++\lambda<em t="t">{\text{dev}}\sum</em>\mathrm{dist}(s_t, \mathcal{M})^2,
+]
+其中 (q_t) 为位姿/速度，(\mathcal{M}) 为参考车道/轨迹流形。<strong>频域约束</strong>常以能量泄露表示：
+[
+E_{&gt;f_c} ;=; \sum_{|f|&gt;f_c} |\widehat{a}(f)|^2 \quad\text{（越小越好）}.
+]</p>
+<p><strong>安全与效率的核心指标（示例）</strong></p>
+<ul>
+<li><strong>成功率</strong> (S)：任务完成比。</li>
+<li><strong>碰撞率/违规率</strong> (C, V)：单千公里或千回合计数。</li>
+<li><strong>最小 TTC（Time‑to‑Collision）</strong>：(\mathrm{TTC} = \frac{d}{\max(\epsilon, \Delta v)})（闭合时 (\Delta v&gt;0)），并统计 p5/p50。</li>
+<li><strong>车距/时间头距</strong>：(\mathrm{TH} = d / v_{\text{ego}})。</li>
+<li><strong>舒适度</strong>：加速度/跃度 RMS（(a_{\mathrm{rms}}, j_{\mathrm{rms}})）。</li>
+<li><strong>轨迹偏差</strong>：到中心线/目标位姿的 L2。</li>
+<li><strong>频谱泄露</strong>：(E_{&gt;f_c}) 与尖峰比（peak ratio）。</li>
+</ul>
+<p><strong>多目标聚合</strong>
+建议采用<strong>“安全→合规→效率→舒适”</strong>的词典序或层级约束：
+[
+\begin{aligned}
+\text{minimize } &amp; \mathbb{E}[\text{耗时} + \beta \cdot j_{\mathrm{rms}}] \
+\text{s.t. } &amp; C \le \delta,;; \text{TTC}<em _text_safe="\text{safe">{\min} \ge \tau</em>},;; V \le \nu.
+\end{aligned}
+]</p>
+<p><strong>RoT‑4（指标成套）</strong>：在报告中<strong>同时给出</strong>成功率、红线（碰撞/违规）、舒适与频域指标，且配<strong>闭环回放</strong>链接/脚本。</p>
+<hr />
+<h2 id="13">1.3 动机案例一：自动驾驶概览（感知→理解→决策→控制）</h2>
+<p>典管线：<strong>感知</strong>（3D 目标/地标/自定位）→ <strong>语义理解/预测</strong>（参与者轨迹分布、让行关系）→ <strong>决策/规划</strong>（博弈与约束）→ <strong>控制</strong>（MPC/轨迹跟踪/屏蔽）。VLA 在此作为<strong>统一编排器</strong>：视觉供料、语言表达场景与策略选择、行动输出低带宽轨迹/离散意图。</p>
+<h3 id="131">1.3.1 无信号路口的多车博弈：礼让、保守、异常处置</h3>
+<p>无信号交汇处的核心是<strong>间隙接受与礼让</strong>（gap acceptance &amp; courtesy）。简化两车（Ego 与 Cross）在冲突区的<strong>时隙模型</strong>：</p>
+<ul>
+<li>预测进入时间 (t_{\text{in}}^{(i)}) 与离开时间 (t_{\text{out}}^{(i)})。</li>
+<li><strong>安全判据</strong>：(|t_{\text{in}}^{(E)} - t_{\text{in}}^{(C)}| \ge \Delta t_{\min}) 且区间不重叠。</li>
+<li><strong>礼让罚则</strong>：若抢占导致他车制动跃度超阈值 (j^{(C)} &gt; j_\star)，加<strong>社交合规罚</strong> (\rho).</li>
+</ul>
+<p>[
+\ell_{\text{junction}} = \mathbb{1}{\text{overlap}}\cdot \kappa</p>
+<ul>
+<li>\rho\cdot \max(0, j^{(C)} - j_\star)</li>
+<li>\eta\cdot \text{deadlock_time}.
+  ]</li>
+</ul>
+<p>异常处置：若观测到<strong>对手失范</strong>（不让/突然加速），切换到<strong>保守模式</strong>：增大 (\Delta t_{\min})，提升最小 TTC 阈值，触发 RTA 屏蔽。</p>
+<p><strong>ASCII：无信号丁字路口（“+”代表冲突区）</strong></p>
+<div class="codehilite"><pre><span></span><code>          ↑  Cross
+──────────+──────────
+          |    ◄── Ego 右转/直行
+          |
+</code></pre></div>
+
+<p><strong>RoT‑5（先“能通过”，再“通得好”）</strong>：在路口先实现<strong>零碰撞/零僵局</strong>（可长时等待），再逐步降低保守度以提升通行效率。</p>
+<h3 id="132">1.3.2 复杂交通先验：静态约束与动态不确定性</h3>
+<ul>
+<li><strong>静态约束</strong>：车道、路权、速度/加速度/曲率上限；</li>
+<li><strong>动态不确定性</strong>：对手意图、行人随机性、感知漏检/误检。
+  推荐用<strong>风险约束</strong>描述：(\Pr[\text{安全约束违背}] \le \delta)，或用<strong>CVaR</strong> 目标抑制尾部风险。语言模块可将「<strong>礼让</strong>」「<strong>校车</strong>」「<strong>施工</strong>」等<strong>语义先验</strong>转为参数化阈值与规则切换。</li>
+</ul>
+<hr />
+<h2 id="14">1.4 动机案例二：机器人操控（抓取/放置/精细操作）</h2>
+<p>VLA 在桌面/移动操作中的角色：视觉负责<strong>位姿/接触线索</strong>，语言负责<strong>流程编排与工具调用</strong>（如“先清理，再抓取，再插装”），行动输出为<strong>末端轨迹/力控指令</strong>。</p>
+<h3 id="141-vs">1.4.1 轮式移动 vs. 机臂操控：任务与约束差异</h3>
+<ul>
+<li>
+<p><strong>轮式移动</strong>：典型非完整约束（如差速驱动）
+  [
+  \dot{x} = v\cos\theta,;; \dot{y}=v\sin\theta,;; \dot{\theta} = \omega,
+  ]
+  轨迹需满足<strong>曲率/跃度</strong>边界，易进行频域平滑与 RTA 投影。</p>
+</li>
+<li>
+<p><strong>机臂操控</strong>：约束来自<strong>雅可比/关节限位/自碰撞/接触力</strong>
+  [
+  \dot{\mathbf{x}} = J(q)\dot{q},\quad \text{力控： } \mathbf{f}_{\text{cmd}} = K_p,e + K_d,\dot{e}.
+  ]
+  需要在<strong>接触相</strong>处理<strong>摩擦锥与可行力域</strong>，并在<strong>切换相</strong>抑制冲击。</p>
+</li>
+</ul>
+<p><strong>RoT‑6（先姿态后力）</strong>：对精细装配，先用语言/视觉确定<strong>约束几何</strong>（孔轴方向、插拔深），再切换至<strong>力控/阻抗</strong>细化；避免早期进入刚性力控导致抖振。</p>
+<hr />
+<h2 id="15-rlrlvrsimtoreal">1.5 本课程结构与学习路径（预训练→对齐→RL/RLVR→仿真→Sim‑to‑Real）</h2>
+<ul>
+<li><strong>阶段 A：模态预训练</strong>（视觉/语言/行动）。视觉：对比与掩码视频；行动：频域先验与示教轨迹；语言：通用 LLM 领域化。</li>
+<li><strong>阶段 B：跨模态对齐</strong>（V‑L、L‑A、V‑A）。共享码本/门控/互信息最大化。</li>
+<li>
+<p><strong>阶段 C：模型级微调</strong>——<strong>SFT→RFT/RL</strong>，以及<strong>RLVR</strong>：用 VLM/偏好模型把<strong>语言定义的目标</strong>转成<strong>可学习奖励</strong>。
+  [
+  \min_\phi \sum_{(i\succ j)} -\log \sigma!\left(R_\phi(\tau_i,x)-R_\phi(\tau_j,x)\right),\quad
+  \max_\theta \mathbb{E}<em>{\pi</em>\theta}!\left[\textstyle\sum_t \gamma^t r_t^\phi\right].
+  ]</p>
+</li>
+<li>
+<p><strong>阶段 D：仿真训练</strong>（单→多智能体）。</p>
+</li>
+<li><strong>阶段 E：Sim‑to‑Real</strong>（域随机化、系统辨识、残差/在线适应、RTA）。</li>
+</ul>
+<p><strong>RoT‑7（蒸馏—对齐—约束“三件套”）</strong>任何能跑起来的策略，都应被<strong>蒸馏成低带宽行动表示</strong>，与<strong>语言/视觉</strong>对齐，并在上线前通过<strong>屏蔽与 RTA</strong>加以约束。</p>
+<hr />
+<h2 id="16">1.6 评测与项目预告：从定性演示到可复现实验</h2>
+<ul>
+<li><strong>三层评测</strong>：</li>
+</ul>
+<ol>
+<li><strong>离线回放</strong>（一致性/红线筛查）；</li>
+<li><strong>仿真压测</strong>（场景簇 + 长尾失效回放，报告覆盖率与极值指标）；</li>
+<li><strong>实物/封闭场</strong>（HIL→围栏/试验线→影子模式）。
+* <strong>报告规范</strong>：提交<strong>指标表 + 频谱图 + 回放链接 + 随机种子/配置</strong>。
+* <strong>大作业对接</strong>：第 12–13 章包含<strong>小实验 &amp; Final Project</strong>；建议沿“自动驾驶路口/桌面插装”两条主线推进。</li>
+</ol>
+<hr />
+<h2 id="_1">本章小结</h2>
+<ol>
+<li><strong>VLA 是三模态闭环</strong>：视觉供证据、语言做编排、行动给产出；闭环属性决定<strong>延迟/平滑/屏蔽</strong>的重要性。</li>
+<li><strong>行动质量 = 任务 + 安全 + 舒适 + 频域可控</strong>；建议词典序聚合，明确红线与阈值。</li>
+<li><strong>路口与操控</strong>体现 VLA 的协同价值：从<strong>语义到约束</strong>的桥接让策略既<strong>社交合规</strong>又<strong>物理可行</strong>。</li>
+<li><strong>RLVR</strong>为“奖励稀缺”提供途径：用视觉‑语言偏好学得奖励，再以 RL 优化策略；全程需防范<strong>奖黑客</strong>与<strong>评估漂移</strong>。</li>
+<li>课程路线以<strong>预训练→对齐→RL/RLVR→仿真→Sim‑to‑Real</strong>为主，形成从实验到部署的<strong>证据链</strong>。</li>
+</ol>
+<hr />
+<h2 id="gotchas">常见陷阱与错误（Gotchas）与调试提示</h2>
+<ol>
+<li><strong>离线好看、在线发散</strong></li>
+</ol>
+<ul>
+<li><strong>症状</strong>：离线损失/检索指标优异，仿真/实车不稳定。</li>
+<li><strong>对策</strong>：强制闭环评测；在报告中加入 (j_{\mathrm{rms}})、(E_{&gt;f_c})、TTC p5；引入<strong>低带宽行动接口</strong>与<strong>屏蔽</strong>再测。</li>
+</ul>
+<ol start="2">
+<li><strong>时间戳错位/延迟预算失配</strong></li>
+</ol>
+<ul>
+<li><strong>症状</strong>：转向/抓取“慢半拍”。</li>
+<li><strong>对策</strong>：统一时钟；记录每环节延迟并建立<strong>ZOH/延迟补偿</strong>；做<strong>时延扫描仿真</strong>。</li>
+</ul>
+<ol start="3">
+<li><strong>数据泄露与分布错配</strong></li>
+</ol>
+<ul>
+<li><strong>症状</strong>：回放指标“虚高”，现场化。</li>
+<li><strong>对策</strong>：场景簇分层抽样；<strong>区域/天气/设备</strong>分布独立划分；显式报告 OOD 性能。</li>
+</ul>
+<ol start="4">
+<li><strong>奖励设计脆弱（RL/RLVR）</strong></li>
+</ol>
+<ul>
+<li><strong>症状</strong>：学会“卡边界”“停滞以避罚”。</li>
+<li><strong>对策</strong>：加<strong>词典序安全约束</strong>或 <strong>CVaR</strong>；引入<strong>偏好对</strong>覆盖极端状况；对奖励做<strong>单元测试</strong>与<strong>反事实检查</strong>。</li>
+</ul>
+<ol start="5">
+<li><strong>社交合规缺失</strong></li>
+</ol>
+<ul>
+<li><strong>症状</strong>：路口抢占、机协不礼让。</li>
+<li><strong>对策</strong>：在语言层显式引入“礼让/优先级/礼貌阈值”，并映射为<strong>时间间隔 (\Delta t_{\min})</strong>、<strong>加速度上限</strong>等可执行参数。</li>
+</ul>
+<ol start="6">
+<li><strong>频域泄露导致抖振</strong></li>
+</ol>
+<ul>
+<li><strong>症状</strong>：控制抖动、接触振荡。</li>
+<li><strong>对策</strong>：在损失中加入 (E_{&gt;f_c}) 与跃度正则；上线前过<strong>频谱体检</strong>并验证<strong>相位裕度</strong>。</li>
+</ul>
+<ol start="7">
+<li><strong>指标聚合掩盖红线</strong></li>
+</ol>
+<ul>
+<li><strong>症状</strong>：平均指标改善但尾部事故增加。</li>
+<li><strong>对策</strong>：采用<strong>词典序/门控</strong>聚合；单列“极值/尾部”统计（p1/p99、min TTC）。</li>
+</ul>
+<ol start="8">
+<li><strong>多智能体对手建模缺失</strong></li>
+</ol>
+<ul>
+<li><strong>症状</strong>：在“积极/消极”对手切换时策略崩溃。</li>
+<li><strong>对策</strong>：在仿真中注入<strong>失范对手</strong>与<strong>混合策略对手</strong>；训练/评测分离；准备<strong>恢复策略</strong>。</li>
+</ul>
+<ol start="9">
+<li><strong>Sim‑to‑Real 断层</strong></li>
+</ol>
+<ul>
+<li><strong>症状</strong>：仿真优秀、实物退化显著。</li>
+<li><strong>对策</strong>：早期引入<strong>域随机化/系统辨识</strong>；用<strong>HIL</strong>与<strong>回放再现实验</strong>锁定关键差异；建立<strong>准入清单</strong>与退出条件。</li>
+</ul>
+<ol start="10">
+<li>
+<p><strong>RLVR 评估误导</strong></p>
+<ul>
+<li><strong>症状</strong>：用“同一 VLM”做奖励又做评测，形成自我循环。</li>
+<li><strong>对策</strong>：采用<strong>异构评审器</strong>与<strong>人工抽检</strong>；在报告中区分“<strong>训练评审器</strong>”与“<strong>独立评测器</strong>”。</li>
+</ul>
+</li>
+</ol>
+<p><strong>速查清单（Ready‑to‑Run）</strong></p>
+<ul>
+<li>统一时钟与延迟表；行动带宽/采样率设定；</li>
+<li>词典序聚合阈值（TTC、碰撞/违规红线、跃度上限）；</li>
+<li>频谱体检脚本（(E_{&gt;f_c})、峰度）；</li>
+<li>路口/装配最小案例与<strong>失范对手</strong>回放；</li>
+<li>RLVR 偏好对最小集合与“奖黑客”单元测试；</li>
+<li>闭环回放与仿真压测入口统一化（随机种子/配置可复现）。</li>
+</ul>
+<hr />
+<blockquote>
+<p><strong>到此为止，你已经完成了第 1 章（chapter1.md）</strong>。下一步建议：快速翻阅第 2–5 章打牢<strong>感知/对齐/行动</strong>概念，再进入第 7–11 章的<strong>预训练→RL/RLVR→仿真→Sim‑to‑Real</strong>主线练习。</p>
+</blockquote>
+            </article>
+            
+            <nav class="page-nav"><a href="index.html" class="nav-link prev">← Visual-Language Action Model: 预训练、MARL 和 Sim-to-Real</a><a href="chapter2.html" class="nav-link next">第2章 视觉模态（chapter2.md） →</a></nav>
+        </main>
+    </div>
+</body>
+</html>
