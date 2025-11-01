@@ -179,13 +179,13 @@
 <p><strong>分层与等变/不变性</strong>
 卷积与池化形成从<strong>局部边缘/纹理</strong>到<strong>部件</strong>再到<strong>全局形状</strong>的层级。低层保持<strong>平移等变</strong>，高层倾向<strong>类别不变</strong>。
 <strong>有效感受野</strong>（effective receptive field, ERF）定量刻画“一个输出像素能看到多大输入区域”：
-[
+$$
 \begin{aligned}
-R_0 &amp;= 1,\quad S_0 = 1 \
-R_\ell &amp;= R_{\ell-1} + (k_\ell-1),d_\ell,\prod_{j=0}^{\ell-1} s_j, \
+R_0 &amp;= 1,\quad S_0 = 1 \\
+R_\ell &amp;= R_{\ell-1} + (k_\ell-1),d_\ell,\prod_{j=0}^{\ell-1} s_j, \\
 S_\ell &amp;= S_{\ell-1}\cdot s_\ell,
 \end{aligned}
-]
+$$
 其中 (k_\ell) 为核大小、(s_\ell) 步幅、(d_\ell) 膨胀率。<strong>Rule‑of‑thumb</strong>：在检测/操控中，目标最小尺寸 (\approx) 最早能覆盖它的层的 (R_\ell)；若 (R_\ell) 过小，会出现<strong>局部语义碎片化</strong>。</p>
 <p><strong>多尺度金字塔（FPN/Laplacian）</strong>
 自顶向下与横向连接让浅层的细节与高层的语义融合：</p>
@@ -204,25 +204,25 @@ S_\ell &amp;= S_{\ell-1}\cdot s_\ell,
 <p><strong>Marr 三层次</strong>：计算理论（要素/目标）、表示与算法、实现。视觉表征常对应：<strong>原始素描</strong>（边缘/角点）、<strong>2.5D 草图</strong>（表面朝向/深度）、<strong>3D 结构</strong>（可用于操控/预测）。</p>
 <p><strong>尺度空间理论</strong>
 用高斯核生成尺度空间：
-[
+$$
 L(\mathbf{x},\sigma) = (G_\sigma * I)(\mathbf{x}),\quad
 G_\sigma(\mathbf{x}) = \frac{1}{2\pi\sigma^2}\exp!\left(-\frac{|\mathbf{x}|^2}{2\sigma^2}\right).
-]
+$$
 LoG/DoG 在不同 (\sigma) 上找极值，稳定关键点。<strong>Rule‑of‑thumb</strong>：选择 (\sigma) 使得核直径 (\approx) 目标最小宽度的 (1!~\text{to}~!2) 倍，可在噪声鲁棒与细节保真间折中。</p>
 <hr />
 <h2 id="23-clip">2.3 视觉—语言对齐：对比学习与 CLIP 思路</h2>
 <p><strong>双塔对齐与 InfoNCE</strong>
 图像塔 (f_\theta(x)) 与文本塔 (g_\phi(t)) 被拉到同一嵌入空间，使用温度化的余弦相似度 (s_{ij}=\frac{f_i^\top g_j}{|f_i||g_j|})。对称 InfoNCE：
-[
-\mathcal{L}<em i="1">{\text{img}\to\text{text}}
-= -\frac{1}{N}\sum</em>^N
+$$
+\mathcal{L}*{\text{img}\to\text{text}}
+= -\frac{1}{N}\sum*{i=1}^N
 \log
 \frac{\exp(s_{ii}/\tau)}{\sum_{j=1}^N \exp(s_{ij}/\tau)},\quad
-\mathcal{L}<em _text_img="\text{img">{\text{text}\to\text{img}}\ \text{同理},
-]
-[
-\mathcal{L}=\tfrac{1}{2}!\left(\mathcal{L}</em>\to\text{text}}+\mathcal{L}_{\text{text}\to\text{img}}\right).
-]
+\mathcal{L}*{\text{text}\to\text{img}}\ \text{同理},
+$$
+$$
+\mathcal{L}=\tfrac{1}{2}!\left(\mathcal{L}*{\text{img}\to\text{text}}+\mathcal{L}_{\text{text}\to\text{img}}\right).
+$$
 <strong>温度 (\tau)</strong> 控制<strong>软负样本挤压</strong>力度；(\tau) 过小→优化难且过分“尖锐”；过大→对齐松散。
 <strong>Rule‑of‑thumb</strong>：在 batch‑size (B) 固定时，(\tau) 调到<strong>验证检索</strong>的 mAP 或 Recall@K 最优，而非训练 loss 最小。</p>
 <h3 id="231-vs">2.3.1 对齐特征 vs. 纯视觉特征：全局语义与细节取舍</h3>
@@ -255,11 +255,11 @@ LoG/DoG 在不同 (\sigma) 上找极值，稳定关键点。<strong>Rule‑of‑
 <li><strong>重建/掩码（MAE‑V）</strong>：时间/空间 token 掩掉 (p%)，预测像素/特征。</li>
 <li><strong>下一帧/片段预测</strong>：最小化 (\ell_1/\ell_2) 或感知损失 (\mathcal{L}_{\text{percep}})，也可在频域加入带宽正则（抑过度锐化/振铃）。</li>
 <li><strong>时序顺序/对比</strong>：打乱片段顺序、预测是否“时间可达”。
-   [
-   \mathcal{L}<em _text_rec="\text{rec">{\text{video}}=\lambda</em>}\mathcal{L}<em _text_pred="\text{pred">{\text{rec}}
-   +\lambda</em>}\mathcal{L}<em _text_cont="\text{cont">{\text{pred}}
-   +\lambda</em>}\mathcal{L}_{\text{cont}}.
-   ]</li>
+$$
+\mathcal{L}*{\text{video}}=\lambda*{\text{rec}}\mathcal{L}*{\text{rec}}
+   +\lambda*{\text{pred}}\mathcal{L}*{\text{pred}}
+   +\lambda*{\text{cont}}\mathcal{L}_{\text{cont}}.
+$$ </li>
 </ol>
 <p><strong>频域视角（与行动对接）</strong>
 对视频/光流进行<strong>带通限制</strong>，与行动侧的<strong>加速度/跃度约束</strong>一致。<strong>Rule‑of‑thumb</strong>：对操控任务的视觉分支，限制到<strong>不超过控制回路 1/2 带宽</strong>的时域变化，降噪且减少相位滞后感知误报。</p>
@@ -268,9 +268,9 @@ LoG/DoG 在不同 (\sigma) 上找极值，稳定关键点。<strong>Rule‑of‑
 <li><strong>短期</strong>：1D 时域卷积/门控单元（TCN/GRU）。</li>
 <li><strong>长期</strong>：稀疏注意力/分块记忆（固定内存窗口 (W) + 检索关键帧）。</li>
 <li><strong>运动先验</strong>：显式光流 (\mathbf{u}=(u,v)) 与稳定点约束：
-  [
-  I(x,y,t) \approx I(x+u,\Delta t, y+v,\Delta t, t+\Delta t).
-  ]
+$$
+I(x,y,t) \approx I(x+u,\Delta t, y+v,\Delta t, t+\Delta t).
+$$ 
   <strong>工程提示</strong>：对具有<strong>慢变背景+快速前景</strong>的场景，采用<strong>双路径</strong>（慢路径聚合语义，快路径保留细节）可稳住小目标。</li>
 </ul>
 <hr />
@@ -286,19 +286,19 @@ LoG/DoG 在不同 (\sigma) 上找极值，稳定关键点。<strong>Rule‑of‑
 <h3 id="251">2.5.1 开集识别与不确定性估计（温度缩放、能量分数）</h3>
 <p><strong>温度缩放（后校准）</strong>
 对 logits (z_k) 进行温度化：
-[
+$$
 p_k = \frac{\exp(z_k/T)}{\sum_j \exp(z_j/T)}.
-]
+$$ 
 仅调 (T)（在验证集上最小化 NLL）可显著改善<strong>置信度校准</strong>。</p>
 <p><strong>能量分数（Energy Score）用于 OOD</strong>
-[
+$$
 E(x) = -T \log \sum_{k} \exp(z_k(x)/T).
-]
+$$ 
 以阈值 (\gamma) 判定开集：(E(x)&gt;\gamma\Rightarrow \text{OOD})。
 <strong>校准指标</strong></p>
 <ul>
-<li><strong>ECE</strong>：(\text{ECE}=\sum_{m=1}^M \frac{|B_m|}{n},|\text{acc}(B_m)-\text{conf}(B_m)|)。</li>
-<li><strong>Brier 分数</strong>：(\text{BS}=\tfrac{1}{n}\sum_i\sum_k (p_{ik}-y_{ik})^2)。
+<li><strong>ECE</strong>：$\text{ECE}=\sum_{m=1}^M \frac{|B_m|}{n},|\text{acc}(B_m)-\text{conf}(B_m)|$。</li>
+<li><strong>Brier 分数</strong>：$\text{BS}=\tfrac{1}{n}\sum_i\sum_k (p_{ik}-y_{ik})^2$。
   <strong>Rule‑of‑thumb</strong>：部署前做三步——(1) 温度缩放（NLL/ECE 选优）；(2) 设定能量阈值满足<strong>FPR@95%TPR</strong>≤目标；(3) 触发<strong>Safeguard</strong>（降级/二次感知）。</li>
 </ul>
 <blockquote>
@@ -313,13 +313,13 @@ E(x) = -T \log \sum_{k} \exp(z_k(x)/T).
 <ul>
 <li>
 <p><strong>交叉相关估计偏移</strong>：
-  [
+  $
   \hat{\Delta t}=\arg\max_{\tau}\ \text{NCC}!\left(x(t), y(t+\tau)\right),
-  ]
+  $
   中 (x) 可取 IMU/轮速事件流，(y) 为从视频导出的运动量（如光流模）。</p>
 </li>
 <li>
-<p><strong>滞后建模</strong>：控制侧零阶保持 + 纯时延 (e^{-s\Delta t}) 的相位损失 (\phi(\omega)=-\omega\Delta t)。
+<p><strong>滞后建模</strong>：控制侧零阶保持 + 纯时延 $e^{-s\Delta t}$ 的相位损失 $\phi(\omega)=-\omega\Delta t$。
   <strong>Rule‑of‑thumb</strong>：把视觉到控制的<strong>总时延</strong>控制在<strong>控制周期 (T_c) 的 10–20%</strong> 内；超出则应<strong>预测外推</strong>（基于运动模型）并在策略上<strong>增加相位裕度</strong>（第4章/第11章细化）。</p>
 </li>
 </ul>
@@ -327,7 +327,7 @@ E(x) = -T \log \sum_{k} \exp(z_k(x)/T).
 <ul>
 <li><strong>时间戳统一</strong>：统一到<strong>单调时钟</strong>，拒绝相机自带的可回绕时间。</li>
 <li><strong>帧—IMU 对齐</strong>：卡尔曼“时间滤波器”（把 (\Delta t) 作为状态估计）。</li>
-<li><strong>数据增强</strong>：训练时注入 (\Delta t\sim\mathcal{U}[-\delta,\delta]) 的“<strong>时延抖动</strong>”。</li>
+<li><strong>数据增强</strong>：训练时注入 $\Delta t\sim\mathcal{U}[-\delta,\delta]$ 的“<strong>时延抖动</strong>”。</li>
 </ul>
 <hr />
 <h2 id="26">2.6 路线组合：混合训练与阶段化设计</h2>
@@ -336,23 +336,23 @@ E(x) = -T \log \sum_{k} \exp(z_k(x)/T).
 (2) <strong>跨模态对齐</strong>：以 InfoNCE/对齐检索指标为主；
 (3) <strong>任务化/指令化</strong>：引入<strong>行动相关标签</strong>与语言锚点。</p>
 <p><strong>多目标加权</strong>
-[
+$
 \mathcal{L}=\sum_i \lambda_i \mathcal{L}_i,\quad
 \lambda_i \propto \frac{1}{\sigma_i^2}\ \ (\text{不确定性加权}),
-]
+$
 并辅以<strong>梯度外科</strong>（如投影/冲突解耦）避免任务互相拉扯。
 <strong>采样日程</strong>：从“几何重建/掩码为主”缓退到“对齐/任务为主”；<strong>Rule‑of‑thumb</strong>：保持<strong>几何类样本≥30%</strong> 直到下游几何 KPI（深度/边界 IoU）稳定。</p>
 <hr />
 <h2 id="27">2.7 小结：为对齐、行动与迁移奠基</h2>
 <p><strong>关键概念与公式回顾</strong></p>
 <ul>
-<li><strong>ERF</strong>：决定最早可分辨尺度；(R_\ell = R_{\ell-1}+(k_\ell-1)d_\ell\prod s)。</li>
-<li><strong>尺度空间</strong>：(L(\mathbf{x},\sigma)=G_\sigma*I)，LoG/DoG 稳关键点。</li>
+<li><strong>ERF</strong>：决定最早可分辨尺度；$R_\ell = R_{\ell-1}+(k_\ell-1)d_\ell\prod s$。</li>
+<li><strong>尺度空间</strong>：$L(\mathbf{x},\sigma)=G_\sigma*I$，LoG/DoG 稳关键点。</li>
 <li><strong>对比学习（InfoNCE）</strong>：双塔温度化相似度，(\tau) 决定软负样本力度。</li>
 <li><strong>视频自监督损失组合</strong>：重建/预测/对比的加权。</li>
 <li><strong>抽象 vs 压缩</strong>：信息瓶颈强调 (I(Z;Y)) 才是可操作语义。</li>
-<li><strong>不确定性与开集</strong>：温度缩放 + 能量分数 (E(x)=-T\log\sum\exp(z/T))；ECE/Brier 评估校准。</li>
-<li><strong>时域错位</strong>：交叉相关估计 (\Delta t)；总时延 (\lesssim 0.1!~\text{to}~!0.2,T_c)。</li>
+<li><strong>不确定性与开集</strong>：温度缩放 + 能量分数 $E(x)=-T\log\sum\exp(z/T)$；ECE/Brier 评估校准。</li>
+<li><strong>时域错位</strong>：交叉相关估计 (\Delta t)；总时延 $\lesssim 0.1!~\text{to}~!0.2,T_c$。</li>
 </ul>
 <blockquote>
 <p><strong>Rule‑of‑thumb（速记版）</strong></p>

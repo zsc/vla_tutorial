@@ -152,19 +152,19 @@
 <h2 id="11-vla">1.1 什么是 VLA：三模态闭环与系统视角</h2>
 <p>我们以<strong>策略</strong>与<strong>系统</strong>两层来刻画 VLA。策略层关注条件分布
 $$
-\pi_\theta(a_{1:T}\mid o_{1:T},,x);=;\prod_{t=1}^{T}\pi_\theta(a_t\mid h_t),\quad
+\pi_\theta(a_{1:T}\mid o_{1:T},\,x)\;=\;\prod_{t=1}^{T}\pi_\theta(a_t\mid h_t),\quad
 h_t = f_\theta(o_{1:t}, a_{1:t-1}, x),
 $$
 其中 $o_t$ 为多模态观测（视觉为主），$x$ 为语言指令/上下文$a_t$ 为动作（轨迹/离散指令/控制量）。系统层强调<strong>延迟、采样、屏蔽与回放</strong>，确保策略可在<strong>闭环</strong>中稳定运行。</p>
 <p><strong>VLA 闭环（概念图）</strong></p>
-<div class="codehilite"><pre><span></span><code>         ┌─────────────┐         ┌─────────────┐
-  传感器 ─► 视觉编码器  ├──v_t───►  语言/推理器  ──┐
- (相机/雷达)└─────────────┘         └─────────────┘  │
-         ▲             辅助文本/工具调用  ▲         │
-         │                                 │       │
-         │             ┌─────────────┐     │       ▼
+<div class="codehilite"><pre><span></span><code>            ┌─────────────┐         ┌─────────────┐
+  传感器 ─►   视觉编码器  ├──v_t───►  语言/推理器 ──┐
+ (相机/雷达)└─────────────┘         └─────────────┘ │
+         ▲              辅助文本/工具调用   ▲       │
+         │                                  │       │
+         │             ┌─────────────┐      │       ▼
          │             │  行动解码器  │◄────┘   运行时屏蔽/安全RTA
-         │             └─────┬───────┘             │
+         │             └─────┬───────┘              │
          │                   a_t                    │
          │                    │                     │
          │                 ┌──▼───┐                 │
@@ -190,7 +190,7 @@ $$
 $$
 其中 $q_t$ 为位姿/速度，$\mathcal{M}$ 为参考车道/轨迹流形。<strong>频域约束</strong>常以能量泄露表示：
 $$
-E_{&gt;f_c} ;=; \sum_{|f|&gt;f_c} |\widehat{a}(f)|^2 \quad\text{（越小越好）}.
+E_{&gt;f_c} \;=\; \sum_{|f|&gt;f_c} |\widehat{a}(f)|^2 \quad\text{（越小越好）}.
 $$</p>
 <p><strong>安全与效率的核心指标（示例）</strong></p>
 <ul>
@@ -217,13 +217,13 @@ $$</p>
 <h3 id="131">1.3.1 无信号路口的多车博弈：礼让、保守、异常处置</h3>
 <p>无信号交汇处的核心是<strong>间隙接受与礼让</strong>（gap acceptance &amp; courtesy）。简化两车（Ego 与 Cross）在冲突区的<strong>时隙模型</strong>：</p>
 <ul>
-<li>预测进入时间 (t_{\text{in}}^{(i)}) 与离开时间 (t_{\text{out}}^{(i)})。</li>
-<li><strong>安全判据</strong>：(|t_{\text{in}}^{(E)} - t_{\text{in}}^{(C)}| \ge \Delta t_{\min}) 且区间不重叠。</li>
-<li><strong>礼让罚则</strong>：若抢占导致他车制动跃度超阈值 (j^{(C)} &gt; j_\star)，加<strong>社交合规罚</strong> (\rho).</li>
+<li>预测进入时间 $t_{\text{in}}^{(i)}$ 与离开时间 $t_{\text{out}}^{(i)}$。</li>
+<li><strong>安全判据</strong>：$|t_{\text{in}}^{(E)} - t_{\text{in}}^{(C)}| \ge \Delta t_{\min}$ 且区间不重叠。</li>
+<li><strong>礼让罚则</strong>：若抢占导致他车制动跃度超阈值 $j^{(C)} &gt; j_\star$，加<strong>社交合规罚</strong> $\rho$.</li>
 </ul>
 <p>$$
-\ell_{\text{junction}} = \mathbb{1}{\text{overlap}}\cdot \kappa</p>
-<p>* \rho\cdot \max(0, j^{(C)} - j_\star)
+\ell_{\text{junction}} = \mathbb{1}{\text{overlap}}\cdot \kappa
+* \rho\cdot \max(0, j^{(C)} - j_\star)
 * \eta\cdot \text{deadlock_time}.
 $$</p>
 <p>异常处置：若观测到<strong>对手失范</strong>（不让/突然加速），切换到<strong>保守模式</strong>：增大 (\Delta t_{\min})，提升最小 TTC 阈值，触发 RTA 屏蔽。</p>
@@ -288,10 +288,12 @@ $$</p>
 <ol>
 <li><strong>离线回放</strong>（一致性/红线筛查）；</li>
 <li><strong>仿真压测</strong>（场景簇 + 长尾失效回放，报告覆盖率与极值指标）；</li>
-<li><strong>实物/封闭场</strong>（HIL→围栏/试验线→影子模式）。
-* <strong>报告规范</strong>：提交<strong>指标表 + 频谱图 + 回放链接 + 随机种子/配置</strong>。
-* <strong>大作业对接</strong>：第 12–13 章包含<strong>小实验 &amp; Final Project</strong>；建议沿“自动驾驶路口/桌面插装”两条主线推进。</li>
+<li><strong>实物/封闭场</strong>（HIL→围栏/试验线→影子模式）。</li>
 </ol>
+<ul>
+<li><strong>报告规范</strong>：提交<strong>指标表 + 频谱图 + 回放链接 + 随机种子/配置</strong>。</li>
+<li><strong>大作业对接</strong>：第 12–13 章包含<strong>小实验 &amp; Final Project</strong>；建议沿“自动驾驶路口/桌面插装”两条主线推进。</li>
+</ul>
 <hr />
 <h2 id="_1">本章小结</h2>
 <ol>
