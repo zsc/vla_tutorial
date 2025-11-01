@@ -15,11 +15,11 @@
 
 ```
 [视觉表征 V]──┐
-               ├─► 阶段Ⅱ：跨模态对齐（V–L, L–A, V–A）
+              ├─► 阶段Ⅱ：跨模态对齐（V–L, L–A, V–A）
 [语言基座 L]──┘            │
                            ├─► 指令化与轻量监督（SFT/偏好）
 [行动先验 A]───────────────┘            │
-                                         └─► 模型级/智能体级 RL（见第8–11章）
+                                        └─► 模型级/智能体级 RL（见第8–11章）
 ```
 
 **阶段Ⅰ（模态内）**：
@@ -43,27 +43,27 @@
 **对比学习（CL/InfoNCE）**：
 给定成对样本 ((x_i, y_i))（可为图–文、视–视增强），相似度 (s(\cdot,\cdot)) 与温度 (\tau)：
 
-[
-\mathcal{L}*{\text{InfoNCE}}
-= -\frac{1}{N}\sum*{i=1}^{N}
+$$
+\mathcal{L}_{\text{InfoNCE}}
+= -\frac{1}{N}\sum_{i=1}^{N}
 \log\frac{\exp\left(s(x_i,y_i)/\tau\right)}
 {\sum_{j=1}^{N}\exp\left(s(x_i,y_j)/\tau\right)}.
-]
+$$
 
 **掩码视频建模（MVM）与重建**：
 对时空块集合 (\mathcal{M}) 预测像素/码本：
 
-[
-\mathcal{L}*{\text{MVM}}=\sum*{(t,p)\in\mathcal{M}}
-\left|\hat{x}*{t,p}-x*{t,p}\right|*1
+$$
+\mathcal{L}_{\text{MVM}}=\sum_{(t,p)\in\mathcal{M}}
+\left|\hat{x}_{t,p}-x_{t,p}\right|_1
 \quad\text{或}\quad
-\mathcal{L}*{\text{VQ-CE}}=-\sum \log P(z_{t,p}=z^\star_{t,p}).
-]
+\mathcal{L}_{\text{VQ-CE}}=-\sum \log P(z_{t,p}=z^\star_{t,p}).
+$$
 
 **时一致性与开集识别**：
 
-* 一致性：短窗变换一致性 (\mathcal{L}*{\text{TC}}=\sum_t|f(x*{t+\Delta})-T_\Delta(f(x_t))|_2^2)。
-* 开集：能量分数 (E(x)=-\tau \log \sum_k \exp(\phi_k(x)/\tau)) 用于阈值化不确定性。
+* 一致性：短窗变换一致性 $\mathcal{L}*{\text{TC}}=\sum_t|f(x*{t+\Delta})-T_\Delta(f(x_t))|_2^2$。
+* 开集：能量分数 $E(x)=-\tau \log \sum_k \exp(\phi_k(x)/\tau)$ 用于阈值化不确定性。
 
 > 📌 **经验法则**：**不要**把 CL 负样本全当“真负样本”。对近邻帧/近景图像做**半负**或**软标签**可显著降低“伪负样本”带来的语义撕裂。
 
@@ -74,23 +74,23 @@
 **目标**：让模型在无交互/无奖励下，学得**平滑、因果、可控**的轨迹分布。
 
 * **行为克隆（BC）**：
-  [
+  $$
   \mathcal{L}*{\text{BC}}=\mathbb{E}*{(s_t,a_t)}\big[-\log \pi_\theta(a_t\mid s_t)\big].
-  ]
+  $$
 
 * **频域/带宽先验**（对轨迹 (x(t)) 的 DFT：(X[k])）：
-  [
+  $$
   \mathcal{L}*{\text{spec}}=\sum*{k=0}^{K}w_k\big(,|X[k]|-|\hat{X}[k]|\big)^2,\quad
   w_k \propto \frac{1}{(1+k)^\alpha}.
-  ]
+  $$
   低频加权抑制高频抖动，映射到**舒适度**与**执行器带宽**。
 
 * **几与动力学约束**（曲率 (\kappa)、加速度 (a)、跃度 (j)）：
-  [
+  $$
   \mathcal{L}*{\text{dyn}}=\lambda*\kappa !\sum! [|\kappa|-\kappa_{\max}]*+ +
   \lambda_a !\sum! [|a|-a*{\max}]*+ +
   \lambda_j !\sum! [|j|-j*{\max}]_+ .
-  ]
+  $$
 
 * **教师–学生蒸馏（控制教师 → 行动学生）**：用 MPC/CBF 的可行轨迹作为“软标签”，蒸馏到学生策略分布（KLD/EMD）。
 
@@ -144,9 +144,9 @@
 ## 7.6 Token Buckets 分配：按模态/任务/难度的预算治理
 
 **设定**：为每个数据簇/任务 (k) 分配桶容量 (B_k)、漏出速率 (r_k)、当前已消耗令牌 (u_k(t))。每次采样满足：
-[
+$$
 p_k(t) \propto \max\big(0,,B_k - u_k(t)\big)^\gamma \cdot q_k(\text{难度}, t),
-]
+$$
 其中 (q_k) 可随课程升高难度，(\gamma) 控制“补齐性”。
 
 **多目标公平**：加入下限 (p_k^{\min}) 防止冷门任务饿死；关键安全/开集 Probe 的桶给**优先级**。
@@ -166,9 +166,9 @@ p_k(t) \propto \max\big(0,,B_k - u_k(t)\big)^\gamma \cdot q_k(\text{难度}, t),
 ## 7.7 对齐数据构建：配对、三元组、合成与清洗
 
 * **配对/三元组**：((v,l,a))、((v,l))、((v,a)) 混合；引入**循环一致**约束：
-  [
+  $$
   \mathcal{L}*{\text{cycle}}=|g*{L\to A}(g_{V\to L}(v))-g_{V\to A}(v)|_1 + \cdots
-  ]
+  $$
 * **合成数据**：程序化生成**可控难度**样本（视角/光照/交通密度/目标曲率），便于课程与“失效放大”。
 * **清洗**：
 
@@ -183,7 +183,7 @@ p_k(t) \propto \max\big(0,,B_k - u_k(t)\big)^\gamma \cdot q_k(\text{难度}, t),
 ## 7.8 损失与多目标优化：权重平衡与梯度冲突缓解
 
 **总损失**（示意）：
-[
+$$
 \mathcal{L}
 = \lambda_{\text{CL}}\mathcal{L}_{\text{InfoNCE}}
 
@@ -195,9 +195,9 @@ p_k(t) \propto \max\big(0,,B_k - u_k(t)\big)^\gamma \cdot q_k(\text{难度}, t),
   ]
 
 **自适应权重（不确定性加权）**：
-[
+$$
 \mathcal{L}_{\text{multi}}=\sum_i \frac{1}{2\sigma_i^2}\mathcal{L}_i + \log \sigma_i,
-]
+$$
 (\sigma_i) 可学习，反映任务噪声与重要度。
 
 **梯度冲突调和**：
