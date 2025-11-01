@@ -151,11 +151,11 @@
 <hr />
 <h2 id="11-vla">1.1 什么是 VLA：三模态闭环与系统视角</h2>
 <p>我们以<strong>策略</strong>与<strong>系统</strong>两层来刻画 VLA。策略层关注条件分布
-[
+$$
 \pi_\theta(a_{1:T}\mid o_{1:T},,x);=;\prod_{t=1}^{T}\pi_\theta(a_t\mid h_t),\quad
 h_t = f_\theta(o_{1:t}, a_{1:t-1}, x),
-]
-其中 (o_t) 为多模态观测（视觉为主），(x) 为语言指令/上下文，(a_t) 为动作（轨迹/离散指令/控制量）。系统层强调<strong>延迟、采样、屏蔽与回放</strong>，确保策略可在<strong>闭环</strong>中稳定运行。</p>
+$$
+其中 $o_t$ 为多模态观测（视觉为主），$x$ 为语言指令/上下文$a_t$ 为动作（轨迹/离散指令/控制量）。系统层强调<strong>延迟、采样、屏蔽与回放</strong>，确保策略可在<strong>闭环</strong>中稳定运行。</p>
 <p><strong>VLA 闭环（概念图）</strong></p>
 <div class="codehilite"><pre><span></span><code>         ┌─────────────┐         ┌─────────────┐
   传感器 ─► 视觉编码器  ├──v_t───►  语言/推理器  ──┐
@@ -178,38 +178,38 @@ h_t = f_\theta(o_{1:t}, a_{1:t-1}, x),
 <ul>
 <li><strong>RoT‑1（闭环优先）</strong>：任何离线指标若不在<strong>闭环回放/仿真</strong>中复现，均不应被用于上线决策。</li>
 <li><strong>RoT‑2（安全先行）</strong>：评估采用<strong>词典序</strong>聚合：先约束安后优化效率/舒适，避免“以均值掩盖红线”。</li>
-<li><strong>RoT‑3（时序为王）</strong>：所有模块需显式记录<strong>时间戳与延迟预算</strong>；(\text{控制周期} \ll \text{视觉/语言推理周期}) 是常态。</li>
+<li><strong>RoT‑3（时序为王）</strong>：所有模块需显式记录<strong>时间戳与延迟预算</strong>；$\text{控制周期} \ll \text{视觉/语言推理周期}$ 是常态。</li>
 </ul>
 <hr />
 <h2 id="12">1.2 行动质量为何关键：时间序列/信号观与评估指标</h2>
-<p><strong>行动即信号</strong>：动作 (a_t) 构成离散时间序列，其<strong>平滑性、带宽与相位裕度</strong>决定系统可控性与舒适度。以连续控制为例，典型成本可写为
-[
-\mathcal{J}(\tau) = \underbrace{\sum_{t}\ell_{\text{task}}(s_t, a_t)}<em _text_jerk="\text{jerk">{\text{任务成功}}
-+\lambda</em>} \sum_{t}|\dddot{q}<em>t|</em>2^2
-+\lambda<em t="t">{\text{dev}}\sum</em>\mathrm{dist}(s_t, \mathcal{M})^2,
-]
-其中 (q_t) 为位姿/速度，(\mathcal{M}) 为参考车道/轨迹流形。<strong>频域约束</strong>常以能量泄露表示：
-[
+<p><strong>行动即信号</strong>：动作 $a_t$ 构成离散时间序列，其<strong>平滑性、带宽与相位裕度</strong>决定系统可控性与舒适度。以连续控制为例，典型成本可写为
+$$
+\mathcal{J}(\tau) = \underbrace{\sum_{t}\ell_{\text{task}}(s_t, a_t)}*{\text{任务成功}}
++\lambda*{\text{jerk}} \sum_{t}|\dddot{q}*t|*2^2
++\lambda*{\text{dev}}\sum*{t}\mathrm{dist}(s_t, \mathcal{M})^2,
+$$
+其中 $q_t$ 为位姿/速度，$\mathcal{M}$ 为参考车道/轨迹流形。<strong>频域约束</strong>常以能量泄露表示：
+$$
 E_{&gt;f_c} ;=; \sum_{|f|&gt;f_c} |\widehat{a}(f)|^2 \quad\text{（越小越好）}.
-]</p>
+$$</p>
 <p><strong>安全与效率的核心指标（示例）</strong></p>
 <ul>
-<li><strong>成功率</strong> (S)：任务完成比。</li>
-<li><strong>碰撞率/违规率</strong> (C, V)：单千公里或千回合计数。</li>
-<li><strong>最小 TTC（Time‑to‑Collision）</strong>：(\mathrm{TTC} = \frac{d}{\max(\epsilon, \Delta v)})（闭合时 (\Delta v&gt;0)），并统计 p5/p50。</li>
-<li><strong>车距/时间头距</strong>：(\mathrm{TH} = d / v_{\text{ego}})。</li>
-<li><strong>舒适度</strong>：加速度/跃度 RMS（(a_{\mathrm{rms}}, j_{\mathrm{rms}})）。</li>
+<li><strong>成功率</strong> $S$：任务完成比。</li>
+<li><strong>碰撞率/违规率</strong> $(C, V)$：单千公里或千回合计数。</li>
+<li><strong>最小 TTC（Time‑to‑Collision）</strong>：$\mathrm{TTC} = \frac{d}{\max(\epsilon, \Delta v)}$（闭合时 $(\Delta v&gt;0)$），并统计 p5/p50。</li>
+<li><strong>车距/时间头距</strong>：$\mathrm{TH} = d / v_{\text{ego}}$。</li>
+<li><strong>舒适度</strong>：加速度/跃度 RMS（$(a_{\mathrm{rms}}, j_{\mathrm{rms}})$）。</li>
 <li><strong>轨迹偏差</strong>：到中心线/目标位姿的 L2。</li>
 <li><strong>频谱泄露</strong>：(E_{&gt;f_c}) 与尖峰比（peak ratio）。</li>
 </ul>
 <p><strong>多目标聚合</strong>
 建议采用<strong>“安全→合规→效率→舒适”</strong>的词典序或层级约束：
-[
+$$
 \begin{aligned}
 \text{minimize } &amp; \mathbb{E}[\text{耗时} + \beta \cdot j_{\mathrm{rms}}] \
-\text{s.t. } &amp; C \le \delta,;; \text{TTC}<em _text_safe="\text{safe">{\min} \ge \tau</em>},;; V \le \nu.
+\text{s.t. } &amp; C \le \delta,;; \text{TTC}*{\min} \ge \tau*{\text{safe}},;; V \le \nu.
 \end{aligned}
-]</p>
+$$</p>
 <p><strong>RoT‑4（指标成套）</strong>：在报告中<strong>同时给出</strong>成功率、红线（碰撞/违规）、舒适与频域指标，且配<strong>闭环回放</strong>链接/脚本。</p>
 <hr />
 <h2 id="13">1.3 动机案例一：自动驾驶概览（感知→理解→决策→控制）</h2>
@@ -221,13 +221,11 @@ E_{&gt;f_c} ;=; \sum_{|f|&gt;f_c} |\widehat{a}(f)|^2 \quad\text{（越小越好�
 <li><strong>安全判据</strong>：(|t_{\text{in}}^{(E)} - t_{\text{in}}^{(C)}| \ge \Delta t_{\min}) 且区间不重叠。</li>
 <li><strong>礼让罚则</strong>：若抢占导致他车制动跃度超阈值 (j^{(C)} &gt; j_\star)，加<strong>社交合规罚</strong> (\rho).</li>
 </ul>
-<p>[
+<p>$$
 \ell_{\text{junction}} = \mathbb{1}{\text{overlap}}\cdot \kappa</p>
-<ul>
-<li>\rho\cdot \max(0, j^{(C)} - j_\star)</li>
-<li>\eta\cdot \text{deadlock_time}.
-  ]</li>
-</ul>
+<p>* \rho\cdot \max(0, j^{(C)} - j_\star)
+* \eta\cdot \text{deadlock_time}.
+$$</p>
 <p>异常处置：若观测到<strong>对手失范</strong>（不让/突然加速），切换到<strong>保守模式</strong>：增大 (\Delta t_{\min})，提升最小 TTC 阈值，触发 RTA 屏蔽。</p>
 <p><strong>ASCII：无信号丁字路口（“+”代表冲突区）</strong></p>
 <div class="codehilite"><pre><span></span><code>          ↑  Cross
@@ -250,16 +248,16 @@ E_{&gt;f_c} ;=; \sum_{|f|&gt;f_c} |\widehat{a}(f)|^2 \quad\text{（越小越好�
 <ul>
 <li>
 <p><strong>轮式移动</strong>：典型非完整约束（如差速驱动）
-  [
-  \dot{x} = v\cos\theta,;; \dot{y}=v\sin\theta,;; \dot{\theta} = \omega,
-  ]
+  $$
+\dot{x} = v\cos\theta,;; \dot{y}=v\sin\theta,;; \dot{\theta} = \omega,
+$$
   轨迹需满足<strong>曲率/跃度</strong>边界，易进行频域平滑与 RTA 投影。</p>
 </li>
 <li>
 <p><strong>机臂操控</strong>：约束来自<strong>雅可比/关节限位/自碰撞/接触力</strong>
-  [
-  \dot{\mathbf{x}} = J(q)\dot{q},\quad \text{力控： } \mathbf{f}_{\text{cmd}} = K_p,e + K_d,\dot{e}.
-  ]
+  $$
+\dot{\mathbf{x}} = J(q)\dot{q},\quad \text{力控： } \mathbf{f}_{\text{cmd}} = K_p,e + K_d,\dot{e}.
+$$
   需要在<strong>接触相</strong>处理<strong>摩擦锥与可行力域</strong>，并在<strong>切换相</strong>抑制冲击。</p>
 </li>
 </ul>
@@ -271,10 +269,10 @@ E_{&gt;f_c} ;=; \sum_{|f|&gt;f_c} |\widehat{a}(f)|^2 \quad\text{（越小越好�
 <li><strong>阶段 B：跨模态对齐</strong>（V‑L、L‑A、V‑A）。共享码本/门控/互信息最大化。</li>
 <li>
 <p><strong>阶段 C：模型级微调</strong>——<strong>SFT→RFT/RL</strong>，以及<strong>RLVR</strong>：用 VLM/偏好模型把<strong>语言定义的目标</strong>转成<strong>可学习奖励</strong>。
-  [
-  \min_\phi \sum_{(i\succ j)} -\log \sigma!\left(R_\phi(\tau_i,x)-R_\phi(\tau_j,x)\right),\quad
-  \max_\theta \mathbb{E}<em>{\pi</em>\theta}!\left[\textstyle\sum_t \gamma^t r_t^\phi\right].
-  ]</p>
+  $$
+\min_\phi \sum_{(i\succ j)} -\log \sigma!\left(R_\phi(\tau_i,x)-R_\phi(\tau_j,x)\right),\quad
+  \max_\theta \mathbb{E}*{\pi*\theta}!\left[\textstyle\sum_t \gamma^t r_t^\phi\right].
+$$</p>
 </li>
 <li>
 <p><strong>阶段 D：仿真训练</strong>（单→多智能体）。</p>
