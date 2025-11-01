@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <base href="./">
-    <title>第2章 视觉模态（chapter2.md）</title>
+    <title>第2章 视觉模态：从像素到可行动的表征</title>
     <link rel="stylesheet" href="assets/style.css">
     <link rel="stylesheet" href="assets/highlight.css">
     <script src="assets/script.js" defer></script>
@@ -60,7 +60,7 @@
                     <div class="tree-item active" >
                         <a href="chapter2.html" class="tree-link">
                             <span class="tree-icon">📄</span>
-                            <span class="tree-title">第2章 视觉模态（chapter2.md）</span>
+                            <span class="tree-title">第2章 视觉模态：从像素到可行动的表征</span>
                         </a>
                     </div>
                 
@@ -139,302 +139,189 @@
         
         <main class="content">
             <article>
-                <p>（交流可以用英文，所有文档中文，保留这句）</p>
-<h1 id="2-chapter2md">第2章 视觉模态（chapter2.md）</h1>
-<blockquote>
-<p><strong>开篇段落｜学习目标</strong>
-本章从<strong>表征—对齐—时空</strong>三条轴线系统梳理视觉模态。我们回顾 CNN 与金字塔等经典结构，连接到视觉—语言对齐（如对比学习/CLIP 思路）与视频自/半监督（重建、掩码、下一帧预测）。在工程侧，聚焦两类“<strong>落地痛点</strong>”：①<strong>开集识别与不确定性估计</strong>（温度缩放/能量分数/校准指标）；②<strong>时域错位鲁棒性</strong>（相机—IMU—控制回路的时间对齐）。
-<strong>学习完成后，你应能：</strong>（a）说明视觉特征的<strong>多尺度</strong>与<strong>部件—整体</strong>结构；（b）推导并实现对比学习的<strong>InfoNCE</strong>与温度控制原则；（c）为视频自监督设计<strong>时域</strong>掩码与预测任务；（d）在部署前以<strong>ECE/NLL/能量阈值</strong>完成开集与校准体检；（e）提出<strong>时延补偿</strong>与<strong>对齐诊断</strong>方案，并明白其对控制闭环的影响。</p>
-</blockquote>
+                <h1 id="2">第2章 视觉模态：从像素到可行动的表征</h1>
+<h2 id="_1">开篇段落</h2>
+<p>视觉是具身智能体（Embodied Agent）感知和理解物理世界最主要、信息带宽最宽的通道。对于任何旨在“做对”而非仅仅“看懂”的VLA系统而言，视觉感知的失败是所有后续错误的根源，其代价可能是物理世界的真实损失。本章的目标，正是为VLA模型构建一个坚实可靠且“知其边界”的视觉感知基座。我们将沿着三条相互交织的技术主线，深入剖析视觉表征的演进：从奠定基石的卷积神经网络（CNN）及其分层、分部件的经典思想，到利用互联网规模图文数据进行大规模对比学习、打通视觉与语言鸿沟的对齐范式（如CLIP），再到挖掘视频数据内蕴时空结构与物理规律的自监督学习方法（如MAE）。本章不仅回顾这些方法的原理，更将系统性地梳理现代VLM如何基于这些思想构建出不同的主流架构。最终，所有讨论将收敛于两个对于构建可部署行动系统至关重要的议题：<strong>开集识别与不确定性估计</strong>，以及<strong>时域错位鲁棒性</strong>。这确保我们的感知基座不仅看得准，更能在面对未知时“知其不知”，并能优雅地处理真实世界中无处不在的延迟与异步。</p>
 <hr />
-<h2 id="_1">小节目录</h2>
+<h2 id="_2">文字论述</h2>
+<h3 id="21-cnn">2.1 经典视觉回顾：CNN 分层特征与“部件—整体”分解</h3>
+<p>在深度习革命之前，计算机视觉依赖于手工设计的特征提取器（如SIFT, HOG）。卷积神经网络（CNN）的崛起，标志着从“特征工程”到“特征学习”的范式转移。其成功源于对自然图像统计特性的深刻洞察和三个核心设计原则：</p>
+<ol>
+<li><strong>局部感受野 (Local Receptive Fields)</strong>：每个神经元只连接到输入层的一个小区域，这模拟了生物视觉皮层的工作方式，并利用了图像中像素相关性的局部性原理。</li>
+<li><strong>权值共享 (Weight Sharing)</strong>：一个特征检测器（卷积核）在整个图像上滑动，共享同一套权重。这极大地减少了模型参数，并使其具备了<strong>平移不变性 (Translation Invariance)</strong>。</li>
+<li><strong>层次化特征提取 (Hierarchical Feature Extraction)</strong>：通过堆叠卷积层和池化层，网络能够构建出从简单到复杂的特征层次。底层学习边缘、角点等基础纹理；中层组合成物体的部件（如车轮、眼睛）；高层则汇聚成完整的物体或场景概念。</li>
+</ol>
 <ul>
-<li>2.1 经典视觉回顾：CNN 分层特征与“部件—整体”分解</li>
-<li>2.2 Marr 式表征思想与多尺度处理</li>
-<li>
-<p>2.3 视觉—语言对齐：对比学习与 CLIP 思路</p>
-</li>
-<li>
-<p>2.3.1 对齐特征 vs. 纯视觉特征：全局语义与细节取舍</p>
-</li>
-<li>2.3.2 图文数据瓶颈：描述稀疏与自动标注的细节缺失</li>
-<li>
-<p>2.4 视频自/半监督：重建、掩码、下一帧/片段预测</p>
-</li>
-<li>
-<p>2.4.1 时间建模：持续性、运动线索与长期依赖</p>
-</li>
-<li>
-<p>2.5 视觉难点与开放问题：符号化/抽象与泛化</p>
-</li>
-<li>
-<p>2.5.1 开集识别与不确定性估计（温度缩放、能量分数）</p>
-</li>
-<li>2.5.2 时域错位鲁棒性：对齐、漂移与补偿</li>
-<li>2.6 路线组合：混合训练与阶段化设计</li>
-<li>2.7 小结：为对齐、行动与迁移奠基</li>
+<li><strong>代表性工作：ResNet (Residual Network, He et al., 2015)</strong><ul>
+<li><strong>贡献</strong>：通过引入“残差连接”（Shortcut Connection），革命性地解决了深度网络训练的难题，使得训练数百甚至上千层的超深网络成为现实，并成为后续无数视觉模型的基础骨干。</li>
+<li><strong>核心思想</strong>：与其让一个网络层（或块）直接学习一个复杂的目标映射 $H(x)$，不如让它学习该映射与输入 $x$ 之间的残差 $F(x) = H(x) - x$。原始映射则通过一个恒等短路连接变为 $H(x) = F(x) + x$。
+$$
+y = \mathcal{F}(x, \{W_i\}) + x
+$$
+这个简单的加法操作，为梯度在网络中的反向传播提供了一条“高速公路”，确保了信息的无损流动。</li>
 </ul>
-<hr />
-<h2 id="21-cnn">2.1 经典视觉回顾：CNN 分层特征与“部件—整体”分解</h2>
-<p><strong>分层与等变/不变性</strong>
-卷积与池化形成从<strong>局部边缘/纹理</strong>到<strong>部件</strong>再到<strong>全局形状</strong>的层级。低层保持<strong>平移等变</strong>，高层倾向<strong>类别不变</strong>。
-<strong>有效感受野</strong>（effective receptive field, ERF）定量刻画“一个输出像素能看到多大输入区域”：
-$$
-\begin{aligned}
-R_0 &amp;= 1,\quad S_0 = 1 \\
-R_\ell &amp;= R_{\ell-1} + (k_\ell-1),d_\ell,\prod_{j=0}^{\ell-1} s_j, \\
-S_\ell &amp;= S_{\ell-1}\cdot s_\ell,
-\end{aligned}
-$$
-其中 (k_\ell) 为核大小、(s_\ell) 步幅、(d_\ell) 膨胀率。<strong>Rule‑of‑thumb</strong>：在检测/操控中，目标最小尺寸 (\approx) 最早能覆盖它的层的 (R_\ell)；若 (R_\ell) 过小，会出现<strong>局部语义碎片化</strong>。</p>
-<p><strong>多尺度金字塔（FPN/Laplacian）</strong>
-自顶向下与横向连接让浅层的细节与高层的语义融合：</p>
-<div class="codehilite"><pre><span></span><code><span class="n">输入图像</span>
-<span class="w">   </span><span class="err">│</span>
-<span class="p">[</span><span class="n">Conv</span><span class="w"> </span><span class="n">stages</span><span class="p">]</span><span class="err">───┐</span>
-<span class="w">   </span><span class="err">│</span><span class="w">             </span><span class="err">├───</span><span class="o">&gt;</span><span class="w"> </span><span class="n">P3</span><span class="w"> </span><span class="p">(</span><span class="n">细节多</span><span class="p">)</span>
-<span class="w">   </span><span class="err">└─────────────┤</span>
-<span class="w">                 </span><span class="err">├───</span><span class="o">&gt;</span><span class="w"> </span><span class="n">P4</span>
-<span class="w">                 </span><span class="err">└───</span><span class="o">&gt;</span><span class="w"> </span><span class="n">P5</span><span class="w"> </span><span class="p">(</span><span class="n">语义强</span><span class="p">)</span>
+</li>
+</ul>
+<h3 id="22-marr">2.2 Marr 式表征思想与多尺度处理</h3>
+<p>认知科学家大卫·马尔（David Marr）提出的视觉计算理论框架强调从多尺度信息中逐步恢复世界结构的重要性。这个思想在现代深度学习中具体化为对<strong>多尺度特征</strong>的精妙处理。</p>
+<ul>
+<li><strong>代表性工作：FPN (Feature Pyramid Network, Lin et al., 2017)</strong><ul>
+<li><strong>贡献</strong>：提出了一种简洁而高效的架构，用于在所有尺度上构建具有丰富语义信息的特征金字塔，极大地提升了目标检测和分割等任务的性能，已成为事实上的标准组件。</li>
+<li><strong>结构</strong>：FPN通过自顶向下的路径和横向连接，将高层（语义丰富但分辨率低）特征图的信息逐步融合到低层（细节精确但语义弱）特征图中。</li>
+</ul>
+</li>
+</ul>
+<div class="codehilite"><pre><span></span><code><span class="w">      </span><span class="n">C5</span><span class="w"> </span><span class="p">(</span><span class="n">高语义</span><span class="p">)</span><span class="w"> </span><span class="o">---&gt;</span><span class="w"> </span><span class="p">[</span><span class="mi">1</span><span class="n">x1</span><span class="w"> </span><span class="n">Conv</span><span class="p">]</span><span class="w"> </span><span class="o">-------------------&gt;</span><span class="w"> </span><span class="n">P5</span><span class="w"> </span><span class="p">(</span><span class="n">融合后</span><span class="p">)</span>
+<span class="w">         </span><span class="o">|</span><span class="w">               </span><span class="o">|</span><span class="w">                              </span><span class="o">|</span>
+<span class="w">         </span><span class="n">v</span><span class="w"> </span><span class="p">(</span><span class="n">自底向上</span><span class="p">)</span><span class="w">      </span><span class="o">+--&gt;</span><span class="w"> </span><span class="p">[</span><span class="n">Upsample</span><span class="w"> </span><span class="n">x2</span><span class="p">]</span><span class="w"> </span><span class="o">--</span><span class="p">(</span><span class="o">+</span><span class="p">)</span><span class="o">--&gt;</span><span class="w"> </span><span class="p">[</span><span class="mi">3</span><span class="n">x3</span><span class="w"> </span><span class="n">Conv</span><span class="p">]</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">P4</span>
+<span class="w">         </span><span class="o">|</span><span class="w">               </span><span class="o">|</span><span class="w">                     </span><span class="o">^</span>
+<span class="w">      </span><span class="n">C4</span><span class="w"> </span><span class="o">------------&gt;</span><span class="w"> </span><span class="p">[</span><span class="mi">1</span><span class="n">x1</span><span class="w"> </span><span class="n">Conv</span><span class="p">]</span><span class="w"> </span><span class="o">--------------+</span>
+<span class="w">      </span><span class="p">...</span><span class="w">             </span><span class="p">...</span><span class="w">                     </span><span class="p">...</span>
 </code></pre></div>
 
-<p><strong>工程提示</strong>：在 VLA 中，<strong>动作相关像素</strong>（接触面、边界、车道线）通常出现在<strong>中高频通道</strong>；在融合时保留至少一条<strong>高分辨率支路</strong>以避免“语义好但几何糊”。</p>
-<hr />
-<h2 id="22-marr">2.2 Marr 式表征思想与多尺度处理</h2>
-<p><strong>Marr 三层次</strong>：计算理论（要素/目标）、表示与算法、实现。视觉表征常对应：<strong>原始素描</strong>（边缘/角点）、<strong>2.5D 草图</strong>（表面朝向/深度）、<strong>3D 结构</strong>（可用于操控/预测）。</p>
-<p><strong>尺度空间理论</strong>
-用高斯核生成尺度空间：
-$$
-L(\mathbf{x},\sigma) = (G_\sigma * I)(\mathbf{x}),\quad
-G_\sigma(\mathbf{x}) = \frac{1}{2\pi\sigma^2}\exp!\left(-\frac{|\mathbf{x}|^2}{2\sigma^2}\right).
-$$
-LoG/DoG 在不同 (\sigma) 上找极值，稳定关键点。<strong>Rule‑of‑thumb</strong>：选择 (\sigma) 使得核直径 (\approx) 目标最小宽度的 (1!~\text{to}~!2) 倍，可在噪声鲁棒与细节保真间折中。</p>
-<hr />
-<h2 id="23-clip">2.3 视觉—语言对齐：对比学习与 CLIP 思路</h2>
-<p><strong>双塔对齐与 InfoNCE</strong>
-图像塔 (f_\theta(x)) 与文本塔 (g_\phi(t)) 被拉到同一嵌入空间，使用温度化的余弦相似度 (s_{ij}=\frac{f_i^\top g_j}{|f_i||g_j|})。对称 InfoNCE：
-$$
-\mathcal{L}*{\text{img}\to\text{text}}
-= -\frac{1}{N}\sum_{i=1}^N
-\log
-\frac{\exp(s_{ii}/\tau)}{\sum_{j=1}^N \exp(s_{ij}/\tau)},\quad
-\mathcal{L}*{\text{text}\to\text{img}}\ \text{同理},
-$$
-$$
-\mathcal{L}=\tfrac{1}{2}!\left(\mathcal{L}*{\text{img}\to\text{text}}+\mathcal{L}_{\text{text}\to\text{img}}\right).
-$$
-<strong>温度 (\tau)</strong> 控制<strong>软负样本挤压</strong>力度；(\tau) 过小→优化难且过分“尖锐”；过大→对齐松散。
-<strong>Rule‑of‑thumb</strong>：在 batch‑size (B) 固定时，(\tau) 调到<strong>验证检索</strong>的 mAP 或 Recall@K 最优，而非训练 loss 最小。</p>
-<h3 id="231-vs">2.3.1 对齐特征 vs. 纯视觉特征：全局语义与细节取舍</h3>
+<p><strong>经验法则 (Rule-of-thumb):</strong> 在处理需要同时关注全局与局部感知的机人或自动驾驶任务时，使用FPN或其变体结构（如PANet, BiFPN）几乎是必须的。</p>
+<h3 id="23-vlm">2.3 视觉—语言对齐与现代VLM架构范式</h3>
+<p>CLIP的成功不仅验证了大规模图文对比学习的有效性，更催生了现代VLM的主流架构范式。核心问题变为：如何最高效、最有力地将强大的预训练视觉编码器（如ViT）与预训练语言模型（LLMs）结合起来？不同的回答形成了当今VLM世界的三大主流设计哲学。</p>
+<h4 id="231-flamingo">2.3.1 范式一：面向巨人的适配器——以Flamingo为代表</h4>
+<p>这是“站在巨人肩膀上”的典范，其核心思想是<strong>最大化地复用并保持强大的预训练视觉编码器和LLM基本冻结</strong>，仅通过一个轻量级的、可训练的“适配器”模块来高效地桥接两者，以弥合模态鸿沟（modality gap）。</p>
 <ul>
-<li><strong>对齐特征</strong>（CLIP 类）擅长<strong>全局语义与检索</strong>，但可能<strong>丢细节</strong>（边界、几何精度）。</li>
-<li>
-<p><strong>纯视觉特征</strong>（自监督/监督）几何更稳，但语义弱。
-  <strong>工程折中</strong>：</p>
-</li>
-<li>
-<p>检测/操控：优先<strong>纯视觉 backbone + 语言门控</strong>（cross‑attn 只调度）。</p>
-</li>
-<li>检索/描述：优先<strong>对齐特征</strong>，必要时加<strong>高频残差支路</strong>修补几何。</li>
-</ul>
-<h3 id="232">2.3.2 图文数据瓶颈：描述稀疏与自动标注的细节缺失</h3>
-<ul>
-<li><strong>弱描述性 Alt‑Text</strong>：文本常不含<strong>空间关系/数量词/材质</strong>。</li>
-<li><strong>自动标注噪声</strong>：生成式字幕会<strong>幻觉细节</strong>。
-  <strong>Rule‑of‑thumb</strong>：</li>
-</ul>
-<ol>
-<li><strong>难例挖掘</strong>：强化“空间词+数量词”（如“左/右/三颗螺丝”）配对的采样权重；</li>
-<li><strong>一致性对比</strong>：对几何扰动（裁剪/旋转）后的同图，文本不变→拉近图—图、图—文；</li>
-<li><strong>负例净化</strong>：过滤“近重复”负样本，避免过强的假负例。</li>
+<li><strong>代表性工作：Flamingo (Alayrac et al., 2022)</strong><ul>
+<li><strong>设计哲学</strong>：在计算资源有限或希望快速验证想法时，完全从零训练或全量微调巨大的基座模型是不切实际的。Flamingo假设视觉和语言的通用知识已分别被其基座模型充分学习，唯一需要学习的是如何将视觉概念“翻译”成LLM能够理解的“语言”。</li>
+<li><strong>架构创新</strong>：<ol>
+<li><strong>Perceiver Resampler</strong>：这是一个精巧的瓶颈模块。视觉编码器（如ViT）对图像会产生上百个特征向量（tokens），而将这么多向量直接注入LLM会带来巨大的计算负担。Perceiver Resampler通过少量可学习的“查询”向量，利用交叉注意力机制将可变数量的视觉特征“蒸馏”成固定数量（例如64个）的、低维的“潜”向量。这本质上是一种可学习的视觉信息压缩。</li>
+<li><strong>Gated Cross-Attention Layers</strong>：这些新引入的、可训练的交叉注意力层被<strong>交错地（interleaved）</strong>插入到<strong>冻结的</strong>LLM的原始自注意力层之间。在每个这样的层，语言token可以attend到由Perceiver Resampler生成的视觉潜向量。关键在“Gated”（门控）机制，它通过一个学习到的标量来控制该层交叉注意力的输出应在多大程度上影响LLM的中间表示，让模型自己决定在推理的不同阶段“看多少眼”图像。</li>
 </ol>
-<hr />
-<h2 id="24">2.4 视频自/半监督：重建、掩码、下一帧/片段预测</h2>
-<p><strong>三类任务</strong></p>
-<ol>
-<li><strong>重建/掩码（MAE‑V）</strong>：时间/空间 token 掩掉 (p%)，预测像素/特征。</li>
-<li><strong>下一帧/片段预测</strong>：最小化 (\ell_1/\ell_2) 或感知损失 (\mathcal{L}_{\text{percep}})，也可在频域加入带宽正则（抑过度锐化/振铃）。</li>
-<li><strong>时序顺序/对比</strong>：打乱片段顺序、预测是否“时间可达”。
-$$
-\mathcal{L}*{\text{video}}=\lambda*{\text{rec}}\mathcal{L}*{\text{rec}}
-   +\lambda*{\text{pred}}\mathcal{L}*{\text{pred}}
-   +\lambda*{\text{cont}}\mathcal{L}_{\text{cont}}.
-$$ </li>
-</ol>
-<p><strong>频域视角（与行动对接）</strong>
-对视频/光流进行<strong>带通限制</strong>，与行动侧的<strong>加速度/跃度约束</strong>一致。<strong>Rule‑of‑thumb</strong>：对操控任务的视觉分支，限制到<strong>不超过控制回路 1/2 带宽</strong>的时域变化，降噪且减少相位滞后感知误报。</p>
-<h3 id="241">2.4.1 时间建模：持续性、运动线索与长期依赖</h3>
-<ul>
-<li><strong>短期</strong>：1D 时域卷积/门控单元（TCN/GRU）。</li>
-<li><strong>长期</strong>：稀疏注意力/分块记忆（固定内存窗口 (W) + 检索关键帧）。</li>
-<li><strong>运动先验</strong>：显式光流 (\mathbf{u}=(u,v)) 与稳定点约束：
-$$
-I(x,y,t) \approx I(x+u,\Delta t, y+v,\Delta t, t+\Delta t).
-$$ 
-  <strong>工程提示</strong>：对具有<strong>慢变背景+快速前景</strong>的场景，采用<strong>双路径</strong>（慢路径聚合语义，快路径保留细节）可稳住小目标。</li>
-</ul>
-<hr />
-<h2 id="25">2.5 视觉难点与开放问题：符号化/抽象与泛化</h2>
-<p><strong>“压缩”≠“抽象”</strong>
-最小化重建误差的压缩不一定学到任务所需的<strong>可操作语义</strong>。</p>
-<ul>
-<li><strong>率失真</strong>：$\min_{q} \ \mathbb{E}[d(X,\hat X)] + \beta,I(X;Z)$</li>
-<li><strong>信息瓶颈</strong>：$\min_{q} \ I(X;Z) - \beta, I(Z;Y)$
-  抽象需要最大化 (I(Z;Y))，而非仅减小 (I(X;Z))。
-  <strong>工程要点</strong>：在 VLA 中，令 (Y) 包含<strong>行动相关标量</strong>（可达性、接触状态），有助于学到<strong>可控语义</strong>。</li>
-</ul>
-<h3 id="251">2.5.1 开集识别与不确定性估计（温度缩放、能量分数）</h3>
-<p><strong>温度缩放（后校准）</strong>
-对 logits (z_k) 进行温度化：
-$$
-p_k = \frac{\exp(z_k/T)}{\sum_j \exp(z_j/T)}.
-$$ 
-仅调 (T)（在验证集上最小化 NLL）可显著改善<strong>置信度校准</strong>。</p>
-<p><strong>能量分数（Energy Score）用于 OOD</strong>
-$$
-E(x) = -T \log \sum_{k} \exp(z_k(x)/T).
-$$ 
-以阈值 (\gamma) 判定开集：(E(x)&gt;\gamma\Rightarrow \text{OOD})。
-<strong>校准指标</strong></p>
-<ul>
-<li><strong>ECE</strong>：$\text{ECE}=\sum_{m=1}^M \frac{|B_m|}{n},|\text{acc}(B_m)-\text{conf}(B_m)|$。</li>
-<li><strong>Brier 分数</strong>：$\text{BS}=\tfrac{1}{n}\sum_i\sum_k (p_{ik}-y_{ik})^2$。
-  <strong>Rule‑of‑thumb</strong>：部署前做三步——(1) 温度缩放（NLL/ECE 选优）；(2) 设定能量阈值满足<strong>FPR@95%TPR</strong>≤目标；(3) 触发<strong>Safeguard</strong>（降级/二次感知）。</li>
-</ul>
-<blockquote>
-<p><strong>调参与落地</strong></p>
-<ul>
-<li>多头任务：对每个头<strong>独立</strong>温度缩放，避免跨任务校准干扰。</li>
-<li>轻量不确定性：优先<strong>深度集成（2–4 个子模型）</strong>或<strong>MC Dropout（推理开关）</strong>；对资源敏感系统，使用<strong>Dirichlet 先验网络</strong>近似。</li>
-</ul>
-</blockquote>
-<h3 id="252">2.5.2 时域错位鲁棒性：对齐、漂移与补偿</h3>
-<p><strong>问题定义</strong>：传感器时间戳/传输延迟/编码缓存导致视觉帧相对控制时基<strong>偏移 (\Delta t)</strong> 或<strong>抖动</strong>。</p>
-<ul>
-<li>
-<p><strong>交叉相关估计偏移</strong>：
-  $
-  \hat{\Delta t}=\arg\max_{\tau}\ \text{NCC}!\left(x(t), y(t+\tau)\right),
-  $
-  中 (x) 可取 IMU/轮速事件流，(y) 为从视频导出的运动量（如光流模）。</p>
 </li>
-<li>
-<p><strong>滞后建模</strong>：控制侧零阶保持 + 纯时延 $e^{-s\Delta t}$ 的相位损失 $\phi(\omega)=-\omega\Delta t$。
-  <strong>Rule‑of‑thumb</strong>：把视觉到控制的<strong>总时延</strong>控制在<strong>控制周期 (T_c) 的 10–20%</strong> 内；超出则应<strong>预测外推</strong>（基于运动模型）并在策略上<strong>增加相位裕度</strong>（第4章/第11章细化）。</p>
+<li><strong>优势与影响</strong>：由于只训练极少量的参数（适配器部分），Flamingo的训练效率极高。它展示了惊人的少样本（few-shot）上下文学习能力，能够通过几个例子快速适应新的图文任务，为参数高效的VLM设计树立了标杆。</li>
+</ul>
 </li>
 </ul>
-<p><strong>工程工具箱</strong></p>
+<h4 id="232-palipaligemmainternvl">2.3.2 范式二：端到端与多阶段联合训练——以PaLI/PaliGemma和InternVL为代表</h4>
+<p>与冻结组件不同，该范式主张对视觉和语言模块进行更深度的联合训练，以期获得更强的性能上限。其哲学是，模态间的深度融合需要让两个模型的参数都能相互适应，而不仅仅是单向的“翻译”。这通常采用复杂而精心设计的多阶段训练策略。</p>
 <ul>
-<li><strong>时间戳统一</strong>：统一到<strong>单调时钟</strong>，拒绝相机自带的可回绕时间。</li>
-<li><strong>帧—IMU 对齐</strong>：卡尔曼“时间滤波器”（把 (\Delta t) 作为状态估计）。</li>
-<li><strong>数据增强</strong>：训练时注入 $\Delta t\sim\mathcal{U}[-\delta,\delta]$ 的“<strong>时延抖动</strong>”。</li>
+<li><strong>代表性工作：PaLI/PaliGemma/PaliGemma2 (Chen et al., 2022; Beyer et al., 2024)</strong><ul>
+<li><strong>设计哲学</strong>：模型性能的极限最终取决于数据和模型参数的协同优化。通过精心设计的训练日程，可以在不同阶段侧重于学习不同层面的能力（通用语义、空间关系、高分辨率细节等），从而在最终的下游任务上获得最佳的迁移性能。</li>
+<li><strong>训练策略</strong>：<code>PaliGemma</code>论文中描述了一个典型的多阶段流程，这已成为开源社区的主流实践：<ul>
+<li><strong>Stage 0 (单模态预训练)</strong>：直接复用在各自领域（如<code>PaliGemma</code>使用<strong>SigLIP</strong>和<strong>Gemma</strong>）预训练好的视觉和语言模型作为初始化。</li>
+<li><strong>Stage 1 (多模态预训练)</strong>：在一个由图像描述、视觉问答、OCR、物体检测等任务<strong>精心混合</strong>的大规模图文数据上联合训练整个模型。与Flamingo的关键不同在于，<strong>此阶段通常会解冻视觉编码器</strong>（或至少部分解冻）。其动机在于，CLIP/SigLIP这类对比学习模型擅长全局语义，但在需要精确定位的任务上可能并非最优。允许视觉编码器在更丰富的监督信号（如来自检测和分割任务的文本）下进行微调，可以使其学习到对下游任务更有价值的空间和关系理解能力。</li>
+<li><strong>Stage 2 (分辨率提升)</strong>：在更高分辨率的图像上进行短时间的持续预训练，让模型适应更精细的视觉细节。</li>
+<li><strong>Stage 3 (迁移微调)</strong>：在具体的下游任务（如自动驾驶场景理解）上进行最终的微调。</li>
 </ul>
-<hr />
-<h2 id="26">2.6 路线组合：混合训练与阶段化设计</h2>
-<p><strong>分阶段</strong>：
-(1) <strong>模态内</strong>：视觉自监督（掩码/对比）稳定几何与低级统计；
-(2) <strong>跨模态对齐</strong>：以 InfoNCE/对齐检索指标为主；
-(3) <strong>任务化/指令化</strong>：引入<strong>行动相关标签</strong>与语言锚点。</p>
-<p><strong>多目标加权</strong>
-$
-\mathcal{L}=\sum_i \lambda_i \mathcal{L}_i,\quad
-\lambda_i \propto \frac{1}{\sigma_i^2}\ \ (\text{不确定性加权}),
-$
-并辅以<strong>梯度外科</strong>（如投影/冲突解耦）避免任务互相拉扯。
-<strong>采样日程</strong>：从“几何重建/掩码为主”缓退到“对齐/任务为主”；<strong>Rule‑of‑thumb</strong>：保持<strong>几何类样本≥30%</strong> 直到下游几何 KPI（深度/边界 IoU）稳定。</p>
-<hr />
-<h2 id="27">2.7 小结：为对齐、行动与迁移奠基</h2>
-<p><strong>关键概念与公式回顾</strong></p>
+</li>
+</ul>
+</li>
+<li><strong>代表性工作：InternVL (Chen et al., 2023) 和 Qwen-VL (Bai et al., 2023)</strong>：这两个模型是该范式在“规模”上的极致体现。它们通过在海量（百亿甚至千亿级token）、高质量、经严格清洗和配比的多模态数据上进行持续的多阶段预训练，将开源VLM的性能推向了新的高度，展现了端到端联合训练在深度融合多模态信息上的巨大潜力。</li>
+</ul>
+<h4 id="233-ofaemu3">2.3.3 范式三：万物皆为序列的统一——以OFA和Emu3为代</h4>
+<p>这是最具野心和理论优雅性的范式，其目标是将<strong>所有模态（图像、视频、文本、语音等）都编码为统一的离散token序列</strong>，然后用一个单一的、巨大的自回归Transformer模型，通过标准的“下一个token预测”（Next-Token Prediction）目标来进行统一建模。</p>
 <ul>
-<li><strong>ERF</strong>：决定最早可分辨尺度；$R_\ell = R_{\ell-1}+(k_\ell-1)d_\ell\prod s$。</li>
-<li><strong>尺度空间</strong>：$L(\mathbf{x},\sigma)=G_\sigma*I$，LoG/DoG 稳关键点。</li>
-<li><strong>对比学习（InfoNCE）</strong>：双塔温度化相似度，(\tau) 决定软负样本力度。</li>
-<li><strong>视频自监督损失组合</strong>：重建/预测/对比的加权。</li>
-<li><strong>抽象 vs 压缩</strong>：信息瓶颈强调 (I(Z;Y)) 才是可操作语义。</li>
-<li><strong>不确定性与开集</strong>：温度缩放 + 能量分数 $E(x)=-T\log\sum\exp(z/T)$；ECE/Brier 评估校准。</li>
-<li><strong>时域错位</strong>：交叉相关估计 (\Delta t)；总时延 $\lesssim 0.1!~\text{to}~!0.2,T_c$。</li>
+<li><strong>代表性工作：OFA (One-For-All, Wang et al., 2022)</strong><ul>
+<li><strong>设计哲学</strong>：任务的边界是人为的。无论是图像描述（输入图，输出文）、视觉问答（输入图+文，输出文）还是物体检测（输入图+文，输出坐标），都可以统一为一种“序列到序列”的生成任务。</li>
+<li><strong>架构创新</strong>：OFA通过一个共享的词表来表示不同信息：文本用BPE分词，图像区域通过将其坐标（x, y, w, h）<strong>量化</strong>成离散的token来表示，图像内容则通过一个预训练的VQ-VAE编码器压缩成离散的视觉token。然后，一个标准的Transformer编码器-解码器模型被训练来处理这些混合了不同类型token的序列。</li>
 </ul>
-<blockquote>
-<p><strong>Rule‑of‑thumb（速记版）</strong></p>
+</li>
+<li><strong>代表性工作：Emu/Emu2/Emu3 (BAAI, 2023/2024)</strong><ul>
+<li><strong>设计哲学</strong>：“Next-Token Prediction is All You Need”。如果说OFA还依赖于预训练的VQ-VAE，Emu3则将这一理念推向极致。它致力于构建一个真正端到端的、仅依赖单一目标的系统。</li>
+<li><strong>架构创新</strong>：Emu3的核心是一个强大的<strong>视觉分词器（Vision Tokenizer）</strong>。这是一个独立的、经过精心训练的编码器-解码器模型，其唯一任务就是将图像甚至视频帧无损地“压缩”成离散的token序列，并能从这些token中完美重建回原始像素。一旦有了这个分词器，整个VLM的训练就变得异常简单：将文本token序列和视觉token序列拼接起来，然后用一个巨大的、从零开始训练的纯解码器Transformer模型（类似GPT）去预测下一个token。</li>
+<li><strong>优势与影响</strong>：架构极其简洁统一，摆脱了对CLIP、扩散模型等其他预训练组件的依赖。它然地统一了<strong>感知</strong>（通过编码序列来理解）和<strong>生成</strong>（通过自回归地预测视觉token来创造图像和视频），展示了用语言模型的基本原理统一多模态AI的巨大潜力。这是通往通用多模态智能的一条非常有前景、但也对算力和数据要求极高的路径。</li>
+</ul>
+</li>
+</ul>
+<h3 id="24">2.4 超越固定尺寸：处理高分辨率与可变尺寸输入</h3>
+<p>早期VLM的一个普遍限制是它们只能处理固定尺寸、通常是正方形的低分辨率输入（如224x224），这对于需要精细细节的任务（如OCR、细粒度识别）是致命的。近期工作开始致力于打破这一限制，这对具身智能尤为重要。</p>
+<ul>
+<li><strong>代表性工作：Kimi-VL (Moonshot AI, 2025) 与 Seed-1.5-VL (ByteDance, 2025)</strong><ul>
+<li><strong>核心思想</strong>：采用<strong>原生分辨率视觉编码器 (Native-resolution Vision Encoder)</strong>。其灵感源于NaViT，核心在于放弃将不同尺寸的图像强制缩放到固定大小。取而代之的是，无论图像原始尺寸和长比如何，都将其统一划分为固定大小的patch（例如14x14）。</li>
+<li><strong>技术实现</strong>：<ol>
+<li><strong>打包（Packing）</strong>：不同图像会产生数量不同的patch。这些patch序列被“打包”成一个更长的、连续的1D序列输入到Transformer中，不同图像的patch之间用特殊分隔符隔开，并通过注意力掩码（attention mask）确保它们在计算中相互隔离。</li>
+<li><strong>2D RoPE（旋转位置编码）</strong>：由于patch序列的长度可变，传统的学习式1D位置编码不再适用。2D RoPE被用来对每个patch在原始2D图像中的<code>（x, y）</code>坐标进行编码，赋予模型灵活处理任意尺寸和长宽比输入的能力。</li>
+</ol>
+</li>
+</ul>
+</li>
+<li><strong>代表性工作：MiniMax-VL (MiniMax, 2025)</strong><ul>
+<li><strong>核心思想</strong>：采用动态多尺度策略。它不依赖于单一的原生分辨率输入，而是将输入图像处理成多个不同分辨率的版本，包括一个标准的低分辨率缩略图和多个高分辨率的裁剪块。</li>
+<li><strong>技实现</strong>：这些多尺度的图像块被独立编码后，其特征在送入LLM之前被融合。这种策略让模型能同时获得“全局概览”（来自低分辨率缩略图）和“局部细节”（来自高分辨率块），在需要跨尺度理解的文档问答和图表分析任务中表现出色。同时，其对<code>Lightning Attention</code>（一种线性注意力变体）的探索也旨在高效处理高分辨率图像产生的巨量token序列。</li>
+</ul>
+</li>
+</ul>
+<h3 id="25">2.5 视频自/半监督：时空结构的挖掘</h3>
+<ul>
+<li><strong>代表性工作：VideoMAE (Tong et al., 2022)</strong><ul>
+<li><strong>贡献</strong>：将在NLP和图像领域大获成功的掩码自编码器思想成功迁移到视频。它证明了视频信号具有极高的时空冗余，通过随机掩码掉极高比例的视频块（如90%）并让模型去重建，可以学到非常强大的时空表征。</li>
+</ul>
+</li>
+</ul>
+<h3 id="26">2.6 开放问题与路线组合</h3>
+<p><strong>经验法则 (Rule-of-thumb):</strong> 一个经过实战检验的、稳健的视觉基座构建策略通常遵循阶段化设计：</p>
 <ol>
-<li><strong>多尺度恒存</strong>：至少保留一条高分辨率支路给几何；</li>
-<li><strong>(\tau) 用验证检索调</strong>，而非训练 loss；</li>
-<li><strong>部署前三件套</strong>：温度缩放→能量阈值→Safeguard；</li>
-<li><strong>视频频域限带</strong>：不超过控制回路半带宽；</li>
-<li><strong>时间对齐优先级高于模型精度</strong>：先消时延再谈更深模型。</li>
+<li><strong>阶段一（获取通用语义先验）</strong>：使用在海量图文对上预训练好的模型（如CLIP或SigLIP的ViT变体）作为视觉编码器的<strong>初始化权重</strong>。</li>
+<li><strong>阶段二（学习领域动态特性）</strong>：在大量与目标任务相关的无标签视频数据上，使用掩码重建（如VideoMAE）进行第二阶段的预训练。</li>
+<li><strong>阶段三（任务导向的微调）</strong>：在最终的目标任务上，将视觉模型与其他模态连接起来，进行端到端的微调。</li>
 </ol>
-</blockquote>
-<hr />
-<h2 id="gotchas">常见陷阱与错误（Gotchas）与调试技巧</h2>
+<h3 id="27">2.7 开集识别、不确定性估计与时域错位鲁棒性</h3>
+<p>对于需要做出物理行动的VLA系统，处理未知和不确定性是保证安全的核心要求。</p>
 <ol>
-<li><strong>把对齐特征直接拿去做几何密集任务</strong></li>
-</ol>
+<li>
+<p><strong>开集识别与不确定性估计 (Open-Set Recognition &amp; Uncertainty Estimation)</strong></p>
 <ul>
-<li><em>症状</em>：边界糊、接触定位漂移。</li>
-<li><em>排查</em>：查看高频误差谱；对齐前后比较边界 IoU。</li>
-<li><em>修复</em>：加入<strong>几何分支</strong>或高频残差，融合时给几何更高权重。</li>
+<li><strong>问题</strong>：模型在部署时会遇到训练集中从未见过的物体或场景（分布外，Out-of-Distribution, OOD）。一个安全的系统不应将路上的一个纸箱强行识别为“石头”并紧急刹车，而应该报告“知障碍物，置信度低”。</li>
+<li><strong>方法：能量分数 (Energy Score)</strong>：一个理论更优雅的方法。对于分类器的logits $f_i(x)$，其能量函数可定义为 $E(x; f) = -T \cdot \log \sum_i e^{f_i(x)/T}$。研究表明，分布内样本的能量分数显著低于OOD样本，因此可以设置一个阈值来高效地检测异常输入。</li>
 </ul>
-<ol start="2">
-<li><strong>忽视开集/校准导致过度自信</strong></li>
-</ol>
+</li>
+<li>
+<p><strong>时域错位鲁棒性 (Temporal Misalignment Robustness)</strong></p>
 <ul>
-<li><em>症状</em>：置信度高但策略频繁失败；RTA 触发迟。</li>
-<li><em>排查</em>：绘制<strong>可靠性图</strong>与 ECE，统计 <strong>FPR@95%TPR</strong>（ID vs OOD）。</li>
-<li><em>修复</em>：温度缩放 + 能量阈值；必要时引入<strong>拒识</strong>通道与人机协同。</li>
+<li><strong>问题</strong>：这是一个系统工程问题。从光子击中传感器到控制指令到达执行器，整个VLA系统中存在着多个环节的延迟。</li>
+<li><strong>缓解策略</strong>：<ul>
+<li><strong>精确时间戳与系统级同步</strong>：这是基石。</li>
+<li><strong>状态估计与预测</strong>：在感知和决策之间引入一个状态估计器（如卡尔曼滤波器）。该估计器融合多传感器历史数据，来预测出“当前时刻”的真实世界状态。</li>
 </ul>
-<ol start="3">
-<li><strong>时域错位被当成分布移位</strong></li>
+</li>
+</ul>
+</li>
 </ol>
-<ul>
-<li><em>症状</em>：仿真 OK、实车抖动/延迟；视频看起来“对”，控制却晚。</li>
-<li><em>排查</em>：IMU/轮速 vs 光流的交叉相关；事件相机/里程计对齐。</li>
-<li><em>修复</em>：统一单调时钟；估计并补偿 (\hat{\Delta t})；训练时注入<strong>时延增强</strong>。</li>
-</ul>
-<ol start="4">
-<li><strong>过宽频内容导致控制振荡</strong></li>
-</ol>
-<ul>
-<li><em>症状</em>：策略在高频纹理/闪烁光下过度反应。</li>
-<li><em>排查</em>：视觉特征功率谱；与控制输出的互谱相干。</li>
-<li><em>修复</em>：视频分支限带；在损失加<strong>平滑/带宽正则</strong>；行动侧增加<strong>相位裕度</strong>。</li>
-</ul>
-<ol start="5">
-<li><strong>图文负例污染（近重复/同场景）</strong></li>
-</ol>
-<ul>
-<li><em>症状</em>：InfoNCE 训练看似收敛，检索却崩。</li>
-<li><em>排查</em>：可视化“最难负例”；计算图—图相似度分布偏斜。</li>
-<li><em>修复</em>：<strong>重复过滤</strong>、类别均衡采样；对语义近邻引入<strong>较软权重</strong>而非硬负。</li>
-</ul>
-<ol start="6">
-<li><strong>只看平均，不看长尾</strong></li>
-</ol>
-<ul>
-<li><em>症状</em>：总体 mAP 高，关键场景（夜间、雨雾）失败。</li>
-<li><em>排查</em>：建立<strong>情境切片</strong>报告（天气/时段/场景复杂度）。</li>
-<li><em>修复</em>：<strong>课程化随机化</strong>与<strong>难例过采样</strong>；对 OOD 情境单独设阈与降级策略。</li>
-</ul>
-<ol start="7">
-<li><strong>抽象等同压缩的误解</strong></li>
-</ol>
-<ul>
-<li><em>症状</em>：重建指标优而任务失败。</li>
-<li><em>排查</em>：衡量 (I(Z;Y)) 的代理（任务损失、可达性预测 AUC）。</li>
-<li><em>修复</em>：加入<strong>任务条件</strong>或<strong>行动标签</strong>，用<strong>蒸馏</strong>把特权信息迁入可部署表征。</li>
-</ul>
-<ol start="8">
-<li><strong>忽略镜头/滚快门与曝光动态</strong></li>
-</ol>
-<ul>
-<li><em>症状</em>：快速运动/LED 闪烁下，边界拉伸与时间畸变。</li>
-<li><em>排查</em>：滚快门方向与速度估计；曝光曲线统计。</li>
-<li><em>修复</em>：<strong>滚快门仿真</strong>加入域随机化；用<strong>事件/IMU</strong>辅助矫正。</li>
-</ul>
 <hr />
-<blockquote>
-<p><strong>本章与全书主线的接口</strong>
-视觉表征是“更大更深”即可，它必须在<strong>三件套</strong>（对齐可控、时域一致、可校准）下服务<strong>行动</strong>。接下来第3–5章将把这些表征与<strong>语言/行动</strong>对齐，8–11章在<strong>RL 与 Sim‑to‑Real</strong>中验证其可迁移与安全性。</p>
-</blockquote>
+<h2 id="_3">本章小结</h2>
+<p>本章我们系统地剖析了构建一个现代、强大的VLA视觉基座所涉及的心技术与思想演进。我们不仅回顾了经典视觉（CNN）、视觉-语言对齐（CLIP）和视频自监督（MAE）等奠基性思想，更深入地剖析了现代VLA模型的三大主流架构范式：</p>
+<ol>
+<li><strong>适配器范式 (如 Flamingo)</strong>：冻结强大的基座模型，通过轻量级模块进行高效桥接，擅长少样本学习，是参数高效的典范。</li>
+<li><strong>联合训练范式 (如 PaliGemma, InternVL)</strong>：通过端到端或多阶段的联合训练，实现模态间的深度融合，追求更高的性能上限，是当前开源社区的主流。</li>
+<li><strong>统一序列范式 (如 OFA, Emu3)</strong>：将所有模态分词化，用单一的Next-Token Prediction目标统一所有任务，架构优雅，是通往通用多模态智能的潜力路径。</li>
+</ol>
+<p>我们还探讨了处理<strong>高分辨率和可变尺寸输入</strong>的前沿方法（如Kimi-VL, Seed-1.5-VL），这对于提升VLA在精细任务上的能力至关重要。最后，一个面向行动的理想视觉基座，必须能够量化自身输入的不确定性（<strong>能量分数、集成方法</strong>），并能稳健地处理真实物理世界中无处不在的<strong>时域错位</strong>（<strong>时间戳、状态预测</strong>）。这些特性是后续章节中实现可靠对齐、安全RL和成功Sim-to-Real迁移的绝对前提。</p>
+<hr />
+<h2 id="gotchas">常见陷阱与错误 (Gotchas)</h2>
+<ol>
+<li>
+<p><strong>陷阱：将 ImageNet 精度等同于真实世界鲁棒性。</strong></p>
+<ul>
+<li><strong>表现</strong>：过度迷信在标准学术数据集上的SOTA排名，而忽略了模型在特定部署环境下的长尾场景表现。</li>
+<li><strong>调试技巧</strong>：建立并维护一个专门针对“痛点”的评估集（"Pain-Point" Benchmark），包含大量来自真实部署环境的失败案例、边界条件和对抗性样本。</li>
+</ul>
+</li>
+<li>
+<p><strong>陷阱：混淆“基础模型”与“指令微调模型”的评测目标。</strong></p>
+<ul>
+<li><strong>表现</strong>：使用一个为“迁移微调”（Transfer Fine-tuning）设计的“基础VLM”（如PaliGemma）去直接进行零样本的指令跟随评测，并得出其性能不佳的结论。</li>
+<li><strong>调试技巧</strong>：明确模型的设计目标。基础模型（Base Model）的目标是学习通用、可迁移的表征，其评测应侧重于下游任务微调后的性能。指令微调模型（Instruction-tuned Model）的目标是遵循零样本或少样本指令，其评测应侧重于直接的问答和指令跟随能力。</li>
+</ul>
+</li>
+<li>
+<p><strong>陷阱：模型“自信地幻视”而未被系统拦截。</strong></p>
+<ul>
+<li><strong>表现</strong>：一个VLM在描述图像时，生成了听起来非常合理但图像中完全不存在的物体或细节（即“幻觉”，Hallucination），且输出置信度很高。</li>
+<li><strong>调试技巧</strong>：绝不单独依赖softmax输出作为置信度。部署流程中强制加入不确定性监控（如能量分数）。此外，可以引入“可追溯性”或“引用”机制，要求模型在生成描述时，指出其描述对应图像的哪个区域。</li>
+</ul>
+</li>
+<li>
+<p><strong>陷阱：忽视视觉输入的时域特性。</strong></p>
+<ul>
+<li><strong>表现</strong>：模型对时间抖动、延迟或丢帧极其敏感，因为其没有学到物体的运动连续性和动态一致性。</li>
+<li><strong>调试技巧</strong>：在仿真和回放测试中，系统性地注入时间扰动。检查所有传感器的同步日志，确保时间戳对齐是硬件和软件层面的第一优先级。</li>
+</ul>
+</li>
+</ol>
             </article>
             
             <nav class="page-nav"><a href="chapter1.html" class="nav-link prev">← 第1章 导论与动机案例</a><a href="chapter3.html" class="nav-link next">第3章 语言模态 →</a></nav>
