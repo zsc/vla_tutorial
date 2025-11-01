@@ -86,6 +86,13 @@
                     </div>
                 
                     <div class="tree-item " >
+                        <a href="chapter6.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第6章 隐式 3D 时空结构的引入</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
                         <a href="chapter7.html" class="tree-link">
                             <span class="tree-icon">📄</span>
                             <span class="tree-title">第7章 预训练：模态预训练与跨模态对齐</span>
@@ -116,7 +123,7 @@
                     <div class="tree-item " >
                         <a href="chapter11.html" class="tree-link">
                             <span class="tree-icon">📄</span>
-                            <span class="tree-title">第11章 Sim-to-Real：从仿真到现实的最后一公里</span>
+                            <span class="tree-title">第11章 神经化 Sim-to-Real：弥合仿真与现实的认知与动力学鸿沟</span>
                         </a>
                     </div>
                 
@@ -243,18 +250,17 @@
 <hr />
 <h2 id="6-3d">第6章 隐式 3D 时空结构的引入</h2>
 <p><strong>摘要</strong></p>
-<p>在缺乏大规模 3D 监督的条件下，以<strong>隐式 3D 支架</strong>强化视觉/视频理解：用几何与物理先验提升未来预测的<strong>可实现性与一致性</strong>；将 3D 作为<strong>长期记忆</strong>以应对遮挡与重访；权衡显式/隐式 3D 的延迟与精度，并与对齐/行动/仿真/Sim-to-Real 的接口协同。建议加<strong>“可实现性检查”：预测的 3D 状态是否动力学可达</strong>（feasibility check），并提供矛盾检测器（几何一致性 vs 观测）。
-<strong>小节目录</strong></p>
+<p>在缺乏大规模 3D 监督的条件下，以<strong>隐式 3D 支架</strong>强化视觉/视频理解：用几何与物理先验提升未来预测的<strong>可实现性与一致性</strong>；将 3D 作为<strong>长期记忆</strong>以应对遮挡与重访；权衡显式/隐式 3D 的延迟与精度，并与对齐/行动/仿真/Sim-to-Real 的接口协同。建议加<strong>“可实现性检查”：预测的 3D 状态是否动力学可达</strong>（feasibility check），并提供矛盾检测器（几何一致性 vs 观测）。</p>
+<p><strong>小节目录 (重写版)</strong></p>
 <ul>
-<li>6.1 “隐式 3D 支架”的动机与收益</li>
-<li>6.2 无/弱监督 3D：几何一致性与时空约束</li>
-<li>6.3 基于 3D 的视频预测：物体状态与动力学，<strong>兼顾遮挡恢复复现实验小基准（如“再现率/漂移率/重访一致性”三指标）</strong></li>
-<li>6.4 3D 作为期记忆：重访、遮挡与场景持久化</li>
-<li>6.5 显式 vs. 隐式：精度、延迟、鲁棒性与工程取舍</li>
-<li>6.6 与 V/L/A 接口：状态、语义与控制量</li>
-<li>6.7 实验协议：可实现性、漂移与恢复</li>
-<li>6.8 可实现性检查：预测 3D 状态的动力学可达性</li>
-<li>6.9 矛盾检测器：几何一致性 vs. 观测</li>
+<li>6.1 动机：为何需要超越 2D 表征的物理与几何先验</li>
+<li>6.2 核心方法：从多视几何到神经场表示</li>
+<li>6.3 学习信号：自监督的时空与几何一致性约束</li>
+<li>6.4 应用一：基于 3D 结构的视频预测与遮挡推理</li>
+<li>6.5 应用二：3D 作为长期记忆的场景持久化（应对遮挡与重访）</li>
+<li>6.7 鲁棒性机制二：预测 3D 状态的动力学可实现性检查 (Feasibility Check)</li>
+<li>6.8 工程权衡：显式网格/点云 vs. 隐式神经场</li>
+<li>6.9 系统集成：与视觉、语言、行动模态的接口设计</li>
 </ul>
 <hr />
 <h2 id="7">第7章 预训练：模态预训练与跨模态对齐</h2>
@@ -342,31 +348,21 @@
 <hr />
 <h2 id="11-sim-to-real">第11章 Sim-to-Real：从仿真到现实的最后一公里</h2>
 <p><strong>摘要</strong></p>
-<p>Sim-to-Real 的核心不是“把模型搬出去”，而是<strong>系统地管理域间不确定性</strong>：感知域差（传感器/成像/时间戳）、动力学域差（摩擦、柔顺、时延）、以及<strong>语义/协同域差</strong>（人类习俗与交规）。本章给出<strong>三条总路线</strong>：①<strong>推仿真→真</strong>（域随机化/对抗随机化/课程化随机化）；②<strong>拉真实→仿真</strong>（系统辨识、仿真参数校准、HIL）；③<strong>跨域桥接</strong>（在线适应、残差策略、运行时保障 RTA）。配套<strong>准入清单与验收流程</strong>，强调<strong>可追溯与安全冗余</strong>是走出实验室的通行证。
-<strong>小节目录</strong></p>
+<p>本章深入探讨 Sim-to-Real 的前沿领域——神经化 Sim-to-Real。传统 Sim-to-Real 方法依赖于对物理世界进行精确的数学建模与繁琐的参数辨识，这条路径在面对高维感知和复杂动力学时常常显得力不从心。神经化方法则另辟蹊径，利用深度学习强大的函数逼近与分布学习能力，直接从数据中学习和补偿仿真与现实之间的高维、非结构化差异。在本章中，我们将系统性地剖析三条核心技术路线：<strong>① 用神经模型增强仿真器</strong>，通过神经渲染和神经动力学，让虚拟世界无限逼近物理现实；<strong>② 学习能够跨域自适应的策略</strong>，赋予智能体在未知环境中在线推理和调整的能力；<strong>③ 将强大的神经策略与形式化安全框结合</strong>，为不可避免的模型不确定性提供一个可验证的安全“护栏”。学完本章，你将不仅理解神经化 Sim-to-Real 的理论基础，更能掌握一套设计、实施和评其端到端流程的工程方法论，为你的 VLA 模型从虚拟走向现实，铺平最后、也最关键的一公里。</p>
+<p><strong>小节目录</strong></p>
 <ul>
-<li>11.1 域差谱系：感知域差/动力学域差/语义与交互域差</li>
-<li>11.2 量化与诊断：<strong>三把尺子</strong>（离线重放、台架测试、封闭场压测）</li>
-<li>11.3 系统辨识（System ID）：灰盒/黑盒、参数可辨识性与置信区间</li>
-<li>11.4 域随机化：范围设计、课程调度、<strong>对抗随机化与失效放大</strong></li>
-<li>11.5 传感器管线对齐：标定（内外参/时延）、滚快门/曝光/动态模糊建模</li>
-<li>11.6 动力学与接触：摩擦锥、顺从性、<strong>延迟与带宽配平</strong>（控制频域视角）</li>
-<li>11.7 策略结构化：<strong>残差策略</strong>、<strong>潜变量域编码</strong>、特权信息教师→学生蒸馏</li>
-<li>11.8 在线适应：元学习/RMA 风格<strong>隐域估计器</strong>、测试时自训练、<strong>回传预算上限与模型更新冻结策略</strong></li>
-<li>11.9 运行时保障（RTA）：屏蔽/CBF/MPC Shield、故障树与<strong>优雅降级</strong></li>
-<li>11.10 验收与分级放量：HIL→室内/围栏→封闭道路/试验线→影子模式→灰度上线</li>
-<li>11.11 MLOps 与漂移治理：遥测、遥诊、回放优先级、<strong>漂移告警与冻结开关</strong></li>
-<li>11.12 设计模式与反模式：有效经验与常见坑（数据泄露、过拟合随机化等）</li>
-<li>11.13 <strong>Sim-to-Real 准入清单</strong>：必测用例、阈值、红线与退出条件</li>
-<li>
-<p>11.14 小结：从“可跑”到“可交付”的证据链
-<strong>要点速记</strong></p>
-</li>
-<li>
-<p><strong>三路线</strong>：推仿真→真、拉真→仿真、在线桥接。</p>
-</li>
-<li><strong>两护栏</strong>：RTA（Run-Time Assurance）+ 可恢复性（Recovery）。</li>
-<li><strong>一证据链</strong>：从设变记录→参数证据→仿真复现→现场复现→回放可重现。</li>
+<li>11.1 域差的神经化视角：从参数误差到分布偏移</li>
+<li>11.2 路线一：用神经模型增强仿真器 (Pushing Sim Towards Real)</li>
+<li>11.3 路线二：学习跨域自适应策略 (Bridging the Gap via Adaptation)</li>
+<li>11.4 路线三：神经策略与形式化安全的联姻 (Safety Overlay for Neural Policies)</li>
+<li>11.5 语言在 Sim-to-Real 中的角色</li>
+<li>11.6 Sim-to-Real 的评测协议与 MLOps</li>
+</ul>
+<p><strong>要点速记</strong></p>
+<ul>
+<li><strong>新视角</strong>：域差即高维分布偏移，而非低维参数误差。</li>
+<li><strong>三路线</strong>：① 神经增强仿真器（NeRF/神经动力学）；② 学习自适应策略（RMA/特权学习）；③ 神经策略+形式化安全（RTA/CBF）。</li>
+<li><strong>新工具</strong>：语言作为域描述符与干预接口，MLOps 支持从仿真到现实的端到端评测。</li>
 </ul>
 <hr />
 <h2 id="12-lab">第12章 课程小实验设计（Lab）</h2>
