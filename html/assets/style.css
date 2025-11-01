@@ -713,24 +713,8 @@ blockquote {
     }
 }
 
-/* Add to style.css or modify existing rule to target math elements for a cleaner look */
+/* Math display */
 .MathJax_Display {
-    font-family: "Times New Roman", serif !important; /* or any other serif font */
-    font-weight: normal; /* remove bold */
-    font-size: 1em; /* Adjust to match body text size */
-    line-height: 1.4; /* Make math more readable */
-    color: var(--text-color); /* Match text color */
+    overflow-x: auto;
+    overflow-y: hidden;
 }
-
-/* Adjust LaTeX math font styling */
-.MathJax .mjx-math {
-    font-family: "Times New Roman", serif !important; /* Clean serif font */
-    font-weight: normal !important; /* Ensure normal weight */
-    font-size: 1em !important; /* Adjust size */
-}
-
-/* Optional: Prevent math from being bold in other contexts */
-.MathJax .mjx-chtml {
-    font-weight: normal !important;
-}
-

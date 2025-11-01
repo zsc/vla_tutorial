@@ -278,8 +278,8 @@ $$
 <p><strong>“压缩”≠“抽象”</strong>
 最小化重建误差的压缩不一定学到任务所需的<strong>可操作语义</strong>。</p>
 <ul>
-<li><strong>率失真</strong>：(\min_{q} \ \mathbb{E}[d(X,\hat X)] + \beta,I(X;Z))</li>
-<li><strong>信息瓶颈</strong>：(\min_{q} \ I(X;Z) - \beta, I(Z;Y))
+<li><strong>率失真</strong>：$\min_{q} \ \mathbb{E}[d(X,\hat X)] + \beta,I(X;Z)$</li>
+<li><strong>信息瓶颈</strong>：$\min_{q} \ I(X;Z) - \beta, I(Z;Y)$
   抽象需要最大化 (I(Z;Y))，而非仅减小 (I(X;Z))。
   <strong>工程要点</strong>：在 VLA 中，令 (Y) 包含<strong>行动相关标量</strong>（可达性、接触状态），有助于学到<strong>可控语义</strong>。</li>
 </ul>
