@@ -74,7 +74,7 @@
                     <div class="tree-item " >
                         <a href="chapter4.html" class="tree-link">
                             <span class="tree-icon">📄</span>
-                            <span class="tree-title">第4章 行动模态</span>
+                            <span class="tree-title">第4章 行动模态：从信号处理到鲁棒控制</span>
                         </a>
                     </div>
                 
@@ -102,7 +102,7 @@
                     <div class="tree-item " >
                         <a href="chapter8.html" class="tree-link">
                             <span class="tree-icon">📄</span>
-                            <span class="tree-title">第8章 强化学习与微调（模型级）</span>
+                            <span class="tree-title">第8章 强化学习与微调：从指令遵循到策略优化</span>
                         </a>
                     </div>
                 
@@ -139,342 +139,203 @@
         
         <main class="content">
             <article>
-                <p>（交流可以用英文，所有文档中文，保留这句）</p>
-<h1 id="7">第7章 预训练：模态预训练与跨模态对齐</h1>
-<blockquote>
-<p><strong>开篇段落（学习目标）</strong>
-本章围绕 <strong>两阶段</strong>策略构建 V‑L‑A 基座模型：<strong>模态内预训练</strong>（视觉/语言/行动）→ <strong>跨模态对齐预训练</strong>（V–L、L–A、V–A）。你将掌握：如何设计<strong>训练日程（Curriculum）</strong>、如何以 <strong>Token Buckets</strong> 管理数据/算力预算、如何组合<strong>对比/重建/策略蒸馏/频域</strong>等多源损失并进行<strong>梯度冲突调和</strong>，以及如何在产出端设置<strong>“可迁移性体检”</strong>，确保后续 RL、仿真与 Sim‑to‑Real 可顺滑接力。读完本章，你应能：</p>
+                <h1 id="7">第7章 预训练：模态预训练与跨模态对齐</h1>
+<h2 id="_1">开篇段落</h2>
+<p>在前面的章节中，我们分别探讨了视觉、语言和行动这三个核心模态的内在属性与挑战。本章将进入 VLA 模型构建的核心环节——<strong>预训练</strong>。预训练是构建强大、通用基座模型的关键，它决定了模型能力的上限和下游任务的迁移效率。我们将系统性地介绍一个经过实践检验的两阶段预训练范式：首先进行<strong>模态内预训练</strong>，以掌握各模态的深层表征；随后进行<strong>跨模态对齐预训练</strong>，将独立的“感官”融合成一个协同工作的统一大脑。本章的学习目标是让你掌握设计、实施和调试 VLA 预训练流程的全套方法论，包括训练日程设计、数据与计算预算的精细化管理、多目标损失的平衡，以及如何产出一个为后续强化学习与 Sim-to-Real 任务“整装待发”的高质量基座模型。</p>
+<h2 id="71">7.1 总览与阶段划分：模态→对齐→指令化</h2>
+<p>构建一个强大的 VLA 基座模型，如同培养一位多才多艺的智能体，需要循序渐进。直接将原始的视觉、语言、行动数据混合在一起进行端到端训练，往往会导致训练不稳定、模态间相互掣肘（负迁移）等问题。因此，业界主流范式普遍采用分阶段的策略，其核心思想是<strong>“先分后总”</strong>：</p>
 <ol>
-<li>复现实用的两阶段预训练流水线；2) 将对齐目标与工程约束（带宽、时延、安全）合并进损失与日程；3) 用若干低成本 Probe 评估“是否具备 RL/Sim‑to‑Real 可迁移性”。</li>
+<li>
+<p><strong>阶段一：模态内预训练 (Intra-modal Pre-training)</strong></p>
+<ul>
+<li><strong>目标</strong>：让模型深度理解每个独立模态的内部结构和规律。</li>
+<li><strong>做法</strong>：使用大规模、但可能是单模态的数据，分别训练或加载强大的视觉编码器、语言模型和行动表征模块。</li>
+<li><strong>产出</strong>：高质量的单模态特征取器，它们是后续一切对齐和推理的基础。</li>
+</ul>
+</li>
+<li>
+<p><strong>阶段二：跨模态对齐预训练 (Cross-modal Alignment Pre-training)</strong></p>
+<ul>
+<li><strong>目标</strong>：在高质量的单模态表征之上，建立模态间的“翻译”和“映射”能力。</li>
+<li><strong>做法</strong>：使用对齐的多模态数据（如带文字描述的视频、带指令的专家演示轨迹），通过特定的对齐模块（如交叉注意力、投影层）和对齐损失（如对比学习、跨模态重建），让不同模态的表征在共享的语义空间中相互靠近。</li>
+<li><strong>产出</strong>：一个能够理解“看什么、说什么、做什么”三者关联的统一模型。</li>
+</ul>
+</li>
 </ol>
-</blockquote>
-<hr />
-<h2 id="71">7.1 总览与阶段划分：模态 → 对齐 → 指令化</h2>
-<p><strong>目标</strong>：将三态学习拆解为稳定、可迭代的阶段化流程，并明确每一阶段的<strong>可观测指标</strong>与<strong>退出条件</strong>。</p>
-<div class="codehilite"><pre><span></span><code>[视觉表征 V]──┐
-              ├─► 阶段Ⅱ：跨模态对齐（V–L, L–A, V–A）
-[语言基座 L]──┘            │
-                           ├─► 指令化与轻量监督（SFT/偏好）
-[行动先验 A]───────────────┘            │
-                                        └─► 模型级/智能体级 RL（见第8–11章）
+<p>这个过程可以用下面的 ASCII 图来示意：</p>
+<div class="codehilite"><pre><span></span><code><span class="w">          </span><span class="o">+-----------------+</span><span class="w">      </span><span class="o">+-----------------+</span><span class="w">      </span><span class="o">+-----------------+</span>
+<span class="n">Phase</span><span class="w"> </span><span class="mi">1</span><span class="p">:</span><span class="w">  </span><span class="o">|</span><span class="w">  </span><span class="n">Vision</span><span class="w"> </span><span class="n">Encoder</span><span class="w"> </span><span class="o">|</span><span class="w">      </span><span class="o">|</span><span class="w"> </span><span class="n">Language</span><span class="w"> </span><span class="n">Model</span><span class="w">  </span><span class="o">|</span><span class="w">      </span><span class="o">|</span><span class="w">  </span><span class="n">Action</span><span class="w"> </span><span class="n">Encoder</span><span class="w"> </span><span class="o">|</span>
+<span class="p">(</span><span class="n">Modal</span><span class="p">)</span><span class="w">   </span><span class="o">|</span><span class="w"> </span><span class="p">(</span><span class="n">ViT</span><span class="p">,</span><span class="w"> </span><span class="n">MAE</span><span class="p">,</span><span class="w"> </span><span class="n">etc</span><span class="o">.</span><span class="p">)</span><span class="o">|</span><span class="w">      </span><span class="o">|</span><span class="w">   </span><span class="p">(</span><span class="n">LLM</span><span class="w"> </span><span class="n">Base</span><span class="p">)</span><span class="w">    </span><span class="o">|</span><span class="w">      </span><span class="o">|</span><span class="w"> </span><span class="p">(</span><span class="n">VAE</span><span class="p">,</span><span class="w"> </span><span class="n">Diffusion</span><span class="p">)</span><span class="o">|</span>
+<span class="w">          </span><span class="o">+-----------------+</span><span class="w">      </span><span class="o">+-----------------+</span><span class="w">      </span><span class="o">+-----------------+</span>
+<span class="w">                   </span><span class="o">|</span><span class="w">                      </span><span class="o">|</span><span class="w">                      </span><span class="o">|</span>
+<span class="w">            </span><span class="p">(</span><span class="n">Rich</span><span class="w"> </span><span class="n">Features</span><span class="p">)</span><span class="w">        </span><span class="p">(</span><span class="n">Semantic</span><span class="w"> </span><span class="n">Space</span><span class="p">)</span><span class="w">       </span><span class="p">(</span><span class="n">Trajectory</span><span class="w"> </span><span class="n">Prior</span><span class="p">)</span>
+<span class="w">                   </span><span class="o">|</span><span class="w">                      </span><span class="o">|</span><span class="w">                      </span><span class="o">|</span>
+<span class="w">                   </span><span class="o">+-----------+----------+-----------+----------+</span>
+<span class="w">                               </span><span class="o">|</span><span class="w">                      </span><span class="o">|</span>
+<span class="w">          </span><span class="o">+--------------------</span><span class="n">v</span><span class="o">----------------------</span><span class="n">v</span><span class="o">--------------------+</span>
+<span class="n">Phase</span><span class="w"> </span><span class="mi">2</span><span class="p">:</span><span class="w">  </span><span class="o">|</span><span class="w">               </span><span class="n">Cross</span><span class="o">-</span><span class="n">Modal</span><span class="w"> </span><span class="n">Alignment</span><span class="w"> </span><span class="n">Connectors</span><span class="w">                </span><span class="o">|</span>
+<span class="p">(</span><span class="n">Align</span><span class="p">)</span><span class="w">   </span><span class="o">|</span><span class="w">           </span><span class="p">(</span><span class="n">Cross</span><span class="o">-</span><span class="n">Attention</span><span class="p">,</span><span class="w"> </span><span class="n">Projection</span><span class="p">,</span><span class="w"> </span><span class="n">Gating</span><span class="p">)</span><span class="w">               </span><span class="o">|</span>
+<span class="w">          </span><span class="o">|</span><span class="w">  </span><span class="n">Loss</span><span class="p">:</span><span class="w"> </span><span class="n">Contrastive</span><span class="p">,</span><span class="w"> </span><span class="n">Reconstruction</span><span class="p">,</span><span class="w"> </span><span class="n">Action</span><span class="w"> </span><span class="n">Prediction</span><span class="p">,</span><span class="w"> </span><span class="n">etc</span><span class="o">.</span><span class="w">   </span><span class="o">|</span>
+<span class="w">          </span><span class="o">+--------------------</span><span class="n">v</span><span class="o">------------------------------------------+</span>
+<span class="w">                               </span><span class="o">|</span>
+<span class="w">                        </span><span class="o">+----------------+</span>
+<span class="w">                        </span><span class="o">|</span><span class="w">  </span><span class="n">Aligned</span><span class="w"> </span><span class="n">VLA</span><span class="w">   </span><span class="o">|</span>
+<span class="w">                        </span><span class="o">|</span><span class="w">   </span><span class="n">Base</span><span class="w"> </span><span class="n">Model</span><span class="w">   </span><span class="o">|</span>
+<span class="w">                        </span><span class="o">+----------------+</span>
+<span class="w">                               </span><span class="o">|</span>
+<span class="w">                               </span><span class="n">v</span>
+<span class="w">                       </span><span class="n">Downstream</span><span class="w"> </span><span class="n">Tasks</span><span class="w"> </span><span class="p">(</span><span class="n">RL</span><span class="p">,</span><span class="w"> </span><span class="n">Sim</span><span class="o">-</span><span class="n">to</span><span class="o">-</span><span class="n">Real</span><span class="p">,</span><span class="w"> </span><span class="n">etc</span><span class="o">.</span><span class="p">)</span>
 </code></pre></div>
 
-<p><strong>阶段Ⅰ（模态内）</strong>：</p>
+<p><strong>Rule-of-thumb</strong>: 在资源有限的情况下，优先选择加载高质量的公开预训练模型（尤其是语言模型），将计算资源集中在跨模态对齐阶段。从零开始训练一个强大的视觉或语言基座成本极高。</p>
+<h2 id="72">7.2 视觉预训练：从图像到时空</h2>
+<p>视觉预训练的目标是获得一个能从像素中提取丰富语义和结构信息的编码器。</p>
 <ul>
-<li>视觉：对比/掩码建模/视频预测，产出<strong>稳健、多尺度、时序一致</strong>的表征。</li>
-<li>语言：复用通用 LLM + 领域词表/Adapter/指令化语料，获得<strong>可解释编排</strong>能力。</li>
-<li>行动：从示教/回放中预建<strong>轨迹分布</strong>与<strong>控制先验</strong>（加速度/跃度/带宽）。</li>
+<li><strong>代表性工作演进</strong>:<ul>
+<li><strong>监督学习时代</strong>: 以 ImageNet 分类任务预训练的 CNN (如 ResNet) 为主，它们擅长提取层次化的物体和纹理特征。</li>
+<li><strong>对比学习时代</strong>: 以 <strong>CLIP</strong> 为代表，通过海量图文对的对比学习，模型学到了与自然语言对齐的、更具泛化性的视觉概念。</li>
+<li><strong>自监督时代</strong>: 以 <strong>MAE (Masked Autoencoders)</strong> 为代表，通过对输入进行大规模掩码并预测缺失部分，模型被迫学习到底层视觉内容的内在结构。</li>
+<li><strong>增量式预训练</strong>: 近期的 <strong>InternVL</strong> 系列工作展示了一种更高效的策略：将视觉编码器（ViT）与一个语言模型连接，利用语言模型的下一个词元预测损失（Next Token Prediction, NTP）来“倒逼”视觉编码器进行增量式学习。这种方式使 ViT 能够更好地提取 LLM 所“关心”的视觉特征，从而天然地与语言模态对齐。</li>
 </ul>
-<p><strong>阶段Ⅱ（对齐）</strong>：</p>
-<ul>
-<li>V–L：语义对齐 + 局部细节保真（短语-区域对应）。</li>
-<li>L–A：从“指令/目标”到“迹/控制”的映射与<strong>时序一致性</strong>。</li>
-<li>V–A：视觉约束下的行动可实现性与<strong>频域耦合</strong>（低带宽、安全）。</li>
-</ul>
-<blockquote>
-<p>📌 <strong>经验法则</strong>：若“阶段Ⅰ”的表征在 OOD Probe 上<strong>置信度过饱和</strong>（过度自信），暂停“阶段Ⅱ”，优先做<strong>温度缩放/能量分数校准</strong>与<strong>开集识别</strong>再推进。</p>
-</blockquote>
-<hr />
-<h2 id="72-cnn">7.2 视觉预训练：CNN/对比/掩码视频自监督</h2>
-<p><strong>对比学习（CL/InfoNCE）</strong>：
-给定成对样本 ((x_i, y_i))（可为图–文、视–视增强），相似度 (s(\cdot,\cdot)) 与温度 (\tau)：</p>
-<p>$$
-\mathcal{L}_{\text{InfoNCE}}
-= -\frac{1}{N}\sum_{i=1}^{N}
-\log\frac{\exp\left(s(x_i,y_i)/\tau\right)}
-{\sum_{j=1}^{N}\exp\left(s(x_i,y_j)/\tau\right)}.
-$$</p>
-<p><strong>掩码视频建模（MVM）与重建</strong>：
-对时空块集合 (\mathcal{M}) 预测像素/码本：</p>
-<p>$$
-\mathcal{L}_{\text{MVM}}=\sum_{(t,p)\in\mathcal{M}}
-\left|\hat{x}_{t,p}-x_{t,p}\right|_1
-\quad\text{或}\quad
-\mathcal{L}_{\text{VQ-CE}}=-\sum \log P(z_{t,p}=z^\star_{t,p}).
-$$</p>
-<p><strong>时一致性与开集识别</strong>：</p>
-<ul>
-<li>一致性：短窗变换一致性 $\mathcal{L}*{\text{TC}}=\sum_t|f(x*{t+\Delta})-T_\Delta(f(x_t))|_2^2$。</li>
-<li>开集：能量分数 $E(x)=-\tau \log \sum_k \exp(\phi_k(x)/\tau)$ 用于阈值化不确定性。</li>
-</ul>
-<blockquote>
-<p>📌 <strong>经验法则</strong>：<strong>不要</strong>把 CL 负样本全当“真负样本”。对近邻帧/近景图像做<strong>半负</strong>或<strong>软标签</strong>可显著降低“伪负样本”带来的语义撕裂。</p>
-</blockquote>
-<hr />
-<h2 id="73">7.3 行动预训练：示教/频谱表征/控制先验</h2>
-<p><strong>目标</strong>：让模型在无交互/无奖励下，学得<strong>平滑、因果、可控</strong>的轨迹分布。</p>
-<ul>
-<li>
-<p><strong>行为克隆（BC）</strong>：
-  $$
-\mathcal{L}*{\text{BC}}=\mathbb{E}*{(s_t,a_t)}\big[-\log \pi_\theta(a_t\mid s_t)\big].
-$$</p>
-</li>
-<li>
-<p><strong>频域/带宽先验</strong>（对轨迹 (x(t)) 的 DFT：(X[k])）：
-  $$
-\mathcal{L}*{\text{spec}}=\sum*{k=0}^{K}w_k\big(,|X[k]|-|\hat{X}[k]|\big)^2,\quad
-  w_k \propto \frac{1}{(1+k)^\alpha}.
-$$
-  低频加权抑制高频抖动，映射到<strong>舒适度</strong>与<strong>执行器带宽</strong>。</p>
-</li>
-<li>
-<p><strong>几与动力学约束</strong>（曲率 (\kappa)、加速度 (a)、跃度 (j)）：
-  $$
-\mathcal{L}*{\text{dyn}}=\lambda*\kappa !\sum! [|\kappa|-\kappa_{\max}]*+ +
-  \lambda_a !\sum! [|a|-a*{\max}]*+ +
-  \lambda_j !\sum! [|j|-j*{\max}]_+ .
-$$</p>
-</li>
-<li>
-<p><strong>教师–学生蒸馏（控制教师 → 行动学生）</strong>：用 MPC/CBF 的可行轨迹作为“软标签”，蒸馏到学生策略分布（KLD/EMD）。</p>
 </li>
 </ul>
-<blockquote>
-<p>📌 <strong>经验法则</strong>：若离线回放含<strong>人类瞬时纠正</strong>（高 jerk），用 <strong>Huber</strong> 或 <strong>分位回归</strong>替代 MSE，并在 (\mathcal{L}_{\text{spec}}) 中<strong>下压高频权重</strong>，再配合<strong>jerk 裁剪</strong>，能显著改善部署时的舒适度与执行器饱和。</p>
-</blockquote>
-<hr />
-<h2 id="74-llm">7.4 语言预训练：复用通用 LLM 与领域适配</h2>
+<h2 id="73">7.3 行动预训练：学习“如何动”的先验</h2>
+<p>行动模态的预训练旨在为模型注入关于“物理世界中何为可能且合理的动作”的先验知识。</p>
 <ul>
-<li><strong>指令化与检索增强</strong>：在领域语料上做轻量 SFT/LoRA/Adapter；对<strong>任务规划/工具调用</strong>相关模板做数据增强（问题分解、失败解释、动作约束表述）。</li>
-<li><strong>术语与单位一致性</strong>：构建<strong>控制/几何/安全</strong>术语词表，统到语言端约束模板。</li>
-<li><strong>思考预算</strong>：为后续 RFT/RL 做准备，引入<strong>自反式评估</strong>描述（“为什么此动作安全/可达”）。</li>
+<li><strong>代表性工作演进</strong>:<ul>
+<li><strong>行为克隆 (BC)</strong>: 这是最直接的方式，通过模仿学习（Imitation Learning）在专家演示数据集上进行监督学习，预测下一步动作。</li>
+<li><strong>表征学习</strong>: 使用 <strong>VAE (Variational Autoencoder)</strong> 或 <strong>VQ-VAE</strong> 将连续、高维的轨迹数据压缩到一个低维的隐空间。这个过程不仅是压缩，更是对行动“基元”的学习。<strong>Gato</strong> 和 <strong>RT-1</strong> 等工作都采用了将行动离散化为 token 的思想，使其能与 Transformer 架构无缝集成。</li>
+<li><strong>生成模型</strong>: 近期，<strong>Diffusion Policy</strong> 等工作展示了使用扩散模型来表征行动策略的巨大潜力。通过对专家轨迹的噪声分布进行建模和去噪，模型能生成平滑且高质量的行动序列。</li>
 </ul>
-<blockquote>
-<p>📌 <strong>经验法则</strong>：领域适配尽量<strong>冻结主干</strong>仅训练适配层；当你发现对齐阶段 L–A 过拟合文本花样时，提高<strong>术语模板比重</strong>并降低“花式表达”的采样温度。</p>
-</blockquote>
-<hr />
-<h2 id="75-curriculum">7.5 训练日程（Curriculum）：难度分级与混合采样</h2>
-<p><strong>目标</strong>：让学习信号“由易到难、先稳后快”，避免早期梯度噪声破坏跨模态对齐。</p>
+</li>
+</ul>
+<h2 id="74">7.4 语言预训练：站在巨人的肩膀上</h2>
+<p>对于语言模态，最佳实践几乎总是复用一个强大的、公开的预训练大语言模型（LLM），如 LLaMA、Qwen、OLMo 系列。</p>
 <ul>
-<li><strong>难度维度</strong>：视角变化、光照/噪声、遮挡率、目标密度、动作曲率、文本歧义度。</li>
-<li>
-<p><strong>冻结/解冻策略</strong>：</p>
-</li>
-<li>
-<p>早期冻结 LLM 主干 &amp; 视觉低层，先学门控/交互层；</p>
-</li>
-<li>中期逐步解冻视觉高层与跨模态注意力；</li>
-<li>后期小步解冻语言高层用于任务化表达。</li>
+<li><strong>核心优势</strong>: 这些模型已在万亿级的文本语料上进行了预训练，蕴含了丰富的世界知识、推理能力和指令遵循能力。从零开始训练是不切实际的。</li>
+<li><strong>领域适配</strong>: 虽然我们不从头训练，但可以通过在特定领域（如机器人、自动驾驶）的文本语料上进行轻量级的持续预训练（continual pre-training）或微调，来为 LLM 注入领域知识和术语。</li>
 </ul>
-<h3 id="751">7.5.1 日程原型示例（数字可按资源调整）</h3>
-<ul>
-<li><strong>总步数</strong>：(500\text{k})；<strong>批大小</strong>：按 GPU/TPU 资源。</li>
-<li><strong>阶段 A（0–100k）</strong>：模态内（V:60%、A:25%、L:15%），除顶层外全部冻结跨模态层。</li>
-<li><strong>阶段 B（100k–300k）</strong>：V–L 对齐 + 轻量 L–A（对比:40%、重建:25%、蒸馏:20%、频域:15%）。</li>
-<li><strong>阶段 C（300k–450k）</strong>：三模态联合（门控/互信息/循环一致），逐步解冻跨模态注意力。</li>
-<li><strong>阶段 D（450k–500k）</strong>：指令化微调（SFT 小步长）+ 稳定化（EMA/噪声退火）。</li>
-</ul>
-<p><strong>ASCII 时间线</strong></p>
-<div class="codehilite"><pre><span></span><code><span class="err">步数</span><span class="o">:</span><span class="w">   </span><span class="mi">0</span><span class="n">k</span><span class="w">         </span><span class="mi">100</span><span class="n">k</span><span class="w">               </span><span class="mi">300</span><span class="n">k</span><span class="w">            </span><span class="mi">450</span><span class="n">k</span><span class="w">       </span><span class="mi">500</span><span class="n">k</span>
-<span class="w">        </span><span class="o">|-----------|-------------------|---------------|----------|</span>
-<span class="err">阶段</span><span class="o">:</span><span class="w">   </span><span class="n">A</span><span class="w">  </span><span class="err">模态内</span><span class="w">   </span><span class="n">B</span><span class="w">  </span><span class="n">V</span><span class="err">–</span><span class="n">L</span><span class="o">+</span><span class="err">轻</span><span class="n">L</span><span class="err">–</span><span class="n">A</span><span class="w">        </span><span class="n">C</span><span class="w">  </span><span class="err">三模态联合</span><span class="w">    </span><span class="n">D</span><span class="w">  </span><span class="err">指令化</span><span class="o">/</span><span class="err">稳定</span>
-<span class="err">冻结</span><span class="o">:</span><span class="w">   </span><span class="n">L主干锁</span><span class="w">     </span><span class="err">解跨模态顶层</span><span class="w">        </span><span class="err">逐步解冻</span><span class="w">         </span><span class="err">小步全局解冻</span>
-<span class="err">损失</span><span class="o">:</span><span class="w">   </span><span class="err">重建</span><span class="sr">/对比   +对齐/蒸馏/频域     +互信息/循环     +SFT/</span><span class="n">EMA</span>
-</code></pre></div>
-
-<blockquote>
-<p>📌 <strong>经验法则</strong>：<strong>不要</strong>在阶段 A 就上强 L–A；先把视觉时序稳定住（错位鲁棒），否则对齐阶段会把<strong>时域偏差</strong>“语言化”，后续很难纠正。</p>
-</blockquote>
-<hr />
-<h2 id="76-token-buckets">7.6 Token Buckets 分配：按模态/任务/难度的预算治理</h2>
-<p><strong>设定</strong>：为每个数据簇/任务 (k) 分配桶容量 (B_k)、漏出速率 (r_k)、当前已消耗令牌 (u_k(t))。每次采样满足：
-$$
-p_k(t) \propto \max\big(0,,B_k - u_k(t)\big)^\gamma \cdot q_k(\text{难度}, t),
-$$
-其中 (q_k) 可随课程升高难度，(\gamma) 控制“补齐性”。</p>
-<p><strong>多目标公平</strong>：加入下限 (p_k^{\min}) 防止冷门任务饿死；关键安全/开集 Probe 的桶给<strong>优先级</strong>。</p>
-<p><strong>ASCII：三桶示意</strong></p>
-<div class="codehilite"><pre><span></span><code><span class="k">[V-CLIP桶] [L-指令桶] [A-轨迹桶]</span>
-<span class="w">   </span><span class="na">████▊      ██▏        ████▍      ← 当前剩余令牌（越高越优先被抽样）</span>
-<span class="na">漏速 r</span><span class="o">:</span><span class="w">       </span><span class="s">r_v        r_l        r_a</span>
-</code></pre></div>
-
-<blockquote>
-<p>📌 <strong>经验法则</strong>：当对齐损失震荡，先看<strong>桶是否失衡</strong>——常见现象是“容易样本”被过度采样导致<strong>可见集过拟合</strong>与<strong>OOD 崩溃</strong>。</p>
-</blockquote>
-<hr />
-<h2 id="77">7.7 对齐数据构建：配对、三元组、合成与清洗</h2>
-<ul>
-<li>
-<p><strong>配对/三元组</strong>：((v,l,a))、((v,l))、((v,a)) 混合；引入<strong>循环一致</strong>约束：
-  $$
-\mathcal{L}*{\text{cycle}}=|g*{L\to A}(g_{V\to L}(v))-g_{V\to A}(v)|_1 + \cdots
-$$</p>
-</li>
-<li>
-<p><strong>合成数据</strong>：程序化生成<strong>可控难度</strong>样本（视角/光照/交通密度/目标曲率），便于课程与“失效放大”。</p>
-</li>
-<li>
-<p><strong>清洗</strong>：</p>
-</li>
-<li>
-<p>时间戳对齐（相机–IMU–里程计），剔除<strong>错位帧</strong>；</p>
-</li>
-<li>文本去幻觉/去冗词，保留<strong>约束短语</strong>（“不超速/不越线/保持时距”等）；</li>
-<li>行动轨迹去毛刺（jerk 裁剪、速度负值异常）。</li>
-</ul>
-<blockquote>
-<p>📌 <strong>经验法则</strong>：优先做<strong>时域对齐清洗</strong>。时间错位 50–100 ms 就足以让 L–A 对齐学出<strong>系统性滞后</strong>，后续再做延迟补偿的代价更大。</p>
-</blockquote>
-<hr />
-<h2 id="78">7.8 损失与多目标优化：权重平衡与梯度冲突缓解</h2>
-<p><strong>总损失</strong>（示意）：
-$$
-\mathcal{L}
-= \lambda_{\text{CL}}\mathcal{L}_{\text{InfoNCE}}</p>
-<p>* \lambda_{\text{REC}}(\mathcal{L}*{\text{MVM}}+\mathcal{L}*{\text{VQ-CE}})
-* \lambda_{\text{KD}}\mathcal{L}_{\text{KD}}
-* \lambda_{\text{spec}}\mathcal{L}_{\text{spec}}
-* \lambda_{\text{dyn}}\mathcal{L}_{\text{dyn}}
-* \lambda_{\text{cycle}}\mathcal{L}_{\text{cycle}}.
-  ]</p>
-<p>**自适应权重（不确定性加权）**：
-$$
-\mathcal{L}_{\text{multi}}=\sum_i \frac{1}{2\sigma_i^2}\mathcal{L}_i + \log \sigma_i,
-$$
-(\sigma_i) 可学习，反映任务噪声与重要度。</p>
-<p><strong>梯度冲突调和</strong>：</p>
-<ul>
-<li><strong>PCGrad</strong>：若两任务梯度夹角为负，则投影去除相互冲突分量。</li>
-<li><strong>GradNorm</strong>：按目标梯度范数平衡多任务学习进度。</li>
-<li><strong>损失退火</strong>：早期放大稳定项（重建/频域），中后期提高对齐/蒸馏权重。</li>
-</ul>
-<blockquote>
-<p>📌 <strong>经验法则</strong>：当你需要“快对齐、慢重建”，先<strong>退火 InfoNCE 的温度 (\tau)</strong> 而不是一味提高其权重。较大的 (\tau) 往往能缓解<strong>过分拉开难负样本</strong>导致的训练抖动。</p>
-</blockquote>
-<hr />
-<h2 id="79">7.9 正则与稳定：模态均衡、去塌缩、负迁移防护</h2>
-<ul>
-<li><strong>模均衡 Dropout</strong>：训练时随机屏蔽某一模态（按小概率），强制学习<strong>跨模态冗余</strong>。</li>
-<li><strong>去塌缩</strong>：对齐空间增加<strong>分布约束</strong>（如高斯混合先验、最大化对角协方差），防止所有样本聚到单团。</li>
-<li><strong>负迁移防护</strong>：对“视觉噪声段/文本冗词段/异常轨迹段”设置<strong>遮挡标记</strong>，避免错误传播到对齐头。</li>
-<li><strong>动量教师（EMA）</strong>：跨模态编码器用动量更新的教师网络做目标，平滑训练信号。</li>
-</ul>
-<blockquote>
-<p>📌 <strong>经验法则</strong>：一旦发现“<strong>好看但不可行</strong>”的动作（轨迹平滑却越界），立刻提高 (\lambda_{\text{dyn}}) 并引入<strong>QP 投影后的教师轨迹</strong>做蒸馏；不要指望后续 RL 全部修复。</p>
-</blockquote>
-<hr />
-<h2 id="710-rlsimtoreal">7.10 可迁移性检查点：面向 RL/仿真/Sim‑to‑Real 的“可迁移性体检”</h2>
-<p><strong>目的</strong>：在预训练末期进行<strong>体检</strong>，只保留“对后续强化学习友好”的检查点。</p>
-<p><strong>体检项目</strong>（建议至少通过 8/10）：</p>
+<h2 id="75-curriculum">7.5 训练日（Curriculum）：精心设计的学习路径</h2>
+<p>一个好的训练日程是模型成功的关键。它规定了在不同阶段训练哪些部分、使用什么数据、以及如何调整超参数。学习率调度（例如 <strong>OLMo</strong> 和 <strong>StarCoder2</strong> 中使用的“线性预热+余弦衰减”）和梯度裁剪是保证训练稳定的基本操作。</p>
+<h3 id="751-internvl">7.5.1 代表性工作：InternVL 的三阶段流程</h3>
+<p><strong>InternVL 2.5</strong> 的训练流程是一个优秀的实践范例：</p>
 <ol>
-<li><strong>延迟鲁棒 Probe</strong>：输入时间错位 (\pm)50–100 ms，L–A 输出相位偏差 &lt; 阈值。</li>
-<li><strong>频域平滑度</strong>：(\int |j(t)| dt) 与高频能量比不超过教师上界的 1.2×。</li>
-<li><strong>开集拒识</strong>：未知场景能量分数分离度（AUROC）≥ 0.9。</li>
-<li><strong>循环一致</strong>：V→L→A 与 V→A 的 L1 距离 &lt; 设定阈值。</li>
-<li><strong>文本约束遵循</strong>：加入否定/边界词（“不越线/不逆行”）的遵循率 ≥ 0.98。</li>
-<li><strong>对抗随机化</strong>：光照/噪声/遮挡 stress 下的对齐召回率下降 &lt; 20%。</li>
-<li><strong>低带宽可执行性</strong>：将动作下采样至执行器带宽，误差 &lt; 设定阈值。</li>
-<li><strong>教师一致性</strong>：MPC/CBF 参考下，KLD(学生‖教师) &lt; 预设上限。</li>
-<li><strong>负样本诡计</strong>：近邻帧伪负样本测试下的 InfoNCE 退化 &lt; 10%。</li>
-<li><strong>数据泄露扫描</strong>：仿真评测集与训练集视/语/轨迹去重通过。</li>
+<li><strong>MLP 预热 (MLP Warmup)</strong>: 此阶段冻结 ViT 和 LLM，仅训练连接两者的 MLP 投影层。目标是让投影层快速学习如何将视觉特征对齐到 LLM 的输入空间，这是稳定后续训练的关键一步。</li>
+<li><strong>ViT 增量学习 (ViT Incremental Learning)</strong>: 此阶段可选。解冻 ViT 和 MLP，继续冻结 LLM，使用下一词元预测损失进行训练。这会促使 ViT 学习提取对 LLM 更有意义的视觉特征。一个重要的工程技巧是：用一个较小的 LLM（如 20B）完成此阶段后，训练好的 ViT 可以被直接用于和更大的 LLM（如 72B）配对，从而跳过昂贵的大模型 ViT 训练，实现<strong>渐进式扩展 (Progressive Scaling)</strong>。</li>
+<li><strong>全模型指令微调 (Full Model Instruction Tuning)</strong>: 解冻所有模块（ViT, MLP, LLM），在高质量的多模态指令数据集上进行端到端微调。</li>
 </ol>
-<p><strong>导出物</strong>：</p>
+<h2 id="76-token-buckets">7.6 Token Buckets 分配：计算预算的治理</h2>
+<p>在多模态模型中，不同模态产生的数据量（tokens）差异巨大。一个视频片段可能产生数千个视觉 token，而对应的指令只有几十个语言 token。<strong>Token Buckets</strong> 是一种概念上的预算管理方法。</p>
 <ul>
-<li><strong>权重包 + 日志</strong>（包含温度、桶状态、损失曲线）；</li>
-<li><strong>Probe 报告</strong>（包含时域/频域指标与门限）；</li>
-<li><strong>兼容第8章</strong>的 RFT/RL 初始化配置（冻结/学习率建议）。</li>
+<li><strong>核心思想</strong>: 将总训练计算量（如总共处理 $10^{13}$ 个 token）视为一个预算池，然后根据各模态的重要性、数据可用性和学习难度，为不同来源的数据分配不同的“配额”。</li>
+<li><strong>实现方式</strong>: 通过<strong>数据采样权重</strong>来控制。例如，<strong>Emu3.5</strong> 的第一阶段预训练中，视频交错数据、图文对、纯本的采样比例被设置为 <code>0.55 : 0.2 : 0.2</code>。</li>
 </ul>
-<blockquote>
-<p>📌 <strong>经验法则</strong>：当<strong>体检得分相近</strong>时，优先选<strong>高不确定性识别能力</strong>而非<strong>表面成功率更高</strong>的检查点；后者在 Sim‑to‑Real 常因过度自信而失稳。</p>
-</blockquote>
-<hr />
-<h2 id="_1">本章小结</h2>
+<h3 id="761-starcoder2">7.6.1 案例研究：StarCoder2 的数据配方与模型尺寸</h3>
+<p><strong>StarCoder2</strong> 的训练策略完美诠释了 Token Buckets 的思想：<strong>模型的能力上限（容量）决定了其能有效吸收的数据多样性</strong>。</p>
 <ul>
-<li>采用<strong>两阶段</strong>策略：<strong>模态内</strong>稳固表征 → <strong>跨模态对齐</strong>构建 V–L–A 桥梁。</li>
-<li>用 <strong>Curriculum + Token Buckets</strong> 管理采样，兼顾难度爬升与数据/算力公平。</li>
-<li>将 <strong>对比/重建/蒸馏/频域/动力学</strong>等损失在<strong>自适应权重</strong>与<strong>梯度外科</strong>下稳健融合。</li>
-<li>在产出端实施 <strong>“可迁移性体检”</strong>，以<strong>时域、频域、开集、可执行性</strong>四维指标为主，筛选可用于 RL 与 Sim‑to‑Real 的检查点。</li>
+<li><strong>StarCoder2-3B (小模型)</strong>: 使用一个较小的代码数据集 <code>the-stack-v2-train-smol</code>（包含 17 种主流编程语言），并<strong>排除</strong>了 ArXiv、Wikipedia 等信息量大但与核心编码任务非直接相关的自然语言数据。这避免了小模型的有限容量被过于宽泛的知识稀释。</li>
+<li><strong>StarCoder2-7B (中模型)</strong>: 使用同样的代码数据集，但<strong>加入</strong>了 OpenWebMath, Wikipedia, Arxiv 等数据，以增强其推理和知识能力。</li>
+<li><strong>StarCoder2-15B (大模型)</strong>: 使用完整的、包含 619 种编程语言的代码数据集 <code>the-stack-v2-train-full</code>，并包含所有额外的自然语言和专业数据集。大模型有足够的容量去同时学习多样的编程语言和广泛世界知识。</li>
 </ul>
-<hr />
-<h2 id="gotchas">常见陷阱与错误（Gotchas）与调试技巧</h2>
-<ol>
-<li><strong>伪负样本导致的对齐撕裂</strong></li>
-</ol>
+<p><strong>Rule-of-thumb</strong>: 为小模型设计“少而精”的数据配方，聚焦核心能力；随着模型容量的增大，逐步拓宽数据的多样性和难度。</p>
+<h2 id="77">7.7 数据配方：预训练成功的秘诀</h2>
+<p>对齐数据的质量和广度直接决定了模型的能力。构建一份高质量的数据“食谱” (Data Recipe) 是预训练的重中之重。</p>
+<h3 id="771">7.7.1 案例研究：前沿模型的数据配方</h3>
 <ul>
-<li>现象：近景/相邻帧被强行拉远，跨模态嵌入空间不稳定。</li>
-<li>对策：软负样本、近邻抑制、温 (\tau) 退火、语义聚类内不做负样本。</li>
-</ul>
-<ol start="2">
-<li><strong>时间错位与滞后学习</strong></li>
-</ol>
-<ul>
-<li>现象：L–A 输出整体滞后，RL 阶段需要过大延迟补偿。</li>
-<li>对策：在预训练加入<strong>错位增强</strong>与<strong>延迟校正 Probe</strong>；曲线拟合时加入<strong>相位惩罚</strong>。</li>
-</ul>
-<ol start="3">
-<li><strong>频域失衡：表面平滑、实则越界</strong></li>
-</ol>
-<ul>
-<li>现象：低频平滑但轨迹越线/超速。</li>
-<li>对策：增加 (\mathcal{L}_{\text{dyn}}) 与 QP 投影蒸馏；限制频域损失对低频的过度偏好。</li>
-</ul>
-<ol start="4">
-<li><strong>桶失衡导致的 OOD 崩溃</strong></li>
-</ol>
-<ul>
-<li>现象：对齐在训练分布上优雅，OOD 上断崖。</li>
-<li>对策：检查 Token Buckets 与课程采样，设定 (p_k^{\min}) 与“失效放大”样本的高优先级。</li>
-</ul>
-<ol start="5">
-<li><strong>负迁移：噪声段污染对齐头</strong></li>
-</ol>
-<ul>
-<li>现象：少量坏数据牵引模型到错误对齐。</li>
-<li>对策：显式<strong>遮挡/异常标记</strong>、段级权重衰减、EMA 教师平滑目标。</li>
-</ul>
-<ol start="6">
-<li><strong>损失权重拍脑袋</strong></li>
-</ol>
-<ul>
-<li>现象：调参靠感觉、震荡频繁。</li>
-<li>对策：使<strong>不确定性加权</strong>与<strong>GradNorm/PCGrad</strong>；记录每项梯度范数趋势并做闭环调整。</li>
-</ul>
-<ol start="7">
-<li><strong>语言端“花式表达”压过“约束短语”</strong></li>
-</ol>
-<ul>
-<li>现象：模型更会“说”，却不懂“规”。</li>
-<li>对策：提高“否定/边界”模板占比；降低 SFT 阶段的采样温度与 n‑gram 多样性奖励。</li>
-</ul>
-<ol start="8">
-<li><strong>检查点选择只看 val loss</strong></li>
-</ol>
-<ul>
-<li>现象：线上 RL/仿真效果与离线指标脱节。</li>
-<li>对策：采用本章的<strong>体检十项</strong>，尤其关注<strong>开集识别</strong>与<strong>低带宽可执行性</strong>。</li>
-</ul>
-<ol start="9">
-<li><strong>忽视执行器带宽与量化误差</strong></li>
-</ol>
-<ul>
-<li>现象：实验室顺滑，设备端抖动。</li>
-<li>对策：预训练即引入<strong>带宽约束</strong>与<strong>量化噪声注入</strong>，在 (\mathcal{L}_{\text{spec}}) 中设定截止频率。</li>
-</ul>
-<ol start="10">
 <li>
-<p><strong>把“预训练”当终点</strong></p>
+<p><strong>The Stack v2 (面向代码)</strong>: <strong>StarCoder2</strong> 的训练集 <strong>The Stack v2</strong> 远不止是源代码。它是一个围绕“软件开发”这一复杂人类活动的、天然的多模态数据集，其构成极具启发性：</p>
 <ul>
-<li>现象：期望预训练直接可部署。</li>
-<li>对策：把预训练视为<strong>证据链</strong>的前半程；为第8–11章的 RFT/RL/Sim‑to‑Real 留出<strong>结构化接口</strong>（残差策略、RTA 兼容）。</li>
+<li><strong>核心</strong>: 软件遗产（Software Heritage）中的海量源代码。</li>
+<li><strong>交互与推理</strong>: GitHub 的 Issues（问题讨论）和 Pull Requests（代码审查、修改与合并），这部分数据蕴含了丰富的自然语言指令、代码变更和推理过程。</li>
+<li><strong>结构化代码与文档</strong>: Jupyter 和 Kaggle Notebooks，它们将代码、文本解释和运行结果交织在一起。</li>
+<li><strong>专业知识</strong>: ArXiv 论文（算法）、StackOverflow 问答（实践）、数学数据集（OpenWebMath）、LLVM 中间表示等。</li>
 </ul>
 </li>
-</ol>
-<hr />
-<blockquote>
-<p><strong>本章产出清单（建议）</strong></p>
-<ul>
-<li>训练日程 JSON（阶段边界/冻结策略/损失退火曲线）。</li>
-<li>Token Buckets 配置与每桶消费曲线。</li>
-<li>多目标损失与梯度统计面板（范数、夹角、PCGrad 命中率）。</li>
-<li>“可迁移性体检”报告（含阈值、通过/失败项与建议）。</li>
+<li>
+<p><strong>Emu3.5 / Veo (面向视频与世界模型)</strong>: 这些模型的核心数据是<strong>视频交错数据 (video interleaved data)</strong>，即从海量互联网视频中提取的<strong>连续视频帧</strong>和时间对齐的<strong>语音转录文本</strong>。这种长时序、天然对齐的数据形式是模型学习物理常识、因果关系和长程依赖的关键，也是它们能够“零样本”执行多种视觉任务（如分割、编辑、推理）的基础。<strong>Emu3.5</strong> 的预训练数据包含约6300万个视频，总时长近790年。</p>
+</li>
+<li>
+<p><strong>InternVL 2.5 (面向通用视觉语言)</strong>: 其预训练数据混合体现了对多种视觉任务的全面覆盖，包括：Captioning (字幕)、General QA、Mathematics、Charts、OCR、Knowledge、Grounding、Documents、Conversation、Medical 和 GUI 等。这种“广网”式的策略确保了模型在各项垂直能力上都有所涉猎，成为一个多才多艺的“通才”。</p>
+</li>
+<li>
+<p><strong>OLMo's Dolma (面向语言)</strong>: 作为 <strong>OLMo</strong> 模型的训练集，Dolma 是一个纯文本的大规模语料库，其来源包括 Common Crawl (网页)、GitHub (代码)、Reddit (社交媒体)、Semantic Scholar (学术论文) 等。这代表了一个强大的语言基座所需的数据配方。</p>
+</li>
 </ul>
-<p><strong>衔接提示</strong>：带着通过体检的检查点进入第8章（模型级 RL 微调/RFT），优先采用<strong>小步长、行为正则与 KL 约束</strong>，以保持本章形成的<strong>平滑/可执行</strong>行动分布与<strong>可解释</strong>对齐结构。</p>
-</blockquote>
+<h3 id="772">7.7.2 合成数据：弥补数据鸿沟的利器</h3>
+<p>当特定类型的高质量数据稀缺时，<strong>合成数据 (Synthetic Data)</strong> 成为了一个强大的工具。</p>
+<ul>
+<li><strong>动机</strong>: 为小模型弥补性能差距（如 <strong>ALLAVA</strong>），或增强模型在特定领域的专门技能（如 <strong>SpaRE</strong>）。</li>
+<li>
+<p><strong>ALLAVA 的 "Caption-then-QA" 流程</strong>:</p>
+<ol>
+<li><strong>目标</strong>: 为轻量级 VLM 生成高质量的指令微调数据。</li>
+<li><strong>方法</strong>: 使用一个强大的私有模型（如 GPT-4V），在一个 prompt 中同时要求它：(a) 为输入图像生成一段<strong>精细的描述 (fine-grained caption)</strong>；(b) 基于图像和刚刚生成的描述，提出一个<strong>复杂的推理问题</strong>；(c) 提供该问题的<strong>详细回答</strong>。</li>
+<li><strong>核心洞见</strong>: 精细描述作为一种<strong>中间思维链 (Chain-of-Thought)</strong>，强制模型首先深入理解图像内容，这极大地提高了后续生成的问题和答案的质量与相关性，有效减少了幻觉。</li>
+</ol>
+</li>
+<li>
+<p><strong>SpaRE 的空间推理数据生成</strong>:</p>
+<ol>
+<li><strong>目标</strong>: 提升 VLM 的空间推理能力。</li>
+<li><strong>方法</strong>: 利用已有的、包含<strong>超详细描述 (hyper-detailed descriptions)</strong> 的数据集（如 DOCCI），使用一个开源 LLM（如 Qwen2.5-3B-Instruct）从中<strong>提取 (extract)</strong> 出与空间关系（位置、方向、距离等）相关的问答对。</li>
+<li><strong>核心洞见</strong>: 这是一种“变废为宝”的策略，从非结构化的丰富文本中挖掘出结构化的训练数据，专门用于强化模型的薄弱环节。</li>
+</ol>
+</li>
+</ul>
+<p><strong>数据清洗</strong>: 所有代表性工作都强调了数据清洗的重要性。<strong>The Stack v2</strong> 的流程包含了严格的许可证过滤、PII（个人可识别信息）脱敏、恶意代码扫描和开发者 opt-out 机制。<strong>InternVL</strong> 则发现 LLM 对数据噪声（尤其是重复模式）极为敏感，并为此设计了复杂的多阶段过滤流水线。</p>
+<h2 id="78">7.8 损失与多目标优化：统一与平衡的艺术</h2>
+<p>对于现代自回归 VLA 模型，训练目标已经惊人地统一。</p>
+<ul>
+<li><strong>核心损失：下一个词元预测 (Next-Token Prediction)</strong>: 无论是文本、离散化的图像/视频 token，还是行动 token，模型的核心任务都是基于前面的序列，预测下一个最有可能的 token。这个任务由标准的<strong>交叉熵损失 (Cross-Entropy Loss)</strong> 驱动。像 <strong>Emu3.5</strong>、<strong>InternVL 2.5</strong> 和 <strong>StarCoder2</strong> 这样的 SOTA 模型，其预训练和对齐阶段都由这个单一、强大的目标主导。</li>
+<li><strong>损失加权</strong>: 当不同模态的 token 混合在一个序列中时，需要对损失进行加权以平衡学习。例如，<strong>Emu3.5</strong> 对视觉 token 的损失应用了 <code>0.5</code> 的权重因子，以防止数量庞大的视觉 token 在训练动态中压倒文本 token。</li>
+</ul>
+<h2 id="79">7.9 正则与稳定：防止训练脱轨</h2>
+<ul>
+<li><strong>模态均衡 (Modality Dropout)</strong>: 在训练时，随机“丢弃”掉某个模态的输入，强迫模型学习更鲁棒的跨模态生成能力，并防止对某一模态的过度依赖。</li>
+<li><strong>负迁移防护 (Negative Transfer Prevention)</strong>: 冻结/解冻策略是防止负迁移的主要手段。在对齐训练初期，冻结强大的单模态基座，可以保护它们已经学到的知识不被随机初始化的对齐模块所破坏。</li>
+<li><strong>优化器与调度器</strong>: AdamW 优化器是事实上的标准。学习率调度通常采用<strong>线性预热后余弦衰减</strong>的策略，这在 <strong>OLMo</strong>、<strong>StarCoder2</strong> 等项目中被证明是稳定且有效的。</li>
+</ul>
+<h2 id="710-rlsim-to-real">7.10 可迁移性检查点：面向 RL/仿真/Sim-to-Real 的“可迁移性体检”</h2>
+<p>在耗费大量资源进行完整的 RL 微调或 Sim-to-Real 实验之前，如何快评估预训练模型的质量？<strong>“可迁移性体检” (Transferability Health Check)</strong> 是一种低成本的诊断方法。</p>
+<ul>
+<li>
+<p><strong>方法</strong>:</p>
+<ol>
+<li><strong>冻结主干 (Freeze Backbone)</strong>: 将预训练好的 VLA 模型的主体部分全部冻结。</li>
+<li><strong>附加探针 (Attach a Probe)</strong>: 在冻结的主干之上，附加一个非常轻量的、随机初始化的“探针”头（probe），例如一个线性层或一个两层的小 MLP。</li>
+<li><strong>快速微调</strong>: 在一个简化的下游任务上，只训练这个探针头。</li>
+<li><strong>评估指标</strong>: 观察探针头在该任务上的<strong>学习速度</strong>和<strong>最终性能</strong>。</li>
+</ol>
+</li>
+<li>
+<p><strong>解读</strong>:</p>
+<ul>
+<li><strong>好信号</strong>: 如果探针头能够快速收敛并达到很高的性能，这表明预训练模型提取的特征是<strong>线性可分</strong>的或<strong>高度相关</strong>的，具有良好的可迁移性。</li>
+<li><strong>坏信号</strong>: 如果探针头学习缓慢，或者性能很差，这说明预训练特征与下游任务所需信息不匹配。此时应回头检查预训练据、损失函数或模型架构。</li>
+</ul>
+</li>
+</ul>
+<p><strong>Rule-of-thumb</strong>: 借鉴 <strong>OLMo</strong> 项目的经验，定期（例如每 1000 步）保存模型检查点，并自动运行一套标准化的下游任务评估脚本。这能帮你及早发现训练中的问题，避免“训练了三个星期，最后发现模型学废了”的悲剧。</p>
+<h2 id="_2">本章小结</h2>
+<p>本章系统阐述了构建 VLA 基座模型的预训练阶段。其核心是采用<strong>“模态内预训练 → 跨模态对齐”</strong>的阶段性范式。我们通过剖析 <strong>InternVL</strong>、<strong>StarCoder2</strong>、<strong>Emu3.5</strong> 和 <strong>OLMo</strong> 等前沿工作，具体展示了复杂的<strong>训练日程</strong>设计、与模型容量挂钩的<strong>数据配方</strong>（包括真实世界数据和<strong>合成数据</strong>），以及细致的<strong>数据清洗</strong>流程。成功的预训练是系统工程的胜利，其核心驱动力是统一的<strong>下一个词元预测</strong>目标。最后，我们引入了<strong>“可迁移性体检”</strong>这一至关重要的工程实践，作为评估预训练模型质量、衔接下游任的“试金石”。</p>
+<h2 id="gotchas">常见陷阱与错误 (Gotchas)</h2>
+<ol>
+<li>
+<p><strong>灾难性遗忘 (Catastrophic Forgetting)</strong>: 在跨模态对齐阶段，用较高的学习率同时训练所有模块，可能会破坏语言模型和视觉编码器中预先学到的宝贵知识。<strong>调试技巧</strong>: 严格遵循冻结/解冻策略，对预训练基座使用更小的学习率（差分学习率）。</p>
+</li>
+<li>
+<p><strong>数据噪音的放大效应：“小”脏数据导致“大”模型行为异常</strong>: <strong>InternVL</strong> 的研究发现，即使是几千个带有重复模式的“脏”样本，也可能导致大模型在推理时（尤其是 CoT）陷入无法终止的循环。<strong>调试技巧</strong>: 建立严格的数据过滤流水线。借鉴 InternVL 的经验，使用强大的 LLM 对数据进行质量打分、设计专门的 prompt 来检测重复模式，并结合启发式规则进行多阶段清洗。</p>
+</li>
+<li>
+<p><strong>时间戳错位 (Timestamp Misalignment)</strong>: 在处理视频-行动数据时，一个常见的 bug 是 <code>(video_frame_t, action_t)</code> 被错误地对齐。正确的监督信号应该是 <code>(observation_t, action_{t \rightarrow t+k})</code>。<strong>调试技巧</strong>: 编写单元测试，仔细检查数据预处理流水线，可视化一小段轨迹数据，确保状态和行动的因果关系是正确的。</p>
+</li>
+<li>
+<p><strong>合成数据中的“偏见传递”</strong>: 使用一个强大的模型（如 GPT-4V）生成合成数据时，该模型的固有偏见、风格倾向或知识盲点也会被“蒸馏”到合成数据中，进而传递给你的模型。<strong>调试技巧</strong>: (a) 在 prompt 中明确指示模型采取客观、中立的视角；(b) 从多个不同的源模型生成数据以增加多样性；(c) 在生成后进行人工审核和过滤，特别是针对已知偏见的领域。</p>
+</li>
+</ol>
             </article>
             
-            <nav class="page-nav"><a href="chapter6.html" class="nav-link prev">← 第6章 隐式 3D 时空结构的引入</a><a href="chapter8.html" class="nav-link next">第8章 强化学习与微调（模型级） →</a></nav>
+            <nav class="page-nav"><a href="chapter6.html" class="nav-link prev">← 第6章 隐式 3D 时空结构的引入</a><a href="chapter8.html" class="nav-link next">第8章 强化学习与微调：从指令遵循到策略优化 →</a></nav>
         </main>
     </div>
 </body>

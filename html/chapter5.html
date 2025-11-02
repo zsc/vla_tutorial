@@ -74,7 +74,7 @@
                     <div class="tree-item " >
                         <a href="chapter4.html" class="tree-link">
                             <span class="tree-icon">📄</span>
-                            <span class="tree-title">第4章 行动模态</span>
+                            <span class="tree-title">第4章 行动模态：从信号处理到鲁棒控制</span>
                         </a>
                     </div>
                 
@@ -102,7 +102,7 @@
                     <div class="tree-item " >
                         <a href="chapter8.html" class="tree-link">
                             <span class="tree-icon">📄</span>
-                            <span class="tree-title">第8章 强化学习与微调（模型级）</span>
+                            <span class="tree-title">第8章 强化学习与微调：从指令遵循到策略优化</span>
                         </a>
                     </div>
                 
@@ -139,320 +139,265 @@
         
         <main class="content">
             <article>
-                <p>（交流可以用英文，所有文档中文，保留这句）</p>
-<h1 id="5-visionlanguageaction">第5章 模态对齐（Vision–Language–Action）</h1>
-<blockquote>
-<p>本章定位：把“能看、能说”稳态落到“能做”，以<strong>对齐</strong>为中心将视觉（V）、语言（L）与行动（A）耦合到一个可优化、可评测、可解释的联合空间。目标是：给出机制、训练信号与评测协议，并提供工程可落地的<strong>规则化做法（rule‑of‑thumb）</strong>与<strong>调试清单</strong>。</p>
-</blockquote>
-<hr />
-<h2 id="_1">开篇段落（学习目标）</h2>
-<p>读完本章，你将能：</p>
-<ol>
-<li>理解 V–L、L–A、V–A 三对对齐的目标函数与机制（注意力/门控/共享码本/蒸馏）。</li>
-<li>设计三模态对齐的损失组合（对比、互信息、互监督、频域一致性、蒸馏）与<strong>多目标冲突调和</strong>（PCGrad/GradNorm/不确定性加权）。</li>
-<li>构造配对/三元组数据、难例挖掘与噪声清洗流程，搭建可复现的<strong>评测协议</strong>（跨模态检索/指令跟随/执行成功率）。</li>
-<li>做到<strong>误差归因</strong>（从齐失败定位到行动退化），并具备针对 Sim‑to‑Real 的对齐健康度体检。</li>
-</ol>
-<hr />
+                <h1 id="5-visionlanguageaction">第5章 模态对齐（Vision–Language–Action）</h1>
+<h2 id="_1">开篇段落</h2>
+<p>如果说预训练的单模态模型是 VLA 系统的强大“器官”，那么模态对齐（Modality Alignment）就是连接它们的“中枢神经系统”。本章是整个课程的技术中枢，其核心任务是在一个高维的共享表征空间（Shared Representation Space）中，建立起视觉、语言和行动之间语义上的一致性与可转换性。这不仅是将孤立能力融合成有机整体的关键，更是从根本上<strong>减少后续强化学习和 Sim-to-Real 阶段域差异</strong>的战略性步骤。我们将深入剖析视觉—语言（V-L）、语言—行动（L-A）和视觉—行动（V-A）这三对核心对齐任务的设计哲学与技术演进，从早期的经典方法一路追溯到当前的前沿范式，并结合 <strong>Chameleon</strong> 和 <strong>Llama 3</strong> 等最新工作剖析其工程实现。学习目标包括：精通主流对齐架构与机制；深刻理解核心训练信号的数学原理与适用场景；并掌握处理大规模多模态训练中棘手的<strong>稳定性与梯度冲突</strong>问题的实用战术。最终，本章将为您构筑一个经过充分对齐、语义丰富、结构稳健的多模态基座，为后续章节中智能体在复杂环境中学习与执行任务铺平道路。</p>
 <h2 id="_2">文字论述</h2>
 <h3 id="51">5.1 对齐目标与设计空间</h3>
-<p><strong>总体目标</strong>：在共享潜在空间 (\mathcal{Z}) 中，使映射 (f_V, f_L, f_A) 将 V/L/A 的观测嵌入为 (z_V,z_L,z_A\in\mathcal{Z})，满足（i）<strong>配对一致</strong>（正样本近、负样本远）、（ii）<strong>任务一致</strong>（对行动相关因素敏感，对干扰因素不敏感）、（iii）<strong>物理一致</strong>（对可达性/平滑/带宽等行动先验友好）。</p>
-<p>常见目标范式：</p>
-<ul>
-<li><strong>成对对比</strong>（如 CLIP 思想扩展）：$V\leftrightarrow L$, $L\leftrightarrow A$, $V\leftrightarrow A$；</li>
-<li><strong>三元一致</strong>：三者在同一局部语义锥中；</li>
-<li><strong>循环一致</strong>：(V\rightarrow L\rightarrow A) 与 (V\rightarrow A) 一致；</li>
-<li><strong>产品/和声专家</strong>（PoE/MoE）：不同模态提供互补约束。</li>
-</ul>
-<blockquote>
-<p><strong>Rule‑of‑thumb</strong>：对齐空间维度 256–1024；先成对再三元；先冻结大部特征提取器，渐进解冻；度参数从 (\tau\in[0.04,0.1]) 试探，配合大批次与难例采样。</p>
-</blockquote>
-<hr />
-<h3 id="52-vs">5.2 视觉—语言：深度融合 vs. 模块化对齐</h3>
-<p><strong>成对对比损失（双向）</strong>
-设批量大小为 (N)，相似度 $s_{ij}=\frac{\langle z_{V,i},z_{L,j}\rangle}{\tau}$。InfoNCE/双向对比：
-$$
-\mathcal{L}*{V\leftrightarrow L}=
--\frac{1}{2N}\sum_{i=1}^N \Big[
-\log \frac{e^{s_{ii}}}{\sum_{j} e^{s_{ij}}}
-+\log \frac{e^{s_{ii}}}{\sum_{j} e^{s_{ji}}}
-\Big].
-$$</p>
-<p><strong>融合方式</strong></p>
-<ul>
-<li><strong>后期对齐（late fusion）</strong>：各自编码，投影到 (\mathcal{Z}) 后对比；稳定、通用。</li>
-<li><strong>中期融合（cross‑attn）</strong>：以 L 为 Query，对 V 的 patch 特征做 cross‑attention，形成任务条件化表示。</li>
-<li><strong>早期融合</strong>：共享词表/码本（视觉离散化为语义 token），便于统一推理。</li>
-</ul>
-<p><strong>语言打地基</strong>：使用领域适配的 LLM，冻结主干，微调 Adapter/LoRA 以支撑视觉条件化推理与<strong>工具调用</strong>描述。</p>
-<blockquote>
-<p><strong>Rule‑of‑thumb</strong>：先做<strong>后期对齐</strong>跑通索与指令理解，再引入 cross‑attention 提升细粒度定位；文本 side 使用<strong>温度降采样</strong>过滤冗余描述。</p>
-</blockquote>
-<hr />
-<h3 id="53">5.3 语言—行动：指令到动作的映射与短序列建模</h3>
-<p><strong>目标</strong>：让语言条件化的策略/轨迹成为可学习对象。
-常用目标函数：</p>
+<p>模态齐的数学本质，是寻找一组强大的非线性变换函数（即编码器）$f_v, f_l, f_a$，将来自不同模态的原始数据 $v, l, a$ 映射到同一个高维向量空间 $\mathcal{Z}$ 中。在这个空间里，一个合适的度量 $d(\cdot, \cdot)$ （如余弦距离或L2距离）能够反映样本间的语义相似度。理想情况下，对于描述同一概念的样本三元组 $(v_i, l_i, a_i)$，它们在 $\mathcal{Z}$ 空间中的嵌入 $z_v = f_v(v_i), z_l = f_l(l_i), z_a = f_a(a_i)$ 应该彼此“靠近”，即 $d(z_v, z_l)$, $d(z_l, z_a)$, $d(z_v, z_a)$ 都很小。</p>
+<p>这个宏大目标下的设计空间主要由以下几个正交的维度构成：</p>
 <ol>
-<li><strong>对比式 L–A</strong>（文本–动作配对）：</li>
-</ol>
-<p>$$
-\mathcal{L}*{L\leftrightarrow A}=
-   -\frac{1}{2N}\sum_{i}\Big[
-   \log \frac{e^{\langle z_{L,i},z_{A,i}\rangle/\tau}}{\sum_{j}e^{\langle z_{L,i},z_{A,j}\rangle/\tau}} *
-    \log \frac{e^{\langle z_{A,i},z_{L,i}\rangle/\tau}}{\sum_{j}e^{\langle z_{A,i},z_{L,j}\rangle/\tau}}
-    \Big].
-$$</p>
-<ol start="2">
-<li><strong>序列一致性</strong>：对动作序列 (\mathbf{a}_{1:T}) 进行<strong>低频优先</strong>的谱域重构（见 5.4）。</li>
-<li><strong>可达性约束</strong>：惩罚违反最大速度/加速度/跃度的样本（来自第 4 章控制先验）。</li>
-</ol>
-<blockquote>
-<p><strong>Rule‑of‑thumb</strong>：L–A 对齐初期以<strong>短序列（T≤8）</strong>、<strong>低带宽控制量</strong>训练，避免语言噪声被放大；动作投影前做<strong>归一化与单位一致化</strong>（米/秒、弧度/秒）。</p>
-</blockquote>
-<hr />
-<h3 id="54">5.4 视觉—行动：直接映射、频谱交错与辅助语言</h3>
-<p>直接对比 (V\leftrightarrow A) 往往不稳定（感知噪声→行动放大）。实用方案：</p>
+<li>
+<p><strong>架构选择（Architecture）</strong>：</p>
 <ul>
-<li>
-<p><strong>语言辅助</strong>：用 L 作为“桥”，加入 (\mathcal{L}*{cycle})：
-$$
-\mathcal{L}_{cycle} = \frac{1}{N}\sum_i
-  \big[
-  d(z_{V,i},,g_{LA}(z_{L,i},z_{A,i})) - d(z_{A,i},,g_{VL}(z_{V,i},z_{L,i}))
-\big],
-$$
-其中 (g_{\cdot}) 为小头部网络，(d) 为距离度量。</p>
-</li>
-<li>
-<p><strong>频谱一致性</strong>：鼓励 V 的时空特征与 A 的频率成分在<strong>可控带宽</strong>内同调。定义<strong>跨谱相干</strong>：
-  $$
-\gamma_{VA}(f)=\frac{|S_{VA}(f)|^2}{S_{VV}(f),S_{AA}(f)},\quad
-  \mathcal{L}_{spec}=\int \big(1-\gamma*{VA}(f)\big),\omega(f),df.
-$$</p>
-</li>
+<li><strong>模块化对齐 (Modular Alignment)</strong>：各模态拥有独立的、通常是预训练好的编码器。对齐通过学习轻量的投影头或适配器来实现。此方法的杰出代表是 <strong>CLIP</strong>。优点是训练高效、易于解耦和调试。</li>
+<li><strong>组合式/混合架 (Compositional/Hybrid Architecture)</strong>：这是当前大型模型的主流。它采取“组合”而非从零训练的策略，将强大的预训练单模态模型（如视觉编码器和LLM）通过一个专门设计的、可训练的“适配器”或“桥接模块”连接起来。这个适配器通常由交叉注意力层构成。<strong>Llama 3</strong> 的视觉模型是这一路线的最新典范，它在冻结的 Llama 3 语言模型和预训练的 ViT 之间训练了一个高效的 Image Adapter。<strong>BLIP-2</strong> 的 Q-Former 也是此类的代表。</li>
+<li><strong>统一早期融合 (Unified Early-Fusion)</strong>：这种激进的架构将所有模态在输入端就转换为统一的离散 Token 序列，然后送入一个单一的 Transformer 模型进行端到端训练。<strong>Chameleon (Chameleon Team, 2024)</strong> 是这一路线的里程碑式工作，它将图像也通过一个视觉 Tokenizer 转换为离散 token，与文本 token 交错（interleaved）形成一个混合模态文档，真正实现了“万物皆 Token”</li>
 </ul>
-<blockquote>
-<p><strong>Rule‑of‑thumb</strong>：把动作的 Nyquist 频率设为控制环的 (0.3\sim 0.5) 倍；以<strong>带通权重 (\omega(f))</strong>强调 0.1–1.0 Hz（车控/手臂常见范围）。</p>
-</blockquote>
-<hr />
-<h3 id="55">5.5 机制实现：门控、多模态注力、共享词表/码本</h3>
-<p><strong>ASCII 总览</strong></p>
-<div class="codehilite"><pre><span></span><code><span class="w"> </span><span class="n">V</span><span class="o">-</span><span class="n">stream</span><span class="w"> </span><span class="o">-----&gt;</span><span class="w"> </span><span class="o">[</span><span class="n">Enc_V</span><span class="o">]</span><span class="w"> </span><span class="o">--</span><span class="err">\</span>
-<span class="w">                             </span><span class="err">\</span><span class="w">         </span><span class="o">+--------+</span><span class="w">      </span><span class="o">+--------+</span>
-<span class="w"> </span><span class="n">L</span><span class="o">-</span><span class="n">stream</span><span class="w"> </span><span class="o">-----&gt;</span><span class="w"> </span><span class="o">[</span><span class="n">Enc_L</span><span class="o">]</span><span class="w"> </span><span class="o">----&gt;</span><span class="w"> </span><span class="o">[</span><span class="n">Fusion|X-Attn</span><span class="o">]--&gt;</span><span class="w"> </span><span class="o">[</span><span class="n">Z</span><span class="o">]---&gt;</span><span class="w"> </span><span class="n">Heads</span><span class="w"> </span><span class="o">|--&gt;</span><span class="w"> </span><span class="n">Retrieval</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">Planning</span>
-<span class="w">                             </span><span class="o">/</span><span class="w">         </span><span class="o">+--------+</span><span class="w">      </span><span class="o">+--------+</span>
-<span class="w"> </span><span class="n">A</span><span class="o">-</span><span class="n">stream</span><span class="w"> </span><span class="o">-----&gt;</span><span class="w"> </span><span class="o">[</span><span class="n">Enc_A</span><span class="o">]</span><span class="w"> </span><span class="o">--/</span>
-<span class="w">                       </span><span class="o">^</span><span class="w">             </span><span class="o">^</span>
-<span class="w">                       </span><span class="o">|</span><span class="w">             </span><span class="o">|</span>
-<span class="w">                 </span><span class="o">[</span><span class="n">Gating/FiLM</span><span class="o">]</span><span class="w">   </span><span class="o">[</span><span class="n">Shared Codebook/VQ</span><span class="o">]</span>
+</li>
+<li>
+<p><strong>融合时机（Fusion Timing）</strong>：</p>
+</li>
+</ol>
+<div class="codehilite"><pre><span></span><code><span class="w">      </span><span class="n">Input</span><span class="w">         </span><span class="n">Feature</span><span class="w"> </span><span class="n">Extraction</span><span class="w">       </span><span class="kr">Output</span>
+<span class="n">V</span><span class="w"> </span><span class="o">----+</span><span class="w">                                     </span><span class="o">+---&gt;</span><span class="w"> </span><span class="n">Fused</span><span class="w"> </span><span class="kr">Output</span><span class="w"> </span><span class="p">(</span><span class="n">Late</span><span class="p">)</span>
+<span class="w">      </span><span class="o">+------------&gt;</span><span class="w"> </span><span class="n">Early</span><span class="w"> </span><span class="n">Fusion</span><span class="w"> </span><span class="o">---------&gt;+</span><span class="w">  </span><span class="p">(</span><span class="n">e</span><span class="p">.</span><span class="n">g</span><span class="p">.,</span><span class="w"> </span><span class="n">Chameleon</span><span class="p">)</span>
+<span class="n">L</span><span class="w"> </span><span class="o">----+</span>
+
+<span class="n">V</span><span class="w"> </span><span class="o">---&gt;</span><span class="w"> </span><span class="n">Feature_V</span><span class="w"> </span><span class="o">--+</span><span class="w">                      </span>
+<span class="w">                   </span><span class="o">+--&gt;</span><span class="w"> </span><span class="n">Mid</span><span class="o">-</span><span class="n">Level</span><span class="w"> </span><span class="n">Fusion</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="n">Fused</span><span class="w"> </span><span class="n">Feature</span><span class="w"> </span><span class="o">--&gt;</span><span class="w"> </span><span class="kr">Output</span><span class="w"> </span><span class="p">(</span><span class="n">e</span><span class="p">.</span><span class="n">g</span><span class="p">.,</span><span class="w"> </span><span class="n">Llama</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="n">Vision</span><span class="p">)</span>
+<span class="n">L</span><span class="w"> </span><span class="o">---&gt;</span><span class="w"> </span><span class="n">Feature_L</span><span class="w"> </span><span class="o">--+</span><span class="w">                      </span>
 </code></pre></div>
 
-<p><strong>关键部件</strong></p>
-<ul>
-<li><strong>Cross‑Attention</strong>：$ \text{Attn}(Q=Z_L, K=Z_V, V=Z_V) $ 使文本查询视觉。</li>
-<li><strong>门控/FiLM</strong>：$g=\sigma(W[z_V;z_L])$, $ \tilde z = g\odot z_V + (1-g)\odot z_L$。</li>
-<li><strong>共享码本</strong>：将 V/A 离散化为与 L 共享的“语义 token”（VQ‑VAE 样式），方便统一推理与检索。</li>
-<li><strong>PoE/MoE</strong>：多专家按模态置信度加权：$ z = \sum_k \alpha_k z^{(k)},\ \sum\alpha_k=1$。</li>
-</ul>
+<div class="codehilite"><pre><span></span><code><span class="k">*</span>   **早期融合 (Early Fusion)**：如 Chameleon 所示，在输入 token 层面就进行融合。
+<span class="k">*</span>   **中期融合 (Intermediate Fusion)**：如 Llama 3 视觉模型所示，在 Transformer 的中间层通过交叉注意力注入视觉特征。
+</code></pre></div>
+
 <blockquote>
-<p><strong>Rule‑of‑thumb</strong>：先上 <strong>cross‑attn</strong> + <strong>简洁门控</strong>；共享码本仅在数据充足+需要轻量部署时启用（token 抽稀利于端侧）。</p>
+<p><strong>Rule-of-thumb</strong>: 对于大多数团队而言，<strong>组合式/混合架构（如 Llama 3 的方案）是最佳起点</strong>。它允许你站在现有最强基座模型的肩膀上，将研发重点聚焦于高效、稳定的适配器设计和高质量对齐数据的构建上。而统一早期合（如 Chameleon）虽然代表了未来的一个可能方向，但其对训练稳定性和计算资源的要求极高，是“巨头”级别的游戏。</p>
 </blockquote>
-<hr />
-<h3 id="56">5.6 训练信号：对比、互信息、互监督与蒸馏</h3>
+<h3 id="52-v-l">5.2 视觉—语言（V-L）：三条路线的演进</h3>
+<p>V-L 对齐是整个领域的基石，其发展历程清晰地呈现了上述三种架构的演进。</p>
 <ul>
 <li>
-<p><strong>三对对比 + 三元一致</strong>：
-  $$
-\mathcal{L}_{align}=\lambda_{VL}\mathcal{L}_{V\leftrightarrow L}+\lambda_{LA}\mathcal{L}_{L\leftrightarrow A}
-  +\lambda_{VA}\mathcal{L}_{V\leftrightarrow A}+\lambda_{cyc}\mathcal{L}_{cycle}.
-$$</p>
+<p><strong>路线一：模块化对齐的典范 - CLIP (2021)</strong>
+    CLIP 的成功在于其简洁而强大的对比学习思想和海量数据。其核心是<strong>对称的 InfoNCE 损失函数</strong>，本质上是一个 $N \times N$ 的分类问题，强制模型在表征空间中形成语义聚类。
+    $$
+\mathcal{L}_{\text{V-L}} = -\frac{1}{2N} \sum_{i=1}^{N} \left( \log \frac{\exp(\text{sim}(f_v(v_i), f_l(l_i))/\tau)}{\sum_{j=1}^{N} \exp(\text{sim}(f_v(v_i), f_l(l_j))/\tau)} + \dots \right)
+$$
+    CLIP 的贡献在于证明了模块化对齐的可行性和强大的零样本迁移能力，至今仍是许多系统中视觉编码器的首选。</p>
 </li>
 <li>
-<p><strong>互信息下界（InfoNCE）</strong>：$I(X;Y)\ge \log N-\mathcal{L}_{NCE}$；用于监控对齐强度。</p>
+<p><strong>路线二：组合式对齐的成熟 - Llama 3 Vision (2024)</strong>
+    这类模型旨在解决 CLIP 无法进行细粒度交互的问题。<strong>Llama 3 (Llama 3 Team, 2024)</strong> 的多模态方案是一个教科书式的组合式设计：</p>
+<ol>
+<li><strong>基座</strong>：一个预训练的 ViT-H/14 图像编码器和一个预训练的 Llama 3 405B 语言模型。</li>
+<li><strong>适配器</strong>：一组庞大的交叉注意力层（Image Adapter），总参数量可达100B。这些交叉注意力层被策略性地<strong>插入到LLM的每四个自注意力层之后</strong>，实现了深度的、周期性的信息注入。</li>
+<li><strong>训练</strong>：训练过程只专注于这个适配器和部分视觉编码器层，LLM 主体保持冻结。这极大地提高了训练效率，并保证了 LLM 卓越的语言能力不受影响。
+这种“即插即用”的组合式方法，兼顾了性能、效率和工程可行性，是当前构建强大 VLA 系统的首选范式。</li>
+</ol>
 </li>
-<li><strong>互监督</strong>：跨模态伪标签/一致性约束（如时域抖动、遮挡）。</li>
-<li><strong>蒸馏</strong>：从几何/控制教师（MPC、轨迹优化器）向对齐空间蒸馏“<strong>可达性 logits</strong>”。</li>
+<li>
+<p><strong>路线三：统一早期融合的突破 - Chameleon (2024)</strong>
+    Chameleon 采取了最为激进的统一架构。它通过一个 VQ-VAE-based 的 Image Tokenizer 将 $512 \times 512$ 的图像编码为 $1024$ 个离散的 codebook 索引（tokens）。这些 image tokens 与 text tokens 被视为同等公民，可以任意交错排列，形成一个长序列送入一个单一的自回归 Transformer。</p>
+</li>
 </ul>
-<blockquote>
-<p><strong>Rule‑of‑thumb</strong>：权重初值 $\lambda_{VL}=\lambda_{LA}=1,\ \lambda_{VA}=0.5,\ \lambda_{cyc}=0.2$；用<strong>MI 估计</strong>与<strong>检索 R@K</strong>做双指标早停。</p>
-</blockquote>
-<hr />
+<div class="codehilite"><pre><span></span><code><span class="c1">// Chameleon-style input</span>
+<span class="p">[</span><span class="n">text_tok1</span><span class="p">,</span><span class="w"> </span><span class="n">text_tok2</span><span class="p">,</span><span class="w"> </span><span class="o">&lt;</span><span class="n">START_IMG</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="n">img_tok1</span><span class="p">,</span><span class="w"> </span><span class="p">...,</span><span class="w"> </span><span class="n">img_tok1024</span><span class="p">,</span><span class="w"> </span><span class="o">&lt;</span><span class="n">END_IMG</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="n">text_tok3</span><span class="p">,</span><span class="w"> </span><span class="p">...]</span>
+</code></pre></div>
+
+<div class="codehilite"><pre><span></span><code>这种架构的优势是极大的灵活性，模型可以无缝地理解和生成包含任意图文混排的“多媒体文档”。然而，这种做法对训练稳定性提出了前所未有的挑战，我们将在 5.10 节详述其解决方案。
+</code></pre></div>
+
+<p>| 架构路线       | 代表工作                  | 核心思想                                           | 优点                                     | 挑战                                       |</p>
+<table>
+<thead>
+<tr>
+<th>架构路线</th>
+<th>代表工作</th>
+<th>核心思想</th>
+<th>优点</th>
+<th>挑战</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>模块化</strong></td>
+<td>CLIP</td>
+<td>独立编码器 + 对比学习</td>
+<td>训练高效，强零样本能力，易解耦</td>
+<td>缺乏细粒度交互</td>
+</tr>
+<tr>
+<td><strong>组合式/混合</strong></td>
+<td>Llama 3 Vision, BLIP-2</td>
+<td>预训练基座 + 可训练适配器（交叉注意力）</td>
+<td>性能强大，保留基座能力，工程可行性高</td>
+<td>适配器设计和训练需要技巧</td>
+</tr>
+<tr>
+<td><strong>统一早期融合</strong></td>
+<td>Chameleon</td>
+<td>统一 Token 化 + 单一 Transformer 端到端训练</td>
+<td>极高的灵活性，可处理任意图文混排</td>
+<td><strong>训练极其不稳定</strong>，对算力和数据要求极高</td>
+</tr>
+</tbody>
+</table>
+<h3 id="53-l-a">5.3 语言—行动（L-A）：指令到动作的映射与范式革命</h3>
+<p>L-A 对齐是将语言的抽象意图转化为物理世界具体执行的关键。</p>
+<ul>
+<li><strong>行为克隆 (Behavioral Cloning, BC)</strong>：最传统的方法，将 L-A 任务视为一个监督学问题，直接模仿专家的<code>(状态, 语言) -&gt; 动作</code>映射。</li>
+<li>
+<p><strong>行动的 Token 化：范式革命</strong>
+    <strong>GATO</strong>, <strong>RT-1</strong>, <strong>RT-2</strong> 等工作引领了一场范式革命：<strong>将机器人控制问题转化为一个序列建模问题</strong>。它们将连续的机器人动作进行离散化，变成 action tokens。</p>
+<ul>
+<li><strong>RT-2 (2023)</strong> 的思想尤为激进：<strong>直接将 action bins 表示为文本字符串</strong>。例如，动作 <code>(x=0.5, y=0.2)</code> 映射为字符串 <code>"action: x=0.5 y=0.2"</code>。这使得强大的 V-L 模型可以通过在少量机器人数据上进行“联合微调”(co-fining) ，直接被用于机器人控制，实现了 V-L 知识向机器人任务的零样本迁移。</li>
+<li><strong>Chameleon 思想的延伸</strong>：Chameleon 将图像也变成了 token，这与行动 token 化的思想异曲同工，共同指向一个最终目标：将视觉、语言、行动等所有模态都表示为统一的离散序列，由一个通用的序列模型（如 Transformer）进行处理。</li>
+</ul>
+</li>
+</ul>
+<h3 id="54-v-a">5.4 视觉—行（V-A）：直接映射、频谱交错与辅助语言</h3>
+<p>V-A 对齐，即“视觉伺服”，旨在建立一个从像素到动作的快速反应回路。</p>
+<ul>
+<li><strong>隐式行为克隆 (Implicit Behavioral Cloning, IBC)</strong>：通过学习能量函数 $E(v, a)$ 来处理多模态动作分布，在推理时通过优化寻找能量最低的动作：$a^* = \arg\min_a E(v, a)$。</li>
+<li><strong>扩散策略 (Diffusion Policies)</strong>：将动作生成建模为一个从纯高斯噪声逐步去噪恢复到专家动作的反向过程。能够生成非常平滑、自然的轨迹，是当前 V-A 领域最前沿的方向之一。</li>
+<li><strong>语言作为中间桥梁 (Language as an Intermediate Scaffold)</strong>：<code>V -&gt; L -&gt; A</code> 链条提供了一个优雅的解决方案。系统首先用 V-L 模型将场景翻译成语言描述或设定一个子目标，然后 L-A 模型根据这个中间语言生成动作。这使得整个决策过程变得可解释、可调试。</li>
+</ul>
+<h3 id="55">5.5 机制实现：门控、多模态注意力、共享码本</h3>
+<ul>
+<li><strong>多模态注意力 (Multi-modal Attention)</strong>：<ul>
+<li><strong>交叉注意力 (Cross-Attention)</strong>：是组合式架构的基石。一个模态的特征 $h_A$ 作为 Query，去查询另一个模态的特征 $h_B$ 作为 Key 和 Value。如 Llama 3 Vision 中，语言模型的 token embedding 作为 Query，去查询图像编码器输出的 patch embedding。</li>
+</ul>
+</li>
+<li><strong>共享码本 (Shared Codebook)</strong>：是统一早期融合架构的关键。通过 VQ-VAE 等技术，为不同模态创建一本“通用词典”。Chameleon 为图像和文本构建了一个共享的 BPE tokenizer，词汇表大小为 65,536，其中包含了 8,192 个专用的图像 codebook 索引。</li>
+</ul>
+<h3 id="56">5.6 训练信号：对比、生成、蒸馏</h3>
+<ul>
+<li><strong>对比式信号 (Contrastive Signals)</strong>：以 CLIP 的 InfoNCE 损失为代表。核心是“拉近正例，推远负例”。</li>
+<li><strong>生成式信号 (Generative Signals)</strong>：<ul>
+<li><strong>掩码建模 (Masked Modeling)</strong>：对多模态输入进行部分掩码，然后要求模型重建被掩码的部分。</li>
+<li><strong>自回归生成 (Autoregressive Generation)</strong>：这是 VLA 模型最主流的训练方式。给定一个包含历史<code>(v, l, a)</code>序列的前缀，模型自回归地预测下一个 token，无论是文本 token 还是行动 token。</li>
+</ul>
+</li>
+</ul>
 <h3 id="57">5.7 数据组织：配对/三元组、噪声过滤与难例挖掘</h3>
-<p><strong>样本形态</strong></p>
+<p>高质量的对齐数据是成功的关键。<strong>Llama 3 (Llama 3 Team, 2024)</strong> 的多模态数据处理流程为我们提供了工业级的最佳实践：</p>
 <ul>
-<li><strong>成对</strong>：$(V_i,L_i), (L_i,A_i), (V_i,A_i)$；</li>
-<li><strong>三元</strong>：$(V_i,L_i,A_i)$；</li>
-<li><strong>负例</strong>：同批随机/跨批记忆库/语义近邻难例。</li>
+<li><strong>质量过滤 (Quality Filtering)</strong>：利用一个强大的预训练模型（如 CLIP）为所有的图文对打分，直接丢弃所有得分低于某个阈值的样本。这是保证数据基础质量的第一道，也是最重要的一道防线。</li>
+<li><strong>去重 (De-duplication)</strong>：大规模数据集中充满了重复或高度相似的图像。使用 SSCD (Self-Supervised Copy Detection) 等模型计算图像的 embedding，然后通过最近邻搜索和联通分量算法对图像进行聚类去重，每个聚类只保留一个样本。这能著提高训练效率和模型的泛化能力。</li>
+<li><strong>重采样 (Resampling)</strong>：为了确保数据多样性并提升模型在低频类别上的表现，可以基于文本内容的 n-gram 频率进行重采样。对于那些包含高频常见 n-gram 的样本，以较低的概率进行采样；反之，包含稀有 n-gram 的样本则被保留。</li>
+<li><strong>光学字符识别 (Optical Character Recognition, OCR)</strong>：使用 OCR 工具提取图像中包含的所有文本，并将其与原始的文本描述拼接在一起。这对于提升模型处理文档、图表、截图等富含文本的图像的能力至关重要。</li>
 </ul>
-<p><strong>清洗与挖掘</strong></p>
+<h3 id="58">5.8 评测：跨模态检索/指令跟随/执行成功率</h3>
+<p>对齐效果的评测必须是端到端的和任务导向的：</p>
 <ul>
-<li><strong>互投票</strong>：三对相似度一致性过滤；</li>
-<li><strong>时间对齐</strong>：在视频–动作上做<strong>互相关最大化</strong>找对齐点；</li>
-<li><strong>难例矿</strong>：维护“半难例”队列，避开过难/纯噪声。</li>
+<li><strong>V-L 对齐</strong>：零样本图像分类、图文检索、视觉问答 (VQAv2)。</li>
+<li><strong>L-A / VLA 对齐</strong>：在仿真或真实环境中的指令跟随成功率、任务完成率。常用 benchmark 包括 CALVIN、RLBench 等。</li>
 </ul>
-<blockquote>
-<p><strong>Rule‑of‑thumb</strong>：负例数 ≈ <strong>有效批量</strong>（多卡全局 batch）× 2–4；对视频‑动作对齐偏差&gt;150 ms 的样本降权或剔除。</p>
-</blockquote>
-<hr />
-<h3 id="58">5.8 评测：跨模态检索 / 指令跟随 / 执行成功率</h3>
-<p><strong>检索</strong>：R@K、MRR、nDCG；双向（V→L、L→V）与三向（含 A）。
-<strong>指令跟随</strong>：离线轨迹匹配（DTW/FDE/ADE），在线仿真成功率（Success、SPL/舒适度/安全约束违例率）。
-<strong>一致性体检</strong>：</p>
-<ul>
-<li><strong>对齐混淆矩阵</strong>（AMat）：统计 top‑K 内跨模态命中率；</li>
-<li><strong>互信息曲线</strong>：随数据难度/域偏移变化的 $I(V;L), I(L;A), I(V;A)$；</li>
-<li><strong>频谱一致性</strong>：$\gamma_{VA}(f)$ 带宽内平均相干。</li>
-</ul>
-<p><strong>ASCII 评测流水线</strong></p>
-<div class="codehilite"><pre><span></span><code><span class="k">[Paired/Triples] --&gt; [Align Train] --&gt; [Retrieval Bench]</span>
-<span class="w">                                   </span><span class="na">\</span>
-<span class="w">                                    </span><span class="na">\--&gt; [Instr-Follow Sim] --&gt; [Action KPIs]</span>
-</code></pre></div>
-
-<blockquote>
-<p><strong>Rule‑of‑thumb</strong>：离线检索改善若 &lt;2–3% R@10，在线成功率往往无感；必须加<strong>在线仿真小基准</strong>联动评测。</p>
-</blockquote>
-<hr />
 <h3 id="59">5.9 误差归因与可解释分析</h3>
-<p><strong>手段</strong></p>
-<ul>
-<li><strong>Cross‑Attn Rollout / Grad‑CAM</strong>：定位语言 token → 视觉 patch 的对齐热区；</li>
-<li><strong>TCAV/概念探针</strong>：语义概念对行动决策的敏感度；</li>
-<li><strong>CKA/CCA</strong>：看 (\mathcal{Z}) 中 V/L/A 子空间的重合度；</li>
-<li><strong>行为差分</strong>：开启/关闭某模态或打乱该模态，观察执行指标下降（模态重要性）。</li>
-</ul>
-<blockquote>
-<p><strong>Rule‑of‑thumb</strong>：每个失败案例都给一个“<strong>三视图</strong>”报告：注意力热力图 + 频谱相干 + 行动时间线（加速度/跃度），并标注是否违反物理先验。</p>
-</blockquote>
-<hr />
-<h3 id="510-pcgrad-gradnorm">5.10 多目标冲突调和：PCGrad / GradNorm / 自动调度</h3>
-<p><strong>冲突诊断</strong>：若不同损失的梯度内积为负，说明优化方向相互掣肘。</p>
+<p>当 VLA 系统失败时，定位瓶颈至关重要。一个系统性的归因框架：</p>
+<ol>
+<li><strong>感知失败 (V)</strong>：物体检测失败、状态估计错误。</li>
+<li><strong>理解失败 (L)</strong>：误解指令中的实体、关系或意图。</li>
+<li><strong>对齐失败 (V-L)</strong>：无法将指令“the green cube”与看到的绿色方块关联。</li>
+<li><strong>规划失败 (L-A)</strong>：理解正确，但生成的动作序列逻辑错误或无法执行。</li>
+<li><strong>执行失败 (A)</strong>：规划的动作在物理上无法由执行器精确完成。</li>
+</ol>
+<h3 id="510">5.10 稳定与调和：从梯度外科到架构创新</h3>
+<p>在 VLA 训练中，我们不仅要处理多任务的梯度冲突，更要面对大规模多模态模型本身固有的训练不稳定性。</p>
 <ul>
 <li>
-<p><strong>PCGrad（投影外科）</strong>
-  对每个损失梯度 (g_i)，若 $\langle g_i,g_j\rangle&lt;0$，则
-  $$
-g_i \leftarrow g_i - \frac{\langle g_i,g_j\rangle}{|g_j|^2},g_j.
-$$
-  整合后再更新。稳定且实现简单。</p>
-</li>
-<li>
-<p><strong>GradNorm（梯度范数均衡）</strong>
-  记任务损失 (L_i(t))，目标使 $|w_i g_i|\propto \big(\tfrac{L_i(t)}{\bar L(t)}\big)^\alpha$：
-  $$
-\mathcal{L}*{gn}=\sum_i \Big||w_i g_i| - \bar G \big(\tfrac{L_i}{\bar L}\big)^\alpha\Big|,\quad
-  w_i \leftarrow w_i - \eta \frac{\partial\mathcal{L}*{gn}}{\partial w_i}.
+<p><strong>多目标冲突调和：梯度外科手术 (PCGrad)</strong>
+    当两个任务的梯度 $g_i, g_j$ 发生冲突时（即 $g_i \cdot g_j &lt; 0$），PCGrad 通过将一个梯度投影到另一个梯度的正交平面上来消除冲突分量：
+    $$
+g_i \leftarrow g_i - \frac{g_i \cdot g_j}{|g_j|^2} g_j
 $$</p>
 </li>
 <li>
-<p><strong>不确定性加权（Kendall）</strong>
-  $$
-\mathcal{L}=\sum_i \frac{1}{2\sigma_i^2}L_i + \log\sigma_i,
+<p><strong>案例研究：Chameleon 的训练稳定性“黑魔法”</strong>
+    Chameleon 的统一早期融合架构极易在训练中后期出现 loss 发散。为了解决这个核心难题，他们采用了一套组合拳，这对于任何尝试训练大型多模态 Transformer 的团队都极具借鉴意义：</p>
+<ol>
+<li>
+<p><strong>查询-键归一化 (Query-Key Normalization, QK-Norm)</strong>：这是最关键的创新。在传统的注意力机制中，softmax 的输入 $QK^T$ 的数值可能会随着训练变得非常大，导致梯度消失或爆炸。QK-Norm 在计算注意力权重前，对 Query 和 Key 向量进行 L2 归一化。
+    $$
+\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{(\text{norm}(Q)) (\text{norm}(K))^T}{\sqrt{d_k}}\right)V
 $$
-  让噪声大的任务自动降权。</p>
+    这个简单的改动极大地控制了注意力分数的量级，是稳定训练的核心。</p>
+</li>
+<li>
+<p><strong>Z-Loss 正则化</strong>：对 softmax 的分母（即 partition function $Z$）施加一个对数正则化项 $\mathcal{L}_z = \log^2 Z$。这个损失项惩罚过大的 logits，进一步防止模型输出过于自信的尖锐分布，从而缓解发散问题。</p>
+</li>
+<li><strong>架构细节</strong>：全面采用 Llama 架构中的优秀组件，如 <code>RMSNorm</code> 和 <code>SwiGLU</code> 激活函数，这些都被证明有助于提升训练稳定性。</li>
+<li><strong>优化器配置</strong>：使用 AdamW 优化器，但采用非常低的 <code>weight_decay</code> (0.1) 和严格的 <code>gradient clipping</code> (1.0)。</li>
+</ol>
 </li>
 </ul>
 <blockquote>
-<p><strong>Rule‑of‑thumb</strong>：<strong>先 PCGrad</strong> 防止互踩，再用 <strong>GradNorm$(\alpha=0.5)$</strong> 做细调；蒸馏/物理先验类损失给<strong>保底权重</strong>，避免被自适应算法“压没”。</p>
+<p><strong>Rule-of-thumb</strong>: <strong>稳定性优先于一切</strong>。在训练大型多模态模型时，与其盲目追求复杂的损失函数，不如先从架构和数值稳定性入手。将 <strong>QK-Norm</strong> 和 <strong>RMSNorm/SwiGLU</strong> 作为你的默认选项。在训练日志中，必须持续监控<strong>每一层输出的范数、softmax 的最大 logit 值以及梯度范数</strong>。一旦发现任何异常增长的趋势，就应立即干预。</p>
 </blockquote>
-<hr />
 <h2 id="_3">本章小结</h2>
+<p>本章系统地解构了模态对齐这一 VLA 系统的核心技术，它是一切高级智能行为的基础。</p>
 <ul>
-<li><strong>机制</strong>：后/中/早期融合可按“后→中→早的复杂度阶梯推进；门控与 cross‑attention 是高性价比组合，共享码本适合端侧与统一推理。</li>
-<li><strong>目标</strong>：三对对比 + 三元一致 + 频谱一致性 + 蒸馏，兼顾语义与物理。</li>
-<li><strong>数据</strong>：配对/三元组 + 难例挖掘 + 时间对齐校正，保证负例质量与时序同步。</li>
-<li><strong>评测</strong>：离线检索 + 在线仿真；对齐混淆、互信息与频谱相干构成“健康度三指标”。</li>
-<li><strong>调和</strong>：PCGrad/GradNorm/不确定性加权三件套，维持多目标稳定收敛。</li>
-<li><strong>导向</strong>：本章产物直接服务第 8–11 章（RL 微调、仿真与 Sim‑to‑Real），减少域差放大。</li>
+<li><strong>核心目标</strong>：在享表征空间中建立多模态间的语义一致性，为后续任务提供一个低域差的起点。</li>
+<li><strong>三大架构路线</strong>：<ul>
+<li><strong>模块化 (CLIP)</strong>：奠基者，适用于快速验证和作为编码器基座。</li>
+<li><strong>组合式 (Llama 3 Vision)</strong>：当前工业界和学术界的主流，兼顾性能与效率。</li>
+<li><strong>统一早期融合 (Chameleon)</strong>：未来的一个可能方向，追求极致的灵活性，但对稳定性和资源要求极高。</li>
 </ul>
-<hr />
-<h2 id="gotchas">常见陷阱与错误（Gotchas）与调试技巧</h2>
+</li>
+<li><strong>关键机制与信号</strong>：<ul>
+<li><strong>机制</strong>：交叉注意力是组合式架构的引擎；共享码本是统一早期融合架构的“世界语”。</li>
+<li><strong>信号</strong>：对比、生成、蒸馏等多种训练信号从不同角度驱动对齐，各有侧重。</li>
+</ul>
+</li>
+<li><strong>工程实践</strong>：<ul>
+<li><strong>数据</strong>：Llama 3 的数据处理流程（过滤、去重、重采样、OCR）是黄金标准。</li>
+<li><strong>训练稳定性</strong>：Chameleon 的经验告诉我们，QK-Norm 等架构层面的改进是驯服大型多模态 Transformer 的关键。</li>
+</ul>
+</li>
+</ul>
+<p>一个充分对齐的模型，就如同一个打通了“任督二脉”的习武者，其内部信息流是通畅、高效且语义丰富的。这为智能体在下一章进入强化学习的“实战演练”提供了最坚实的基础。</p>
+<h2 id="gotchas">常见陷阱与错误 (Gotchas)</h2>
 <ol>
-<li><strong>单模态塌缩</strong>（语言一统天下或视觉独裁）</li>
-</ol>
-<ul>
-<li><em>症状</em>：打乱某模态，对指标几乎无影响。</li>
-<li><em>对策</em>：加入模态 dropout 与<strong>模态均衡约束</strong>；检查 AMat 与 CKA 重合度，必要时上 <strong>PoE</strong> 抑制单源过强。</li>
-</ul>
-<ol start="2">
-<li><strong>时序错位</strong>（视频–动作未对齐）</li>
-</ol>
-<ul>
-<li><em>症状</em>：离线检索好，在线执行漂移。</li>
-<li><em>对策</em>：用互相关/DTW 估计对齐偏移；对偏移&gt;150 ms 的样本降权；在损失中显式加入 (\mathcal{L}_{spec})。</li>
-</ul>
-<ol start="3">
-<li><strong>负例污染/过易</strong></li>
-</ol>
-<ul>
-<li><em>症状</em>：训练很快收敛但泛化差。</li>
-<li><em>对策</em>：难例挖掘（语义近邻）、跨批记忆库；每 N 轮刷新负例缓存，避免陈旧性。</li>
-</ul>
-<ol start="4">
-<li><strong>损失权不稳/震荡</strong></li>
-</ol>
-<ul>
-<li><em>症状</em>：不同子任务交替上升。</li>
-<li><em>对策</em>：先固定权重跑到稳定区，再启用 <strong>PCGrad→GradNorm</strong>；学习率对齐到<strong>等效梯度范数</strong>。</li>
-</ul>
-<ol start="5">
-<li><strong>频谱失配</strong>（动作高频噪声/过度平滑）</li>
-</ol>
-<ul>
-<li><em>症状</em>：舒适度差或响应迟缓。</li>
-<li><em>对策</em>：以 (\omega(f)) 控制带宽；把<strong>物理先验</strong>（加速度/跃度约束、RTA 屏蔽）加入训练与评测。</li>
-</ul>
-<ol start="6">
-<li><strong>语言歧义放大</strong></li>
-</ol>
-<ul>
-<li><em>症状</em>：同义指令动作差异大。</li>
-<li><em>对策</em>：短语级 paraphrase 扩增；对 L–A 加<strong>一致性损失</strong>（同义句 → 相 (z_A)）。</li>
-</ul>
-<ol start="7">
-<li><strong>数据泄露/重复</strong></li>
-</ol>
-<ul>
-<li><em>症状</em>：离线分数异常高。</li>
-<li><em>对策</em>：指纹/哈希去重；跨域划分（按场景/时间块切分），保留 OOD 验证集。</li>
-</ul>
-<ol start="8">
-<li><strong>评测–训练错配</strong></li>
-</ol>
-<ul>
-<li><em>症状</em>：R@K 提升但在线成功率不变。</li>
-<li><em>对策</em>：把<strong>在线仿真</strong>与<strong>RL 微调指标</strong>纳入早停与模型选择；对比“对齐健康三指标”。</li>
-</ul>
-<ol start="9">
-<li><strong>蒸馏目标过硬</strong></li>
-</ol>
-<ul>
-<li><em>症状</em>：收敛慢、欠拟合。</li>
-<li><em>对策</em>：软化教师（温度/噪声），对“不可达”样本施以<strong>惩罚但不拉齐</strong>。</li>
-</ul>
-<ol start="10">
 <li>
-<p><strong>多目标优化互踩</strong></p>
+<p><strong>模态塌陷 (Modality Collapse)</strong>：模型在训练中“走捷径”，学会完全忽略某个模态。</p>
 <ul>
-<li><em>症状</em>：某目标提升另一个急剧下降。</li>
-<li><em>对策</em>：常开 <strong>PCGrad</strong>，关键先验类损失给<strong>最小权重</strong>；每 1–2k steps 记录梯度夹角直方图做体检。</li>
+<li><strong>症状</strong>：某个模态的输入被替换为随机噪声后，模型性能几乎不变。</li>
+<li><strong>调试与修复</strong>：使用<strong>模态丢弃 (Modality Dropout)</strong>，在训练时以一定概率将某个模态的输入完全置零，强迫模型学习利用其他模态。</li>
+</ul>
+</li>
+<li>
+<p><strong>虚假相关 (Spurious Correlation)</strong>：模型学到的是数据集中的统计捷径，而非真正的因果联系。</p>
+<ul>
+<li><strong>症状</strong>：模型在 IID 验证集上表现优异，但在 OOD 场景下性能急剧下降。</li>
+<li><strong>调试与修复</strong>：通过<strong>丰富数据多样性</strong>（数据增强、多场景采集）来打破虚假相。构建专门的“挑战集”进行评估。</li>
+</ul>
+</li>
+<li>
+<p><strong>目标不匹配 (Objective Mismatch)</strong>：对齐阶段的代理目标（如对比损失）与最终任务的性能（如操作成功率）之间存在鸿沟。</p>
+<ul>
+<li><strong>症状</strong>：模型的 CLIP score 很高，但在下游 RL 微调中学习缓慢。</li>
+<li><strong>调试与修复</strong>：在对齐阶段，额外增加一个与下游任务更相关的<strong>辅助损失</strong>，如动作预测或价值函数预测。</li>
+</ul>
+</li>
+<li>
+<p><strong>训练发散 (Training Divergence)</strong>：这是训练大型多模态模型时最致命的问题，尤其对于早期融合架构。</p>
+<ul>
+<li><strong>症状</strong>：训练到一定阶段后，loss 突然变成 <code>NaN</code> 或开始指数级增长。</li>
+<li><strong>调试与修复</strong>：<ul>
+<li><strong>立即检查数值</strong>：检查模型各部分的梯度范数和激活值范数。问题通常出在 softmax 的输入过大。</li>
+<li><strong>采用架构性解决方案</strong>：不要仅仅依赖梯度裁剪。优先考虑实现 <strong>QK-Norm</strong>。检查是否所有归一化层都使用 <code>RMSNorm</code> 或 <code>LayerNorm</code>。</li>
+<li><strong>从低精度训练中恢复</strong>：如果使用 bf16/fp16 训练，尝试切换回 fp32 跑几个迭代，看问题是否复现。如果消失，说明是低精度下的数值溢出问题。</li>
+<li><strong>降低学习率</strong>：作为最后的手段，显著降低学习率并从上一个稳定的 checkpoint 恢复训练。</li>
+</ul>
+</li>
 </ul>
 </li>
 </ol>
-<hr />
-<h2 id="_4">附：实践清单（可打印）</h2>
-<ul>
-<li>[ ] 先跑 <strong>V↔L</strong> 检索到 R@10≥70%（域内）再接 <strong>L↔A</strong>。</li>
-<li>[ ] 批量≥2k 全局等效负例，(\tau\in[0.05,0.07])，logit_scale 学习率 ≤1e‑3。</li>
-<li>[ ] 视频–动作对齐偏移 P50 &lt; 80 ms；(\gamma_{VA})（0.1–1 Hz）≥0.6。</li>
-<li>[ ] 早停看<strong>检索+在线成功率</strong>双指标；保存<strong>对齐健康报告</strong>（AMat/MI/频谱）。</li>
-<li>[ ] 多目标稳定：PCGrad on；GradNorm (\alpha=0.5)；不确定性加权监控 (\sigma_i) 漂移。</li>
-<li>[ ] 失败三视图：注意力热力图 + 频谱相干 + 行动时间线，并标注物理红线。</li>
-</ul>
-<p>—— 以上即为 <em>chapter5.md</em>。</p>
             </article>
             
-            <nav class="page-nav"><a href="chapter4.html" class="nav-link prev">← 第4章 行动模态</a><a href="chapter6.html" class="nav-link next">第6章 隐式 3D 时空结构的引入 →</a></nav>
+            <nav class="page-nav"><a href="chapter4.html" class="nav-link prev">← 第4章 行动模态：从信号处理到鲁棒控制</a><a href="chapter6.html" class="nav-link next">第6章 隐式 3D 时空结构的引入 →</a></nav>
         </main>
     </div>
 </body>
