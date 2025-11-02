@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="./">
+    <title>第13章 大作业设计（Final Project）</title>
+    <link rel="stylesheet" href="assets/style.css">
+    <link rel="stylesheet" href="assets/highlight.css">
+    <script src="assets/script.js" defer></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$']],
+                displayMath: [['$$', '$$']],
+                processEscapes: false,
+                packages: {'[+]': ['noerrors', 'ams']}
+            },
+            options: {
+                ignoreHtmlClass: 'tex2jax_ignore',
+                processHtmlClass: 'tex2jax_process'
+            },
+            loader: {
+                load: ['[tex]/noerrors', '[tex]/ams']
+            }
+        };
+    </script>
+</head>
+<body>
+    <div class="container">
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h3>目录</h3>
+                <button id="sidebar-toggle" class="sidebar-toggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+            <div class="sidebar-search">
+                <input type="text" id="sidebar-search-input" placeholder="搜索..." autocomplete="off">
+            </div>
+            <div id="tree-container">
+                <nav class="tree-nav" role="tree">
+                    <div class="tree-item " >
+                        <a href="index.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">Visual-Language Action Model: 预训练、MARL 和 Sim-to-Real</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter1.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第1章 导论与动机案例</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter2.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第2章 视觉模态：从像素到可行动的表征</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter3.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第3章 语言模态：符号推理、过程编排与系统调度</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter4.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第4章 行动模态：从信号处理到鲁棒控制</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter5.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第5章 模态对齐（Vision–Language–Action）</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter6.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第6章 隐式 3D 时空结构的引入</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter7.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第7章 预训练：模态预训练与跨模态对齐</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter8.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第8章 强化学习与微调：从指令遵循到策略优化</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter9.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第9章 基于仿真的智能体级强化学习（单智能体）</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter10.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第10章 多智能体博弈与协调：从均衡理论与 MARL 到工程落地</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter11.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第11章 神经化 Sim-to-Real：弥合仿真与现实的认知与动力学鸿沟</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter12.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第12章 课程小实验设计（Lab）</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item active" >
+                        <a href="chapter13.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第13章 大作业设计（Final Project）</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter14.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第14章 结语：从范式到实践的闭环</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="CLAUDE.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">Untitled</span>
+                        </a>
+                    </div>
+                </nav>
+            </div>
+        </nav>
+        
+        <main class="content">
+            <article>
+                <h1 id="13-final-project">第13章 大作业设计（Final Project）</h1>
+<h2 id="_1">摘要</h2>
+<p>大作业是本课程的顶点，旨在检验您构建、训练、评估和部署一个端到端视觉-语言-行动（VLA）系统的综合能力。项目周期为 6–8 周，要求您形成一条完整的<strong>端到端证据链</strong>：从问题定义与数据准备，到模型设计与训练，再到仿真环境中的系统评估，最终产出一份高质量的技术报告、可复现的代码库和（可选的）小规模现实验证。我们提供<strong>四条精心设计的主题轨道</strong>，每条轨道都聚焦于 VLA 的一个核心挑战。我们将提供明确的<strong>里程碑节拍</strong>、详尽的<strong>评审标准（Rubric）</strong>，并划定不可逾越的<strong>伦与安全红线</strong>，以指导您完成一个具有学术和工程价值的完整项目。</p>
+<hr />
+<h2 id="_2">引言：从理论到系统，构建可部署的智能</h2>
+<p>经过前面章节的学习，您已经掌握了 VLA 模型的各个组成部分。大作业的目标是将这些碎片化的知识整合成一个有机的、可运行的系统。这不仅仅是算法的实现，更是对系统工程、实验设计、资源管理和问题解决能力的全面考验。</p>
+<p>在本课程中，我们强烈推荐并以 <strong>RLinf 框架</strong> 作为大作业的底层分布式训练与仿真引擎。RLinf 的核心优势——如<strong>宏观到微观流变换（M2Flow）</strong>、<strong>灵活的聚合/分解式部署</strong>、以及高效的 <strong><code>Actor</code>、<code>Rollout</code> 和 <code>Env</code> Worker</strong> 抽象——将使您能专注于算法和策略逻辑，而不必陷入复杂的分布式通信和资源调度的泥潭。您将亲身体验如何利用 RLinf 的能力，高效地协调大规模并行仿真、模型推理和分布式训练，从而解决真实世界中的杂任务。</p>
+<h2 id="131-a-sim-to-real">13.1 主题轨 A：自动驾驶微场景的策略学习与 Sim-to-Real</h2>
+<p><strong>目标</strong>：在一个具有挑战性、高交互性的自动驾驶微场景中，训练一个 VLA 策略，使其能够在仿真中安全、高效地完成任务，并评估其向真实世界迁移的潜力。</p>
+<p><strong>核心挑战</strong>：处理多智能体博弈、理解不确定性、生成平滑且符合物理约束的轨迹。</p>
+<p><strong>推荐技术栈</strong>：</p>
+<ul>
+<li><strong>模拟器</strong>：CARLA, LGSVL, 或轻量级的 <code>highway-env</code>。</li>
+<li><strong>框架</strong>：<strong>RLinf</strong>。利用其 <code>EnvWorker</code> 管理上百个并行的 CARLA 实例，<code>RolloutWorker</code> 在 GPU 上进行实时策略推理，<code>Actor</code> 使用 FSDP 在多 GPU 上训练大规模 VLA 模型。</li>
+<li><strong>模型</strong>：以 Transformer 为骨干，输入前视摄像头图像序列、高级语言指令（例如“在下一个路口无保护左转”），输出未来 5 秒的轨迹点序列 $(x_t, y_t, \theta_t)$。</li>
+</ul>
+<hr />
+<h4 id="rlinf"><strong>高质量示例项目：基于 RLinf 的无保护路口协同通行策略</strong></h4>
+<ol>
+<li><strong>问题定义</strong>：训练一个自动驾驶智能体，在没有交通信号灯的十字路口，与多个行为模型多样（保守、激进、分心）的人类驾驶车辆进行博弈，安全高效地完成左转或直行。</li>
+<li>
+<p><strong>实现细节</strong>：</p>
+<ul>
+<li><strong>感知</strong>：VLA 模型接收 BEV（鸟瞰图）视觉表征和“左转”指令。</li>
+<li>
+<p><strong>奖励函数</strong>：设计一个多目标复合奖励函数，以指导策略学习：
+    $R(s, a) = w_{succ}R_{succ} - w_{jerk}C_{jerk} - w_{coll}C_{coll} - w_{rule}C_{rule}$
+    其中，$R_{succ}$ 是任务成功奖励，$C_{jerk}$ 是轨迹的跃度惩罚（舒适性），$C_{coll}$ 是碰撞惩罚，$C_{rule}$ 是违反交通规则（如压实线）的惩罚。</p>
+</li>
+<li>
+<p><strong>训练架构</strong>：利用 <strong>RLinf</strong> 的<strong>分解式部署</strong>（Disaggregated Deployment）。<code>EnvWorker</code> 运行在大量 CPU 核心上，负责物理模拟。<code>RolloutWorker</code> 的推理部分（模型前向）运行在 GPU 上，控制与通信部分在 CPU 上。<code>Actor</code> 则独占个或多个 GPU 节点进行 PPO 训练。这种部署方式能最大化硬件利用率，将 GPU 从等待物理模拟的耗时中解放出来。
+3.  <strong>评估</strong>：</p>
+</li>
+<li><strong>指标</strong>：成功率、通行时间、最小碰撞时间（TTC）、舒适度指标。</li>
+<li><strong>方法</strong>：在 RLinf 中构建一个专用的评估流，对训练好的策略在一系列手工设计和程序化生成的“长尾”场景（例如，有车辆突然加速、有行人闯入）中进行零样本泛化测试。</li>
+</ul>
+</li>
+</ol>
+<hr />
+<h2 id="132-b">13.2 主题轨 B：桌面机器人操作（抓取/插装/精细定位）</h2>
+<p><strong>目标</strong>：训练一个多模态 VLA 模型，使其能够理解自然语言指令，并在模拟的桌面环境中精确地操作物体。</p>
+<p><strong>核心挑战</strong>：高维连续控制、视觉-动作的精确对齐、处理接触动力学、泛化到未见过的物体和指令。</p>
+<p><strong>推荐技术栈</strong>：</p>
+<ul>
+<li><strong>模拟器</strong>：<code>ManiSkill</code> (推荐), <code>LIBERO</code>, <code>Isaac Gym</code>。</li>
+<li><strong>框架</strong>：<strong>RLinf</strong>。<code>ManiSkill</code> 的 GPU 并行化特性与 RLinf 的 <code>EnvManager</code> 和 <code>EnvWorker</code> 完美结合，可以实现极高吞吐量的数据采集。</li>
+<li><strong>模型</strong>：以 OpenVLA 等预训练模型为基础，通过 RL 进行微调。行动空间可以是末端执行器的 6-DoF 位姿增量，或是关节力矩。</li>
+</ul>
+<hr />
+<h4 id="_3"><strong>高质量示例项目：基于语言指令的泛化性桌面整理</strong></h4>
+<ol>
+<li><strong>问题定义</strong>：机器人接收一条复杂的指令，如“请将桌上所有红色的积木放进左边的抽屉里，然后把绿色的瓶子移到托盘上”。机器人需要规划并执行一系列抓取、移动和放置动作。</li>
+<li><strong>实现细节</strong>：<ul>
+<li><strong>课程学习</strong>：设计一个从易到难的训练课程。<ul>
+<li><strong>阶段一 (BC)</strong>：使用人类示教数据进行行为克隆（BC），让模型学会基本操作。</li>
+<li><strong>阶段二 (RL)</strong>：在 RLinf 中，使用 PPO 算法对 BC 策略进行微调。奖励函数可以是稀疏的（任务完成）与塑形（shaping）奖励（例如，手与目标的距离）的组。</li>
+</ul>
+</li>
+<li><strong>域随机化</strong>：在 <code>ManiSkill</code> 环境中，通过 RLinf 的 <code>EnvWorker</code> 配置，对物体的颜色、形状、纹理、质量、摩擦系数以及光照条件、相机位姿进行大规模随机化，以提升策略的泛化能力。</li>
+<li><strong>RLinf 优化</strong>：使用 RLinf 的内置 Profiler 分析 <code>EnvWorker</code>（物理模拟）、<code>RolloutWorker</code>（推理）和 <code>Actor</code>（训练）的耗时与资源占用，自动或手动配置最佳的<strong>混合部署</strong>策略，以达到最高的“环境帧数/秒”（FPS）。</li>
+</ul>
+</li>
+<li><strong>评估</strong>：<ul>
+<li><strong>指标</strong>：在 OOD (Out-of-Distribution) 任务上的成功率。OOD 任务包含训练集中未见过的物体组合、指令句式和初始布局。</li>
+<li><strong>分析</strong>：分析失败案例，归因于感知错误、规划失败还是控制不准。</li>
+</ul>
+</li>
+</ol>
+<hr />
+<h2 id="133-cvla-api">13.3 主题轨 C：VLA 工具编排（语言驱动的多步任务与 API 调度）</h2>
+<p><strong>目标</strong>：构建一个 VLA 智能体，它不仅能感知和行动，还能通过调用外部工具（如代码释器、搜索引擎 API）来完成需要复杂推理和外部知识的任务。</p>
+<p><strong>核心挑战</strong>：任务分解、工具选择与参数生成、处理工具返回的错误、维持长期任务的一致性。</p>
+<p><strong>推荐技术栈</strong>：</p>
+<ul>
+<li><strong>模拟器</strong>：<code>WebArena</code>, <code>AndroidEnv</code>，或自定义的 API/命令行模拟环境。</li>
+<li><strong>框架</strong>：<code>LangChain</code>, <code>LlamaIndex</code> 配合 RLinf 进行策略学习。</li>
+<li><strong>模型</strong>：以强大的 LLM（如 Llama-3, GPT-4）为核心，微调其生成特定格式工具调用的能力。</li>
+</ul>
+<hr />
+<h4 id="_4"><strong>高质量示例项目：结合视觉与网页浏览的自主研究助理</strong></h4>
+<ol>
+<li><strong>问题定义</strong>：智能体接收一个研究任务，如“查找关于 RLinf 框架的最新论文，总结其 M2Flow 架构的优势，并与 DeepSpeed-Chat 进行比较，最后生成一份对比表格的截图。”</li>
+<li><strong>实现细节</strong>：<ul>
+<li><strong>行动空间</strong>：智能体的行动空间是离散的，包括：<code>search(query)</code>, <code>click(element)</code>, <code>type(text, element)</code>, <code>scroll(direction)</code>, <code>answer(summary)</code> 等。</li>
+<li><strong>CoT-RL</strong>：将 Chain-of-Thought (CoT) 与 RL 结合。模型首先生成“思考”步骤，然后根据思考生成工具调用。奖励基于最终答案的准确性和完整性。</li>
+<li><strong>RLinf 应用</strong>：虽然此任务的分布式计算需求较低，但仍可使用 RLinf 的 Worker 抽象来构建一个模块化的系统：一个 <code>ReasoningWorker</code> 负责生成 CoT 和工具调用计划，一个 <code>ExecutionWorker</code> 负责与网页模拟器交互并执行动作，一个 <code>Actor</code> 则负责收集经验并更新 <code>ReasoningWorker</code> 的策略。</li>
+</ul>
+</li>
+<li><strong>评估</strong>：<ul>
+<li><strong>指标</strong>：在 <code>WebArena</code> 等标准 benchmark 上的任务成功率。</li>
+<li><strong>鲁棒性测试</strong>：测试智能体在网页布局变化、API 返回延迟或错误时的应对能力。</li>
+</ul>
+</li>
+</ol>
+<hr />
+<h2 id="134-drta">13.4 主题轨 D：鲁棒与安全强化学习（RTA/屏蔽/可恢复性）</h2>
+<p><strong>目标</strong>：为已有的 VLA 策略设计并实现一个安全保障层，确保即使在模型预测出错或环境出现意外时，统也能维持在安全状态内，并能优雅地降级或恢复。</p>
+<p><strong>核心挑战</strong>：形式化安全约束、设计高效的实时安全验证与修正机制、权衡安全性与任务性能。</p>
+<p><strong>推荐技术栈</strong>：</p>
+<ul>
+<li><strong>场景</strong>：选择主题轨 A 或 B 中的一个场景。</li>
+<li><strong>技术</strong>：控制屏障函数 (CBF)、运行时保障 (RTA)、可达性分析、约束优化 (QP, QCQP)。</li>
+</ul>
+<hr />
+<h4 id="vla-cbf"><strong>高质量示例项目：用于 VLA 驾驶策略的 CBF 运行时安全屏蔽器</strong></h4>
+<ol>
+<li><strong>问题定义</strong>：为主题轨 A 中训练的 VLA 驾驶策略增加一个安全屏蔽层。该层在每个时间步验证 VLA 策略输出的控制指令（如加速度 $a$ 和转向角 $\delta$）是否安全，如果不安全，则将其修正为“最小侵入性”的安全指令。</li>
+<li>
+<p><strong>实现细节</strong>：</p>
+<ul>
+<li><strong>安全约束形式化</strong>：定义一个或多个屏障函数 $h(x)$，其中 $x$ 是系统状态。安全条件为 $h(x) \ge 0$。例如，与前车的安全距离约束可以定义为 $h(x) = d(x) - d_{min} \ge 0$，其中 $d(x)$ 是当前车距。</li>
+<li>
+<p><strong>CBF 约束</strong>：根据控制动力学 $\dot{x} = f(x) + g(x)u$，CBF 安全约束表现为一个关于控制输入 $u$ 的线性不等式：
+    $L_f h(x) + L_g h(x) u \ge -\alpha(h(x))$
+    其中 $L_f h$ 是 $h$ 沿系统漂移场的李导数。</p>
+</li>
+<li>
+<p><strong>二次规划 (QP) 修正</strong>：VLA 策略输出一个期望的控制指令 $u_{vla}$。安全屏蔽器通过求解一个 QP 问题来找到最终执行的指令 $u_{safe}$：
+    $u_{safe} = \arg\min_{u} \frac{1}{2} |u - u_{vla}|^2_2$
+    $\text{s.t. } L_f h_i(x) + L_g h_i(x) u \ge -\alpha(h_i(x)), \quad \forall i \in \{1, \dots, k\}$
+    (subject to k safety constraints)</p>
+</li>
+<li>
+<p><strong>集成</strong>：将 QP 求解器集成到 RLinf 的 <code>RolloutWorker</code> 中，在模型输出动作后、发送给 <code>EnvWorker</code> 之前进行修正。
+3.  <strong>评估</strong>：</p>
+</li>
+<li><strong>指标</strong>：安全违规率、屏蔽器干预频率、任务性能下降幅度。</li>
+<li><strong>对抗性测试</strong>：设计专门的“撞边缘”场景，测试屏蔽器在极端情况下的有效性。</li>
+</ul>
+</li>
+</ol>
+<hr />
+<h2 id="135-week-08">13.5 里程碑进度表（Week 0–8）</h2>
+<p>| 周次  | 任务                                                         | 产出物                                                       |</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">周次</th>
+<th style="text-align: left;">任务</th>
+<th style="text-align: left;">产出物</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>0-1</strong></td>
+<td style="text-align: left;">团队组建，主题轨选择与问题细化，相关文献回顾</td>
+<td style="text-align: left;">项目提案（1-2页），包含问题定义、初步方法和预期成果</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>2-3</strong></td>
+<td style="text-align: left;"><strong>环境搭建与数据管道</strong>：安装模拟器，熟悉 RLinf 框架，实现数据采集与预处理</td>
+<td style="text-align: left;">可运行的基线代码（如随机策略或专家策略数据采集），GitHub 仓库建立</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>4-5</strong></td>
+<td style="text-align: left;"><strong>核心模型与训练回路</strong>：实现 VLA 模型，搭建 BC/RL 训练循环，开始初步训练</td>
+<td style="text-align: left;">第一次中期报告，展示初步训练曲线和定性结果（如视频）</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>6</strong></td>
+<td style="text-align: left;"><strong>规化实验与创新点实现</strong>：利用 RLinf 进行大规模训练，实现项目的核心创新点（如安全屏蔽、MARL 算法）</td>
+<td style="text-align: left;">实验结果开始成形，有量化的性能对比</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>7</strong></td>
+<td style="text-align: left;"><strong>最终实验与结果分析</strong>：完成所有实验，生成图表，分析结果，撰写报告</td>
+<td style="text-align: left;">最终报告草稿，demo 视频</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>8</strong></td>
+<td style="text-align: left;"><strong>报告定稿与答辩准备</strong>：完善报告，准备演示文稿，代码归档</td>
+<td style="text-align: left;">最终报告、GitHub 仓库（含 README）、答辩 PPT</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="136">13.6 交付清单与仓库模板</h2>
+<p><strong>最终交付物应包括</strong>：</p>
+<ol>
+<li><strong>GitHub 仓库链接</strong>：包含所有代码、配置文件、模型权重和详细的 <code>README.md</code>（说明如何复现您的结果）。</li>
+<li><strong>技术报告</strong>：一份 6-8 页的 PDF 报告，格式类似学术会议论文（例如 NeurIPS, ICRA），包含摘要、引言、相关工作、方法、实验、结论。</li>
+<li><strong>演示视频</strong>：一段 2-3 分钟的视频展示您的 VLA 智能体的最终效果，特别是成功和失败的案例。</li>
+<li><strong>最终答辩</strong>：15 分钟的现场演示和 5 分钟的 Q&amp;A。</li>
+</ol>
+<p><strong>推荐仓库结构</strong>：</p>
+<div class="codehilite"><pre><span></span><code>.
+├── rlinf_configs/      # RLinf 的 YAML 配置文件
+├── src/                # 源代码
+│   ├── agents/         # VLA 模型定义
+│   ├── envs/           # 环境封装
+│   ├── train.py        # 训练入口脚本 (类似 train_embodied_agent.py)
+│   └── eval.py         # 评估脚本
+├── data/               # (可选) 示教数据
+├── report.pdf          # 最终报告
+├── presentation.pdf    # 答辩幻灯片
+└── README.md           # 项目介绍与复现指南
+</code></pre></div>
+
+<hr />
+<h2 id="137-rubric">13.7 评审 Rubric 与加分机制</h2>
+<p>| 评分维度                   | 卓越 (4)                                                               | 良好 (3)                                                     | 合格 (2)                                           | 待改进 (1)                                       |</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">评分维度</th>
+<th style="text-align: left;">卓越 (4)</th>
+<th style="text-align: left;">良好 (3)</th>
+<th style="text-align: left;">合格 (2)</th>
+<th style="text-align: left;">待改进 (1)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>问题定义与完整性 (20%)</strong></td>
+<td style="text-align: left;">问题定义清晰、有挑战性，证据链完整，系统闭环。</td>
+<td style="text-align: left;">问题定义清晰，完成了大部分核心环节。</td>
+<td style="text-align: left;">问题定义较模糊，系统存在明显缺失环节。</td>
+<td style="text-align: left;">问题定义不清，项目不成体系。</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>技术深度与创新性 (30%)</strong></td>
+<td style="text-align: left;">巧妙运用课程高级概念，有独特的算法或系统设计创新，充分发挥了 RLinf 优势。</td>
+<td style="text-align: left;">正确实现了复杂的算法（如 PPO），对 RLinf 的使用合理。</td>
+<td style="text-align: left;">仅实现了简单的基线模型（如 BC）。</td>
+<td style="text-align: left;">核心技术实现有严重错误。</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>实验执行与分析 (30%)</strong></td>
+<td style="text-align: left;">实验设计严谨，包含充分的消融和对比实验，结果分析深入，洞察力强。</td>
+<td style="text-align: left;">实验结果可信，分析合理，能解释现象。</td>
+<td style="text-align: left;">实验不充分，缺少必要的对比或分析。</td>
+<td style="text-align: left;">实验结果无法复现或存在明显错误。</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>报告与展示 (20%)</strong></td>
+<td style="text-align: left;">报告结构清晰，写作专业，图表美观；答辩表达流畅，对问题的理解深刻。</td>
+<td style="text-align: left;">报告内容完整，逻辑清晰；答辩能清楚地传达项目核心内容。</td>
+<td style="text-align: left;">报告或答辩存在一些格式或表达问题。</td>
+<td style="text-align: left;">报告或答辩难以理解，缺乏关键信息。</td>
+</tr>
+</tbody>
+</table>
+<p><strong>加分项</strong>：</p>
+<ul>
+<li>在真实硬件上（经批准）成功部署并验证。</li>
+<li>项目成果对开源社区有贡献（例如，修复了 RLinf 的一个 bug，或贡献了一个新的环境封装）。</li>
+<li>在标准 benchmark 上取得了 SOTA 或有竞争力的结果。</li>
+</ul>
+<hr />
+<h2 id="138">13.8 伦理合规与安全红线</h2>
+<p>所有项目必须遵守以下原则，违反任何一条都将导致项目失败：</p>
+<ol>
+<li><strong>禁止在未经批准和无安全员监督的情况下在任何真实物理系统（机器人、车辆等）上进行实验。</strong></li>
+<li><strong>禁止伪造、篡改或剽窃实验数据和代码。</strong> 所有外部代码和数据必须明确引用。</li>
+<li><strong>禁止训练用于恶意目的或可能导致社会危害的智能体。</strong></li>
+<li>在报告中必须包含一个“伦理与社会影响”章节，讨论您的项目潜在的风险和双重用途。</li>
+</ol>
+<hr />
+<h2 id="139-plan-b">13.9 风险管理：技术/进度/依赖与 Plan B</h2>
+<p>大作业中常见风险包括：</p>
+<ul>
+<li><strong>环境风险</strong>：模拟器安装配置复杂，或运行不稳定。</li>
+<li><strong>算法风险</strong>：RL 训练不稳定，损失不收敛或出现 NaN。</li>
+<li><strong>进度风险</strong>：低估了某个模块的开发时间。</li>
+</ul>
+<p><strong>建议</strong>：</p>
+<ul>
+<li>尽早开始环境搭建。</li>
+<li>从最简单的基线（行为克隆）开始，逐步迭代。</li>
+<li><strong>准备一个 Plan B</strong>：如果高算法失败，确保有一个更简单但完整的方案可以作为最终交付。</li>
+</ul>
+<hr />
+<h2 id="1310">13.10 公开演示与答辩建议</h2>
+<ul>
+<li><strong>Show, Don't Tell</strong>：多用视频和动态图表，少用大段文字。</li>
+<li><strong>聚焦核心贡献</strong>：明确说明你的项目解决了什么问题，你的创新点在哪里。</li>
+<li><strong>坦诚面对失败</strong>：分析失败的案例和实验往往比展示成功的案例更有启发性。</li>
+<li><strong>准备好回答“为什么”</strong>：为什么选择这个模型架构？为什么这个超参数有效？你从中学到了什么？</li>
+</ul>
+<h2 id="1311">13.11 实验设计核心原则与实践</h2>
+<p>一个成功的大作业不仅在于实现一个能运行的系统，更在于通过严谨的实验来证明其有效性。所有主题轨都应遵循以下核心实验设计原则：</p>
+<ol>
+<li>
+<p><strong>消融研究 (Ablation Studies)</strong>：这是证明您系统设计中每个组件必要性的关键。您需要回答：“如果去掉我设计的模块 X，性能会下降多少？”</p>
+<ul>
+<li><strong>示例</strong>：<ul>
+<li><strong>模型组件</strong>：比较完整 VLA 模型与一个去除了语言指令输入的“纯视觉-行动”模型，以量化语言的指导作用。</li>
+<li><strong>训练方法</strong>：对比“行为克隆 (BC) + 强化学习 (RL) 微调”的完整方案与“仅 BC”的基线，以证明 RL 带来的性能提升。</li>
+<li><strong>数据增强</strong>：对比使用域随机化与不使用域随机化的训练结果，以展示其对泛化性的贡献。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>基线对比 (Baseline Comparisons)</strong>：您的成果需要在一个公认的坐标系中进行评估。选择适的基线是至关重要的。</p>
+<ul>
+<li><strong>简单基线</strong>：如随机策略、简单的启发式或规则策略（例如，在自动驾驶中，一个始终跟驰前车的 IDM 模型）。</li>
+<li><strong>经典基线</strong>：实现一个广为人知的经典算法（例如，一个不带预训练的 ResNet+LSTM 策略网络），以凸显现代 VLA 架构的优势。</li>
+<li><strong>系统基线 (RLinf 特色)</strong>：在 RLinf 框架下，对比<strong>分解式部署</strong>与<strong>聚合式部署</strong>的端到端吞吐量（样本/秒）和训练收敛速度，用数据证明您选择的分布式部署策略的优越性。</li>
+</ul>
+</li>
+<li>
+<p><strong>超参数敏感性分析 (Hyperparameter Sensitivity)</strong>：一个鲁棒的系统不应依赖于一组“神奇”的、难以调优的超参数。</p>
+<ul>
+<li><strong>方法</strong>：选择 1-2 个最关键的超参数（如学习率 $\alpha$、PPO 的裁剪率 $\epsilon$、奖励函数中的权重 $w_i$），在一定范围内变动它们，并绘制性能曲线图。平坦的曲线意味着您的系统对该参数不敏感，理想的结果。</li>
+</ul>
+</li>
+<li>
+<p><strong>泛化性与鲁棒性测试 (Generalization &amp; Robustness Testing)</strong>：这是衡量模型能否在真实世界中“存活”的试金石。</p>
+<ul>
+<li><strong>IID vs. OOD</strong>：在与训练集同分布 (IID) 的测试集上评估基础性能，并着重在分布外 (OOD) 的测试集上评估泛化能力。</li>
+<li><strong>OOD 场景构建</strong>：<ul>
+<li><strong>参数化扰动</strong>：在模拟器中程序化地改变物理参数（如摩擦力、质量）、视觉参数（光照、纹理）和行为参数（其他智能体的激进程度）。</li>
+<li><strong>长尾场景</strong>：手动设计或从数据中挖掘罕见但关键的“边缘案例”（Edge Cases），并专门测试模型在这些场景下的表现。</li>
+<li><strong>传感器/执行器噪声</strong>：向模型的输入（观测）和输出（动作）注入高斯噪声，测试系统的鲁棒性。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>可扩展性分析 (Scalability Analysis - RLinf 特色)</strong>：现代 RL 系统必须能够利用分布式计算资源来加速训练。</p>
+<ul>
+<li><strong>弱扩展性</strong>：固定每个计算单元（如 GPU）的问题规模，增加计算单元数量，考察总问题规模能否线性增长而计算时间保持不变。</li>
+<li><strong>强扩展性</strong>：固定总问题规模，增加计算单元数量，考察计算时间能否线性减少。</li>
+<li><strong>实践</strong>：使用 RLinf，将并行环境数量从 16 个扩展到 256 个，绘制“墙上时钟时间 (Wall-clock time) vs. 训练总步数”的曲线图。理想情况下，使用更多并行环境的曲线应该更早地达到相同的性能水平。</li>
+</ul>
+</li>
+</ol>
+<p>祝您在本次大作业中取得丰硕的成果！</p>
+            </article>
+            
+            <nav class="page-nav"><a href="chapter12.html" class="nav-link prev">← 第12章 课程小实验设计（Lab）</a><a href="chapter14.html" class="nav-link next">第14章 结语：从范式到实践的闭环 →</a></nav>
+        </main>
+    </div>
+</body>
+</html>

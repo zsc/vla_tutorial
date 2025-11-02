@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="./">
+    <title>第12章 课程小实验设计（Lab）</title>
+    <link rel="stylesheet" href="assets/style.css">
+    <link rel="stylesheet" href="assets/highlight.css">
+    <script src="assets/script.js" defer></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$']],
+                displayMath: [['$$', '$$']],
+                processEscapes: false,
+                packages: {'[+]': ['noerrors', 'ams']}
+            },
+            options: {
+                ignoreHtmlClass: 'tex2jax_ignore',
+                processHtmlClass: 'tex2jax_process'
+            },
+            loader: {
+                load: ['[tex]/noerrors', '[tex]/ams']
+            }
+        };
+    </script>
+</head>
+<body>
+    <div class="container">
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h3>目录</h3>
+                <button id="sidebar-toggle" class="sidebar-toggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+            <div class="sidebar-search">
+                <input type="text" id="sidebar-search-input" placeholder="搜索..." autocomplete="off">
+            </div>
+            <div id="tree-container">
+                <nav class="tree-nav" role="tree">
+                    <div class="tree-item " >
+                        <a href="index.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">Visual-Language Action Model: 预训练、MARL 和 Sim-to-Real</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter1.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第1章 导论与动机案例</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter2.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第2章 视觉模态：从像素到可行动的表征</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter3.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第3章 语言模态：符号推理、过程编排与系统调度</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter4.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第4章 行动模态：从信号处理到鲁棒控制</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter5.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第5章 模态对齐（Vision–Language–Action）</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter6.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第6章 隐式 3D 时空结构的引入</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter7.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第7章 预训练：模态预训练与跨模态对齐</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter8.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第8章 强化学习与微调：从指令遵循到策略优化</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter9.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第9章 基于仿真的智能体级强化学习（单智能体）</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter10.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第10章 多智能体博弈与协调：从均衡理论与 MARL 到工程落地</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter11.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第11章 神经化 Sim-to-Real：弥合仿真与现实的认知与动力学鸿沟</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item active" >
+                        <a href="chapter12.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第12章 课程小实验设计（Lab）</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter13.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第13章 大作业设计（Final Project）</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="chapter14.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">第14章 结语：从范式到实践的闭环</span>
+                        </a>
+                    </div>
+                
+                    <div class="tree-item " >
+                        <a href="CLAUDE.html" class="tree-link">
+                            <span class="tree-icon">📄</span>
+                            <span class="tree-title">Untitled</span>
+                        </a>
+                    </div>
+                </nav>
+            </div>
+        </nav>
+        
+        <main class="content">
+            <article>
+                <h1 id="12-lab">第12章 课程小实验设计（Lab）</h1>
+<h3 id="_1">开篇段落</h3>
+<p>本章是理论与实践的桥梁。在前面的章节中，我们系统性地探讨了从模态表征到 Sim-to-Real 的完整技术链条。现在，我们将通过一系列精心设计的小型实验（Lab），将这些抽象概念转化为可触摸、可调试、可度量的代码实践。这些实验的目标并非构建庞大的系统，而是聚焦于 VLA 落地过程中的关键技术点，强调<strong>可复现性、低成本与量化分析</strong>。所有实验都将基于我们课程中使用的 <code>RLinf</code> 分布式强化学习框架，让您在解决具体问题的同时，深度体验其灵活的 Worker 架构、配置驱动的工作流以及为性能与安全所做的工程优化。每个实验都配有软件仿真环境，确保在不同硬件条件下均可完成，最终目标是让您具备独立分析、实现并评估 VLA 核心模块的能力。</p>
+<hr />
+<h3 id="lab-a">Lab A：频域平滑的循迹控制（行动模态与舒适度）</h3>
+<ul>
+<li><strong>实验目标</strong>：深刻理解第 4 章中“行动即信号”的理念。通过在 <code>RLinf</code> 的 <code>RolloutWorker</code> 中引入一个简单的后处理滤波器，直观感受行动轨迹的平滑性（Jerk/跃度）对系统质量的影响，并学会使用频域分析工具（FFT）来量化“舒适度”。</li>
+<li><strong>背景知识</strong>：行动轨迹的高频分量通常对应着不平滑、高跃度的“急动”，这在自动驾驶中意味着糟糕的乘坐体验，在机器人操控中可能导致机械臂震动或任务失败。低通滤波器可以有效抑制这些高频分量。</li>
+<li><strong>资源与环境</strong>：<ul>
+<li>框架：<code>RLinf</code></li>
+<li>仿真器：提供一个简化的 2D 车辆循迹仿真环境 (<code>Simple-Car-Follow-v0</code>)，该环境通过 <code>EnvWorker</code> 启动。</li>
+<li>基线代码：一个预训练好的 PPO 策略，能够基本完成循迹任务，但控制指令（如方向盘转角速度）有明显抖动。</li>
+<li>配置文件：<code>configs/lab_a_baseline.yaml</code></li>
+</ul>
+</li>
+<li><strong>实验步骤</strong>：<ol>
+<li><strong>运行基线</strong>：首先，直接运行基线策略，<code>python examples/run_lab.py --config-name=lab_a_baseline</code>。观察车辆的运动，并记录下参考轨迹与实际轨迹的误差、以及控制指令序列。</li>
+<li><strong>实现滤波器</strong>：打开 <code>rlinf/workers/rollout/hf/huggingface_worker.py</code>，定位到 <code>predict</code> 方法。在该方法返回动作 <code>actions</code> 之前，实现一个简单的移动平均滤波器（Moving Average Filter）对动作序列进行平滑。</li>
+</ol>
+</li>
+</ul>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 伪代码</span>
+<span class="n">window_size</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="c1"># self.action_history 是一个存储最近动作的 deque</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">action_history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_action</span><span class="p">)</span>
+<span class="n">smoothed_action</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">action_history</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">smoothed_action</span>
+</code></pre></div>
+
+<div class="codehilite"><pre><span></span><code><span class="mf">3.</span><span class="w">  </span><span class="o">**</span><span class="n">参数调优</span><span class="o">**</span><span class="n">：修改配置文件</span><span class="w"> </span><span class="n n-Quoted">`lab_a_baseline.yaml`</span><span class="n">，增加一个</span><span class="w"> </span><span class="n n-Quoted">`rollout.smoothing_window_size`</span><span class="w"> </span><span class="n">参数，并在</span><span class="w"> </span><span class="n n-Quoted">`RolloutWorker`</span><span class="w"> </span><span class="n">中读取它。尝试不同的窗口大小（如</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span><span class="w"> </span><span class="n">10），重新运行实验。</span>
+<span class="mf">4.</span><span class="w">  </span><span class="o">**</span><span class="n">数据分析</span><span class="o">**</span><span class="n">：编写一个简单的</span><span class="w"> </span><span class="n">Python</span><span class="w"> </span><span class="n">脚本，读取记录下的控制指令序列，计算其三阶差分（近似于跃度</span><span class="o">/</span><span class="n">Jerk），并使用</span><span class="w"> </span><span class="n n-Quoted">`scipy.fft.fft`</span><span class="w"> </span><span class="n">对其进行快速傅里叶变换，绘制频谱图。</span>
+</code></pre></div>
+
+<ul>
+<li><strong>评测指标</strong>：<ol>
+<li><strong>循迹误差</strong>：平滑后轨迹与参考轨迹的均方误差（MSE）：$MSE = \frac{1}{T} \sum_{t=1}^{T} || \mathbf{p}_{actual}(t) - \mathbf{p}_{ref}(t) ||_2^2$。</li>
+<li><strong>跃度范数</strong>：控制指令序列的平均 L1 跃度：$Jerk = \frac{1}{T-3} \sum_{t=1}^{T-3} |a(t+3) - 3a(t+2) + 3a(t+1) - a(t)|$。</li>
+<li><strong>频谱分析</strong>：对比平滑前后，控制指令频谱图中高频分量的能量占。</li>
+</ol>
+</li>
+<li><strong>提交物</strong>：<ol>
+<li>修改后的 <code>huggingface_worker.py</code> 文件。</li>
+<li>一份简短的 Markdown 报告，包含：<ul>
+<li>不同窗口大小下的循迹误差与跃度范数对比表格。</li>
+<li>平滑前后的控制指令时域波形图与频域频谱图。</li>
+<li>对“平滑度”与“响应速度”之间权衡（trade-off）的简要分析。</li>
+</ul>
+</li>
+</ol>
+</li>
+<li><strong>加分项</strong>：将移动平均滤波器替换为更高级的巴特沃斯（Butterworth）或高斯（Gaussian）低通滤波器，并分析其性能差异。</li>
+</ul>
+<hr />
+<h3 id="lab-b-">Lab B：相机时间戳与延迟补偿（感知-控制闭环同步）</h3>
+<ul>
+<li><strong>实验目标</strong>：体验在实际部署中，感知（如相机）与控制之间的延迟（Latency）对系统稳定性的致命影响。通过在 <code>EnvWorker</code> 中模拟一个可变延迟，并在 <code>RolloutWorker</code> 中实现一个简单的前向预测补偿器，来恢复系统性能。</li>
+<li><strong>背景知识</strong>：在现实世界中，从图像采集、传输、模型推断到最终执行器响应，整个链条存在不可避免的延迟。如果策略基于一个“过时”的状态 $s_{t-\Delta t}$ 来决策，其产生的动作 $a_t$ 将作用于未来的真实状态 $s_t$，导致不匹配和不稳定。</li>
+<li><strong>资源与环境</strong>：<ul>
+<li>框架：<code>RLinf</code></li>
+<li>仿真器：使用 Lab A 的 2D 车辆循迹环境，但这次任务是在一个狭窄通道内保持车辆居中。</li>
+<li>基线代码：一个在该任务上训练好的策略，但在引入延迟后会频繁撞墙。</li>
+<li>配置文件：<code>configs/lab_b_latency.yaml</code></li>
+</ul>
+</li>
+<li><strong>实验步骤</strong>：<ol>
+<li><strong>复现问题</strong>：在 <code>rlinf/envs/env_manager.py</code> 的 <code>_simulator_worker</code> 循环中，为 <code>result_queue.put(result)</code> 增加一个 <code>time.sleep(delay)</code> 来模拟感知延迟。在 <code>lab_b_latency.yaml</code> 中设置 <code>env.sim_delay = 0.1</code> (100ms)，运行基线，观察到车辆行驶不稳并最终失败。</li>
+<li><strong>实现补偿器</strong>：在 <code>RolloutWorker</code> 的 <code>predict</code> 方法中，在得到动作后，不要立即返回。而是基一个简单的匀速运动模型，预测出 $\Delta t$ 之后的车辆状态，并根据预测出的未来状态对动作进行二次修正。</li>
+</ol>
+</li>
+</ul>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 伪代码，在 RolloutWorker.predict 中</span>
+<span class="n">current_obs</span> <span class="o">=</span> <span class="o">...</span>
+<span class="n">action</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">current_obs</span><span class="p">)</span>
+
+<span class="c1"># 简单补偿：假设车辆在延迟期间按当前速度和动作继续运动</span>
+<span class="n">dt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">sim_delay</span>
+<span class="n">v</span> <span class="o">=</span> <span class="n">current_obs</span><span class="p">[</span><span class="s1">&#39;velocity&#39;</span><span class="p">]</span>
+<span class="n">omega</span> <span class="o">=</span> <span class="n">action</span><span class="p">[</span><span class="s1">&#39;steering_rate&#39;</span><span class="p">]</span> <span class="c1"># 假设动作为角速度</span>
+<span class="n">predicted_yaw_change</span> <span class="o">=</span> <span class="n">omega</span> <span class="o">*</span> <span class="n">dt</span>
+<span class="n">predicted_pos_change</span> <span class="o">=</span> <span class="n">v</span> <span class="o">*</span> <span class="n">dt</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">cos</span><span class="p">(</span><span class="n">current_obs</span><span class="p">[</span><span class="s1">&#39;yaw&#39;</span><span class="p">]),</span> <span class="n">sin</span><span class="p">(</span><span class="n">current_obs</span><span class="p">[</span><span class="s1">&#39;yaw&#39;</span><span class="p">])])</span>
+
+<span class="c1"># 基于预测出的未来状态，可以再次调用模型或应用一个修正规则</span>
+<span class="c1"># ... (此处为核心实现)</span>
+
+<span class="k">return</span> <span class="n">corrected_action</span>
+</code></pre></div>
+
+<div class="codehilite"><pre><span></span><code><span class="mf">3.</span><span class="w">  </span><span class="o">**</span><span class="n">对比实验</span><span class="o">**</span><span class="err">：</span><span class="n">在有</span><span class="o">/</span><span class="n">无延迟补偿的情况下</span><span class="err">，</span><span class="n">分别测试不同延迟</span><span class="err">（</span><span class="n">如</span><span class="w"> </span><span class="mf">50</span><span class="n">ms</span><span class="p">,</span><span class="w"> </span><span class="mf">100</span><span class="n">ms</span><span class="p">,</span><span class="w"> </span><span class="mf">200</span><span class="n">ms</span><span class="err">）</span><span class="n">下的任务成功率</span><span class="err">。</span>
+</code></pre></div>
+
+<ul>
+<li><strong>评测指标</strong>：<ol>
+<li><strong>任务成功率</strong>：在 100 次随机测试中，车辆成功通过通道的百分比。</li>
+<li><strong>平均生存时间</strong>：车辆在撞墙前平均行驶的步数。</li>
+</ol>
+</li>
+<li><strong>提交物</strong>：<ol>
+<li>修改后的 <code>env_manager.py</code> 和 <code>huggingface_worker.py</code>。</li>
+<li>一份简短的报告，包含：<ul>
+<li>不同延迟下，有/无补偿策略的成功率对比柱状图。</li>
+<li>分析为何简单的运动模型补偿能够有效，以及它的局限性在何处。</li>
+</ul>
+</li>
+</ol>
+</li>
+<li><strong>加分项</strong>：实现一个卡尔曼滤波器（Kalman Filter）来更精确地估计和预测车辆状态，以应对带噪声的观测和更复杂的动力学。</li>
+</ul>
+<hr />
+<h3 id="lab-d-ood">Lab D：域随机化消融（随机化课程与 OOD 鲁棒性）</h3>
+<ul>
+<li><strong>实验目标</strong>：动手实践 Sim-to-Real 的核心技术——域随机化（Domain Randomization, DR）。通过对仿真环境的物理参数（如摩擦力、质量）和视觉参数（如光照、纹理）进行随机化，训练出一个在“未见过的”测试环中依然表现稳健的策略。</li>
+<li><strong>背景知识</strong>：训练于单一、确定性仿真环境的策略往往会“过拟合”到该环境的特定参数上，导致在现实世界（或参数有差异的另一仿真环境）中性能急剧下降。DR 通过在训练时暴露给策略一个分布的仿真实例，迫使其学习对这些变化不敏感的鲁棒特征。</li>
+<li><strong>资源与环境</strong>：<ul>
+<li>框架：<code>RLinf</code></li>
+<li>仿真器：ManiSkill3，使用 <code>PickCube-v1</code> 任务。</li>
+<li>基线代码：一个在默认 ManiSkill 环境中训练好的策略。</li>
+<li>配置文件：<code>configs/lab_d_dr.yaml</code></li>
+</ul>
+</li>
+<li><strong>实验步骤</strong>：<ol>
+<li><strong>定义测试域</strong>：创建一个 <code>test_env_config.json</code>，在其中设定一组与默认训练环境<strong>不同</strong>的物理和视觉参数（例如，将方块的摩擦系数 <code>friction</code> 增大 50%，颜色改为从未见过的紫色）。运行基线策略，验证其在 <code>test</code> 域上的失败率很高。</li>
+<li><strong>实现域随机化</strong>：在 <code>rlinf/envs/maniskill/maniskill_env.py</code> 的 <code>reset</code> 方法中，读取 <code>lab_d_dr.yaml</code> 中的 <code>domain_randomization</code> 配置。在每次重置环境时，从指定的均匀分布（Uniform Distribution）中采样新的参数（如 <code>cube_friction</code>, <code>cube_mass</code>, <code>light_intensity</code>）并应用到仿真器中。</li>
+</ol>
+</li>
+</ul>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 伪代码，在 ManiskillEnv.reset 中</span>
+<span class="n">dr_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">domain_randomization</span>
+<span class="k">if</span> <span class="n">dr_params</span><span class="o">.</span><span class="n">enabled</span><span class="p">:</span>
+    <span class="n">friction</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">*</span><span class="n">dr_params</span><span class="o">.</span><span class="n">cube_friction_range</span><span class="p">)</span>
+    <span class="n">mass</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">*</span><span class="n">dr_params</span><span class="o">.</span><span class="n">cube_mass_range</span><span class="p">)</span>
+    <span class="c1"># ... 调用 maniskill API 设置这些参数 ...</span>
+<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+</code></pre></div>
+
+<div class="codehilite"><pre><span></span><code><span class="mf">3.</span><span class="w">  </span><span class="o">**</span><span class="n">训练</span><span class="w"> </span><span class="n">DR</span><span class="w"> </span><span class="n">策略</span><span class="o">**</span><span class="err">：</span><span class="n">使用实现了</span><span class="w"> </span><span class="n">DR</span><span class="w"> </span><span class="n">的环境</span><span class="err">，</span><span class="n">重新训练一个策略</span><span class="err">。</span>
+<span class="mf">4.</span><span class="w">  </span><span class="o">**</span><span class="n">消融研究</span><span class="o">**</span><span class="err">：</span><span class="n">分别只开启物理参数随机化</span><span class="err">、</span><span class="n">只开启视觉参数随机化</span><span class="err">、</span><span class="n">以及两者都开启</span><span class="err">，</span><span class="n">训练三个不同的策略</span><span class="err">。</span>
+</code></pre></div>
+
+<ul>
+<li><strong>评测指标</strong>：<ol>
+<li><strong>域内（In-Domain）成功率</strong>：在默认的、无随机化的环境中，策略的抓取成功率。</li>
+<li><strong>域外（Out-of-Distribution）成功率</strong>：在 <code>test_env_config.json</code> 定义的固定 <code>test</code> 域中，策略的 Zero-Shot 成功率。</li>
+</ol>
+</li>
+<li><strong>提交物</strong>：<ol>
+<li>修改后的 <code>maniskill_env.py</code> 和 <code>lab_d_dr.yaml</code>。</li>
+<li>一份简短的报告，包含：<ul>
+<li>一个表格，对比基线策略、仅物理DR、仅视觉DR、完全DR策略在“域内”和“域外”的成功率。</li>
+<li>分析为何 DR 能提升泛化性，以及物理和视觉随机化各自贡献了什么。</li>
+</ul>
+</li>
+</ol>
+</li>
+<li><strong>加分项</strong>：实现一个域随机化的课程（Curriculum），即随着训练的进行，逐渐扩大随机化参数的范围（例如，从 <code>[0.8, 1.2]</code> 倍的默认值，慢慢扩大到 <code>[0.5, 1.5]</code> 倍）。</li>
+</ul>
+<hr />
+<h3 id="lab-f">Lab F：运行时屏蔽与优雅降级（安全基线）</h3>
+<ul>
+<li><strong>实验目标</strong>：为基于学习的 VLA 策略构建一个最后的安全防线——运行时屏蔽（Runtime Shield）。当神经网络策略输出一个可能导致碰撞或违反核心约束的危险动作时，安全屏蔽会介入，将其投影到一个预定义的安全动作集合中，实现优雅降级。</li>
+<li><strong>背景知识</strong>：即使经过充分训练和测试，深度学习模型也无法保证在所有情况下都 100% 安全。运行时保障（Runtime Assurance, RTA）系统通过一个简单、可验证的“安全层”来监控和修正“高能但不保证安全”的主策略，是部署高风险自主系统的关键。</li>
+<li><strong>资源与环境</strong>：<ul>
+<li>框架：<code>RLinf</code></li>
+<li>仿真器：ManiSkill3，使用一个带机械臂和障碍物的 <code>ReachAvoid-v1</code> 任务。</li>
+<li>基线代码：一个训练好的策略，能完成到达目标的任务，但在某些角落情况下会与障碍物发生碰撞。</li>
+<li>配置文件：<code>configs/lab_f_shield.yaml</code></li>
+</ul>
+</li>
+<li><strong>实验步骤</strong>：<ol>
+<li><strong>识别危险场景</strong>：运行基线策略，记录下发生碰撞时的状态（<code>state</code>）和策略输出的动作（<code>action</code>），分析碰撞原因。</li>
+<li><strong>实现安全屏蔽</strong>在 <code>RolloutWorker</code> 中，在模型输出动作之后，但在发送给 <code>EnvWorker</code> 之前，插入一个 <code>safety_shield</code> 函数。该函数实现一个简单的、基于几何的安全规则。</li>
+</ol>
+</li>
+</ul>
+<div class="codehilite"><pre><span></span><code><span class="c1"># 伪代码，在 RolloutWorker.predict 之后</span>
+<span class="k">def</span> <span class="nf">safety_shield</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">):</span>
+    <span class="c1"># 获取机械臂末端执行器位置和障碍物位置</span>
+    <span class="n">end_effector_pos</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;tcp_pos&#39;</span><span class="p">]</span>
+    <span class="n">obstacle_pos</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s1">&#39;obstacle_pos&#39;</span><span class="p">]</span>
+    <span class="n">obstacle_radius</span> <span class="o">=</span> <span class="mf">0.1</span> <span class="c1"># 假设障碍物是球体</span>
+
+    <span class="c1"># 预测执行动作后的下一个位置</span>
+    <span class="c1"># 注意：这里的动力学模型需要简化，例如假设是简单的积分器</span>
+    <span class="n">next_pos_prediction</span> <span class="o">=</span> <span class="n">end_effector_pos</span> <span class="o">+</span> <span class="n">action</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">cfg</span><span class="o">.</span><span class="n">control_dt</span>
+
+    <span class="c1"># 安全规则：如果预测的下一步会进入障碍物的安全半径内</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">next_pos_prediction</span> <span class="o">-</span> <span class="n">obstacle_pos</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">obstacle_radius</span><span class="p">:</span>
+        <span class="c1"># 介入：将动作修正为“停止</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># 安全：允许原始动作</span>
+        <span class="k">return</span> <span class="n">action</span>
+
+<span class="n">original_action</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+<span class="n">safe_action</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">safety_shield</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">original_action</span><span class="p">)</span>
+<span class="k">return</span> <span class="n">safe_action</span>
+</code></pre></div>
+
+<div class="codehilite"><pre><span></span><code><span class="mf">3.</span><span class="w">  </span><span class="o">**</span><span class="n">评估屏蔽效果</span><span class="o">**</span><span class="err">：</span><span class="n">在开启</span><span class="o">/</span><span class="n">关闭安全屏蔽的情况下</span><span class="err">，</span><span class="n">重新运行策略</span><span class="err">，</span><span class="n">并统计碰撞率和任务成功率</span><span class="err">。</span>
+</code></pre></div>
+
+<ul>
+<li><strong>评测指标</strong>：<ol>
+<li><strong>碰撞率</strong>：在 100 次测试中，发生碰撞的百分比。</li>
+<li><strong>任务成功率</strong>：成功到达目标且未碰撞的百分比。</li>
+<li><strong>屏蔽介入率</strong>：安全屏蔽被触发的频率。</li>
+</ol>
+</li>
+<li><strong>提交物</strong>：<ol>
+<li>修改后的 <code>huggingface_worker.py</code>。</li>
+<li>一份简短的报告，包含：<ul>
+<li>开启/关闭屏蔽后的碰撞率与成功率对比。</li>
+<li>分析安全屏蔽为何能有效避免碰撞，并讨论它可能带来的负面影响（例如，过于保守可能导致任务无法完成）。</li>
+</ul>
+</li>
+</ol>
+</li>
+<li><strong>加分项</strong>：将简单的规则屏蔽替换为一个基于二次规划（Quadratic Programming）的控制屏障函数（Control Barrier Function, CBF）的简化实现。使用 <code>cvxpy</code> 库，将安全约束定义为 $h(x) \ge 0$，然后求解一个最小化与原动作差异的 QP 问题：$\min_{\mathbf{u}_{safe}} ||\mathbf{u}_{safe} - \mathbf{u}_{RL}||^2 \quad s.t. \quad \nabla h(x)\mathbf{f}(x,\mathbf{u}_{safe}) + \alpha(h(x)) \ge 0$。</li>
+</ul>
+<hr />
+<h3 id="_2">本章小结</h3>
+<p>本章提供了一系列阶梯式的动手实验，引导您穿越 VLA 部署的核心挑战区。</p>
+<ul>
+<li><strong>行动质量（Lab A, B）</strong>：您学会了从信号处理的视角来塑造和评估行动，并处理了现实世界中不可避免的延迟问题。</li>
+<li><strong>对齐与学习（Lab C, E）</strong>：您构建了从语言到行动的最小闭环，并实践了利用传统控制器（教师）指导神经网络（学生）进行残差学习的先进 Sim-to-Real 范式。</li>
+<li><strong>鲁棒与安全（Lab D, F）</strong>：您掌握了通过域随机化提升策略泛化能力的关键技术，并为您的智能体构建了最后一道可验证的安全屏障。
+通过完成这些实验，您不仅验证了理论知识，更重要的是，积累了在 <code>RLinf</code> 框架下进行调试、分析和创新的宝贵工程经验。</li>
+</ul>
+<h3 id="gotchas">常见陷阱与错误 (Gotchas)</h3>
+<ol>
+<li><strong>环境与依赖</strong>：确保您的 <code>conda</code> 环境已正确安装所有依赖，特别是 <code>ManiSkill3</code> 及其渲染后端。在无头服务器上运行时，务必确认使用了正确的渲染模式（如 <code>headless</code> 或 <code>server</code>）。<code>PYTHONPATH</code> 未正确设置是导致模块找不到的常见原因。</li>
+<li><strong>数据维度与类型</strong>：在 <code>RLinf</code> 的 <code>Channel</code> 中传递数据时，要时刻注意 <code>torch.Tensor</code> 的 <code>shape</code>、<code>dtype</code> 和 <code>device</code>。一个常见的错误是在 <code>ActorWorker</code> (GPU) 和 <code>RolloutWorker</code> (可能在 CPU) 之间传递数据时忘记了 <code>.to(device)</code>。</li>
+<li><strong>配置驱动的陷阱</strong>：<code>RLinf</code> 高度依赖 <code>yaml</code> 配置。一个缩进错误或拼写错误可能导致配置无法析，或被静默地忽略，导致程序行为不符合预期。在修改配置后，养成检查 <code>main</code> 函数打印出的最终配置的习惯。</li>
+<li><strong>分布式调试</strong>：<code>Worker</code> 在独立的进程中运行，<code>print</code> 语句的输出可能会被打乱或重定向。学会使用 <code>RLinf</code> 的日志系统，并为关键模块设置不同的日志级别。当出现 Worker 僵死时，检查 <code>Channel</code> 是否存在死锁（例如，一个 <code>get</code> 操作永远等不到 <code>put</code>）。</li>
+<li><strong>过拟合域随机化</strong>：在 Lab D 中，如果随机化的范围过窄，或者随机化的参数与测试域的真实差异正交，策略可能依然无法泛化。好的 DR 需要对现实世界的可能变化有准确的先验知识。</li>
+<li><strong>安全屏蔽的副作用</strong>：在 Lab F 中，过于保守的安全屏蔽可能会导致“冻结”行为（Chattering），即策略在安全边界附近反复触发屏蔽，导致无法取得进展。安全屏蔽的设计需要在安全性和任务性能之间取得精妙的平衡</li>
+</ol>
+            </article>
+            
+            <nav class="page-nav"><a href="chapter11.html" class="nav-link prev">← 第11章 神经化 Sim-to-Real：弥合仿真与现实的认知与动力学鸿沟</a><a href="chapter13.html" class="nav-link next">第13章 大作业设计（Final Project） →</a></nav>
+        </main>
+    </div>
+</body>
+</html>
