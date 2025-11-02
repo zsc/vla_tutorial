@@ -268,6 +268,7 @@ $$
 <li><strong>轨迹奖励</strong>: 采用<strong>角度-长度增强 Fréchet 距离 (ALAF)</strong> 来奖励路径的平滑度和动态一致性。</li>
 <li><strong>空间定位奖励</strong>: 使用<strong>广义交并比 (GIoU)</strong> 代替标准 IoU，在不重叠时也能提供有意义的梯度。</li>
 <li><strong>格式奖励</strong>: 一个二元奖励，确保模型的输出严格遵守预定结构。</li>
+<li><strong>消融研究证明</strong>: VLA-R1 的消融实验清晰地表明，<code>SFT &lt; SFT + CoT &lt; SFT + CoT + RL</code>。这证明了<strong>显式推理 (CoT)</strong> 和<strong>后续优化 (RL)</strong> 两者相辅相成，缺一不可。</li>
 </ul>
 </li>
 </ul>
